@@ -9,17 +9,20 @@ spring:
     config:
         activate:
             on-profile: production
-    # Minimal H2 database for JPA entities (won't be used actively)
+    # Force H2 database configuration (override any Railway variables)
     datasource:
         url: jdbc:h2:mem:tempdb
         driver-class-name: org.h2.Driver
         username: sa
-        password:
+        password: ""
+        hikari:
+            auto-commit: true
     jpa:
         database-platform: org.hibernate.dialect.H2Dialect
         hibernate:
             ddl-auto: create-drop
         show-sql: false
+        database: h2
     h2:
         console:
             enabled: false
@@ -45,8 +48,8 @@ supabase:
     service-key: ${SUPABASE_SERVICE_KEY}
 
 stripe:
-    secret-key: ${STRIPE_SECRET_KEY}
-    webhook-secret: ${STRIPE_WEBHOOK_SECRET}
+    secret-key: ${STRIPE_SECRET_KEY:sk_test_placeholder}
+    webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_placeholder}
 
 logging:
     level:
