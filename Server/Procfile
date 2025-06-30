@@ -1,1 +1,1 @@
-web: java -jar target/backend-1.0.0.jar 
+web: java -Dspring.profiles.active=production -Dserver.port=$PORT -jar target/backend-1.0.0.jar 

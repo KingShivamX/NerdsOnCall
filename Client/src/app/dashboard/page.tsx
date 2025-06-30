@@ -1,23 +1,19 @@
 "use client"
 
-import { useAuth } from "../../context/AuthContext"
-import { Navbar } from "../../components/layout/Navbar"
-import { Button } from "../../components/ui/button"
+import Link from "next/link"
+import { useAuth } from "@/context/AuthContext"
+import { Navbar } from "@/components/layout/Navbar"
+import { Button } from "@/components/ui/button"
 import {
     Card,
     CardContent,
     CardDescription,
     CardHeader,
     CardTitle,
-} from "../../components/ui/card"
-import { Badge } from "../../components/ui/badge"
-import { Progress } from "../../components/ui/progress"
-import {
-    Tabs,
-    TabsContent,
-    TabsList,
-    TabsTrigger,
-} from "../../components/ui/tabs"
+} from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
     BookOpen,
     Users,
@@ -39,6 +35,10 @@ import {
     BarChart3,
     GraduationCap,
     PlayCircle,
+    ArrowRight,
+    Bell,
+    Search,
+    Filter,
 } from "lucide-react"
 
 export default function DashboardPage() {
@@ -59,6 +59,14 @@ export default function DashboardPage() {
                             Please log in to access your premium dashboard
                         </CardDescription>
                     </CardHeader>
+                    <div className="flex justify-center mt-6">
+                        <Link href="/auth/login">
+                            <Button className="premium-button text-white border-0">
+                                <Crown className="w-4 h-4 mr-2" />
+                                Sign In Now
+                            </Button>
+                        </Link>
+                    </div>
                 </Card>
             </div>
         )
@@ -74,7 +82,7 @@ export default function DashboardPage() {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     {/* Header */}
                     <div className="mb-8">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between">
                             <div>
                                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
                                     Welcome back, {user.firstName}!
@@ -103,13 +111,30 @@ export default function DashboardPage() {
                                     </span>
                                 </div>
                             </div>
-                            <div className="hidden md:flex items-center space-x-4">
-                                <Button className="premium-button text-white border-0">
-                                    <PlusCircle className="w-4 h-4 mr-2" />
-                                    {isStudent
-                                        ? "Book Session"
-                                        : "Create Session"}
+                            <div className="flex items-center space-x-4 mt-4 md:mt-0">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="group"
+                                >
+                                    <Bell className="w-4 h-4 mr-2 group-hover:animate-pulse" />
+                                    Notifications
                                 </Button>
+                                <Link
+                                    href={
+                                        isStudent
+                                            ? "/search-tutors"
+                                            : "/create-session"
+                                    }
+                                >
+                                    <Button className="premium-button text-white border-0 group">
+                                        <PlusCircle className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform" />
+                                        {isStudent
+                                            ? "Book Session"
+                                            : "Create Session"}
+                                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                                    </Button>
+                                </Link>
                             </div>
                         </div>
                     </div>
@@ -141,7 +166,7 @@ export default function DashboardPage() {
                         <Card className="luxury-card border-0 group hover:scale-105 transition-all duration-300">
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <CardTitle className="text-sm font-medium text-gray-600">
-                                    Hours Learned
+                                    Hours {isStudent ? "Learned" : "Taught"}
                                 </CardTitle>
                                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
                                     <Clock className="h-5 w-5 text-white" />
@@ -217,99 +242,115 @@ export default function DashboardPage() {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {isStudent ? (
                                             <>
-                                                <Button className="premium-button text-white border-0 h-auto p-4 flex-col">
-                                                    <PlusCircle className="h-6 w-6 mb-2" />
-                                                    <span className="font-semibold">
-                                                        Ask a Question
-                                                    </span>
-                                                    <span className="text-xs opacity-90">
-                                                        Get instant help
-                                                    </span>
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    className="premium-glass border-2 border-purple-200 h-auto p-4 flex-col"
-                                                >
-                                                    <Users className="h-6 w-6 mb-2 text-purple-600" />
-                                                    <span className="font-semibold text-purple-700">
-                                                        Browse Tutors
-                                                    </span>
-                                                    <span className="text-xs text-purple-600">
-                                                        Find experts
-                                                    </span>
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    className="premium-glass border-2 border-blue-200 h-auto p-4 flex-col"
-                                                >
-                                                    <BookOpen className="h-6 w-6 mb-2 text-blue-600" />
-                                                    <span className="font-semibold text-blue-700">
-                                                        Study Materials
-                                                    </span>
-                                                    <span className="text-xs text-blue-600">
-                                                        Access resources
-                                                    </span>
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    className="premium-glass border-2 border-green-200 h-auto p-4 flex-col"
-                                                >
-                                                    <BarChart3 className="h-6 w-6 mb-2 text-green-600" />
-                                                    <span className="font-semibold text-green-700">
-                                                        Progress Report
-                                                    </span>
-                                                    <span className="text-xs text-green-600">
-                                                        View analytics
-                                                    </span>
-                                                </Button>
+                                                <Link href="/ask-question">
+                                                    <Button className="premium-button text-white border-0 h-auto p-4 flex-col w-full group">
+                                                        <PlusCircle className="h-6 w-6 mb-2 group-hover:rotate-90 transition-transform" />
+                                                        <span className="font-semibold">
+                                                            Ask a Question
+                                                        </span>
+                                                        <span className="text-xs opacity-90">
+                                                            Get instant help
+                                                        </span>
+                                                    </Button>
+                                                </Link>
+                                                <Link href="/browse-tutors">
+                                                    <Button
+                                                        variant="outline"
+                                                        className="premium-glass border-2 border-purple-200 h-auto p-4 flex-col w-full group"
+                                                    >
+                                                        <Users className="h-6 w-6 mb-2 text-purple-600 group-hover:scale-110 transition-transform" />
+                                                        <span className="font-semibold text-purple-700">
+                                                            Browse Tutors
+                                                        </span>
+                                                        <span className="text-xs text-purple-600">
+                                                            Find experts
+                                                        </span>
+                                                    </Button>
+                                                </Link>
+                                                <Link href="/study-materials">
+                                                    <Button
+                                                        variant="outline"
+                                                        className="premium-glass border-2 border-blue-200 h-auto p-4 flex-col w-full group"
+                                                    >
+                                                        <BookOpen className="h-6 w-6 mb-2 text-blue-600 group-hover:scale-110 transition-transform" />
+                                                        <span className="font-semibold text-blue-700">
+                                                            Study Materials
+                                                        </span>
+                                                        <span className="text-xs text-blue-600">
+                                                            Access resources
+                                                        </span>
+                                                    </Button>
+                                                </Link>
+                                                <Link href="/progress-report">
+                                                    <Button
+                                                        variant="outline"
+                                                        className="premium-glass border-2 border-green-200 h-auto p-4 flex-col w-full group"
+                                                    >
+                                                        <BarChart3 className="h-6 w-6 mb-2 text-green-600 group-hover:scale-110 transition-transform" />
+                                                        <span className="font-semibold text-green-700">
+                                                            Progress Report
+                                                        </span>
+                                                        <span className="text-xs text-green-600">
+                                                            View analytics
+                                                        </span>
+                                                    </Button>
+                                                </Link>
                                             </>
                                         ) : (
                                             <>
-                                                <Button className="premium-button text-white border-0 h-auto p-4 flex-col">
-                                                    <Calendar className="h-6 w-6 mb-2" />
-                                                    <span className="font-semibold">
-                                                        Open Schedule
-                                                    </span>
-                                                    <span className="text-xs opacity-90">
-                                                        Set availability
-                                                    </span>
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    className="premium-glass border-2 border-purple-200 h-auto p-4 flex-col"
-                                                >
-                                                    <Users className="h-6 w-6 mb-2 text-purple-600" />
-                                                    <span className="font-semibold text-purple-700">
-                                                        Student Requests
-                                                    </span>
-                                                    <span className="text-xs text-purple-600">
-                                                        View pending
-                                                    </span>
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    className="premium-glass border-2 border-blue-200 h-auto p-4 flex-col"
-                                                >
-                                                    <TrendingUp className="h-6 w-6 mb-2 text-blue-600" />
-                                                    <span className="font-semibold text-blue-700">
-                                                        Earnings
-                                                    </span>
-                                                    <span className="text-xs text-blue-600">
-                                                        View analytics
-                                                    </span>
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    className="premium-glass border-2 border-green-200 h-auto p-4 flex-col"
-                                                >
-                                                    <Award className="h-6 w-6 mb-2 text-green-600" />
-                                                    <span className="font-semibold text-green-700">
-                                                        Achievements
-                                                    </span>
-                                                    <span className="text-xs text-green-600">
-                                                        Your badges
-                                                    </span>
-                                                </Button>
+                                                <Link href="/schedule">
+                                                    <Button className="premium-button text-white border-0 h-auto p-4 flex-col w-full group">
+                                                        <Calendar className="h-6 w-6 mb-2 group-hover:scale-110 transition-transform" />
+                                                        <span className="font-semibold">
+                                                            Open Schedule
+                                                        </span>
+                                                        <span className="text-xs opacity-90">
+                                                            Set availability
+                                                        </span>
+                                                    </Button>
+                                                </Link>
+                                                <Link href="/student-requests">
+                                                    <Button
+                                                        variant="outline"
+                                                        className="premium-glass border-2 border-purple-200 h-auto p-4 flex-col w-full group"
+                                                    >
+                                                        <Users className="h-6 w-6 mb-2 text-purple-600 group-hover:scale-110 transition-transform" />
+                                                        <span className="font-semibold text-purple-700">
+                                                            Student Requests
+                                                        </span>
+                                                        <span className="text-xs text-purple-600">
+                                                            View pending
+                                                        </span>
+                                                    </Button>
+                                                </Link>
+                                                <Link href="/earnings">
+                                                    <Button
+                                                        variant="outline"
+                                                        className="premium-glass border-2 border-blue-200 h-auto p-4 flex-col w-full group"
+                                                    >
+                                                        <TrendingUp className="h-6 w-6 mb-2 text-blue-600 group-hover:scale-110 transition-transform" />
+                                                        <span className="font-semibold text-blue-700">
+                                                            Earnings
+                                                        </span>
+                                                        <span className="text-xs text-blue-600">
+                                                            View analytics
+                                                        </span>
+                                                    </Button>
+                                                </Link>
+                                                <Link href="/achievements">
+                                                    <Button
+                                                        variant="outline"
+                                                        className="premium-glass border-2 border-green-200 h-auto p-4 flex-col w-full group"
+                                                    >
+                                                        <Award className="h-6 w-6 mb-2 text-green-600 group-hover:scale-110 transition-transform" />
+                                                        <span className="font-semibold text-green-700">
+                                                            Achievements
+                                                        </span>
+                                                        <span className="text-xs text-green-600">
+                                                            Your badges
+                                                        </span>
+                                                    </Button>
+                                                </Link>
                                             </>
                                         )}
                                     </div>
@@ -319,10 +360,15 @@ export default function DashboardPage() {
                             {/* Recent Activity */}
                             <Card className="luxury-card border-0">
                                 <CardHeader>
-                                    <CardTitle className="flex items-center">
-                                        <Clock className="w-5 h-5 mr-2 text-blue-600" />
-                                        Recent Activity
-                                    </CardTitle>
+                                    <div className="flex items-center justify-between">
+                                        <CardTitle className="flex items-center">
+                                            <Clock className="w-5 h-5 mr-2 text-blue-600" />
+                                            Recent Activity
+                                        </CardTitle>
+                                        <Button variant="ghost" size="sm">
+                                            View All
+                                        </Button>
+                                    </div>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="space-y-4">
@@ -357,10 +403,10 @@ export default function DashboardPage() {
                                         ].map((activity, index) => (
                                             <div
                                                 key={index}
-                                                className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                                                className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer group"
                                             >
                                                 <div
-                                                    className={`w-10 h-10 rounded-full ${activity.bg} flex items-center justify-center flex-shrink-0`}
+                                                    className={`w-10 h-10 rounded-full ${activity.bg} flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}
                                                 >
                                                     <activity.icon
                                                         className={`h-5 w-5 ${activity.color}`}
@@ -377,6 +423,7 @@ export default function DashboardPage() {
                                                         {activity.time}
                                                     </p>
                                                 </div>
+                                                <ArrowRight className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                                             </div>
                                         ))}
                                     </div>
@@ -391,7 +438,9 @@ export default function DashboardPage() {
                                 <CardHeader>
                                     <CardTitle className="flex items-center">
                                         <TrendingUp className="w-5 h-5 mr-2 text-purple-600" />
-                                        Learning Progress
+                                        {isStudent
+                                            ? "Learning Progress"
+                                            : "Teaching Stats"}
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
@@ -486,13 +535,13 @@ export default function DashboardPage() {
                                         ].map((badge, index) => (
                                             <div
                                                 key={index}
-                                                className="text-center"
+                                                className="text-center group cursor-pointer"
                                             >
                                                 <div
-                                                    className={`w-12 h-12 mx-auto rounded-full flex items-center justify-center mb-2 ${
+                                                    className={`w-12 h-12 mx-auto rounded-full flex items-center justify-center mb-2 transition-all duration-300 ${
                                                         badge.earned
-                                                            ? "royal-gradient"
-                                                            : "bg-gray-100"
+                                                            ? "royal-gradient group-hover:glow"
+                                                            : "bg-gray-100 group-hover:bg-gray-200"
                                                     }`}
                                                 >
                                                     <badge.icon
@@ -503,13 +552,7 @@ export default function DashboardPage() {
                                                         }`}
                                                     />
                                                 </div>
-                                                <p
-                                                    className={`text-xs ${
-                                                        badge.earned
-                                                            ? "text-gray-900 font-medium"
-                                                            : "text-gray-500"
-                                                    }`}
-                                                >
+                                                <p className="text-xs text-gray-600 font-medium">
                                                     {badge.name}
                                                 </p>
                                             </div>
@@ -531,48 +574,55 @@ export default function DashboardPage() {
                                         {[
                                             {
                                                 subject: "Advanced Calculus",
-                                                tutor: "Dr. Emily Chen",
+                                                tutor: "Dr. John Smith",
                                                 time: "Today, 3:00 PM",
                                                 duration: "1 hour",
                                             },
                                             {
                                                 subject: "Organic Chemistry",
-                                                tutor: "Prof. Michael Brown",
+                                                tutor: "Prof. Emily Davis",
                                                 time: "Tomorrow, 10:00 AM",
-                                                duration: "1.5 hours",
+                                                duration: "45 minutes",
                                             },
                                         ].map((session, index) => (
                                             <div
                                                 key={index}
-                                                className="p-3 rounded-lg border border-gray-200 hover:border-purple-200 transition-colors"
+                                                className="p-3 rounded-lg border border-gray-200 hover:border-purple-300 transition-colors cursor-pointer group"
                                             >
-                                                <div className="flex justify-between items-start mb-2">
+                                                <div className="flex items-center justify-between mb-2">
                                                     <h4 className="font-medium text-gray-900">
                                                         {session.subject}
                                                     </h4>
-                                                    <Badge
-                                                        variant="outline"
-                                                        className="text-xs"
+                                                    <Button
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        className="group-hover:bg-purple-50"
                                                     >
-                                                        {session.duration}
-                                                    </Badge>
+                                                        <Video className="w-4 h-4" />
+                                                    </Button>
                                                 </div>
                                                 <p className="text-sm text-gray-600">
                                                     {session.tutor}
                                                 </p>
-                                                <p className="text-xs text-gray-500 mt-1">
-                                                    {session.time}
-                                                </p>
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    className="w-full mt-2 text-xs"
-                                                >
-                                                    <PlayCircle className="w-3 h-3 mr-1" />
-                                                    Join Session
-                                                </Button>
+                                                <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
+                                                    <span>{session.time}</span>
+                                                    <span>
+                                                        {session.duration}
+                                                    </span>
+                                                </div>
                                             </div>
                                         ))}
+                                    </div>
+                                    <div className="mt-4">
+                                        <Link href="/sessions">
+                                            <Button
+                                                variant="outline"
+                                                className="w-full group"
+                                            >
+                                                View All Sessions
+                                                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                                            </Button>
+                                        </Link>
                                     </div>
                                 </CardContent>
                             </Card>

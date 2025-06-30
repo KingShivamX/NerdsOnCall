@@ -141,14 +141,14 @@ export function Pricing() {
     ]
 
     return (
-        <section className="py-24 hero-background relative overflow-hidden">
+        <section className="py-20 hero-background relative overflow-hidden">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Section Header */}
-                <div className="text-center mb-20">
-                    <div className="flex justify-center mb-6">
+                <div className="text-center mb-16">
+                    <div className="flex justify-center mb-5">
                         <Badge
                             variant="secondary"
-                            className="premium-glass border-0 text-purple-700 px-6 py-2 text-sm font-medium"
+                            className="premium-glass border-0 text-purple-700 px-5 py-2 text-sm font-medium"
                         >
                             <Sparkles className="w-4 h-4 mr-2" />
                             Flexible Pricing
@@ -156,7 +156,7 @@ export function Pricing() {
                         </Badge>
                     </div>
 
-                    <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6">
+                    <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-5">
                         <span className="text-gray-900 premium-text-shadow">
                             Choose Your
                         </span>
@@ -164,25 +164,25 @@ export function Pricing() {
                         <span className="royal-text">Learning Journey</span>
                     </h2>
 
-                    <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                    <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
                         Unlock your potential with our premium tutoring plans
                         designed for every learning style and budget.
                     </p>
                 </div>
 
                 {/* Student Plans */}
-                <div className="mb-20">
-                    <div className="text-center mb-12">
-                        <h3 className="text-3xl font-bold text-gray-900 mb-4">
+                <div className="mb-16">
+                    <div className="text-center mb-10">
+                        <h3 className="text-2xl font-bold text-gray-900 mb-3">
                             For Students
                         </h3>
-                        <p className="text-lg text-gray-600">
+                        <p className="text-base text-gray-600">
                             Transform your learning experience with our premium
                             student plans
                         </p>
                     </div>
 
-                    <div className="grid lg:grid-cols-3 gap-8">
+                    <div className="grid lg:grid-cols-3 gap-6">
                         {plans.map((plan, index) => (
                             <Card
                                 key={index}
@@ -196,65 +196,65 @@ export function Pricing() {
                                 `}
                             >
                                 {plan.popular && (
-                                    <div className="absolute top-0 left-0 right-0 royal-gradient p-3 text-center">
+                                    <div className="absolute top-0 left-0 right-0 royal-gradient p-2 text-center">
                                         <span className="text-white font-bold text-sm flex items-center justify-center">
-                                            <Crown className="w-4 h-4 mr-2" />
+                                            <Crown className="w-3 h-3 mr-1" />
                                             MOST POPULAR
-                                            <Crown className="w-4 h-4 ml-2" />
+                                            <Crown className="w-3 h-3 ml-1" />
                                         </span>
                                     </div>
                                 )}
 
                                 <CardHeader
-                                    className={`pb-4 ${
-                                        plan.popular ? "pt-16" : "pt-8"
+                                    className={`pb-3 ${
+                                        plan.popular ? "pt-12" : "pt-6"
                                     }`}
                                 >
-                                    <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center justify-between mb-3">
                                         <div
-                                            className={`w-12 h-12 rounded-full bg-gradient-to-br ${plan.gradient} flex items-center justify-center`}
+                                            className={`w-10 h-10 rounded-full bg-gradient-to-br ${plan.gradient} flex items-center justify-center`}
                                         >
-                                            <plan.icon className="h-6 w-6 text-white" />
+                                            <plan.icon className="h-5 w-5 text-white" />
                                         </div>
                                         {plan.popular && (
-                                            <Badge className="royal-gradient text-white border-0">
+                                            <Badge className="royal-gradient text-white border-0 text-xs">
                                                 <Sparkles className="w-3 h-3 mr-1" />
                                                 Best Value
                                             </Badge>
                                         )}
                                     </div>
 
-                                    <CardTitle className="text-2xl font-bold text-gray-900">
+                                    <CardTitle className="text-lg font-bold text-gray-900">
                                         {plan.name}
                                     </CardTitle>
-                                    <CardDescription className="text-gray-600 mt-2">
+                                    <CardDescription className="text-gray-600 mt-1 text-sm">
                                         {plan.description}
                                     </CardDescription>
 
-                                    <div className="mt-6">
+                                    <div className="mt-4">
                                         <div className="flex items-baseline">
-                                            <span className="text-4xl font-bold royal-text">
+                                            <span className="text-3xl font-bold royal-text">
                                                 ${plan.price}
                                             </span>
-                                            <span className="text-gray-600 ml-2">
+                                            <span className="text-gray-600 ml-1 text-sm">
                                                 /{plan.period}
                                             </span>
                                         </div>
                                     </div>
                                 </CardHeader>
 
-                                <CardContent className="pt-4">
+                                <CardContent className="pt-3">
                                     <Link href={plan.href}>
                                         <Button
                                             className={`
-                                                w-full mb-6 font-semibold group
+                                                w-full mb-5 font-semibold group text-sm
                                                 ${
                                                     plan.popular
                                                         ? "premium-button text-white border-0"
                                                         : "premium-glass border-2 border-purple-200 text-purple-700 hover:text-purple-800 backdrop-blur-lg"
                                                 }
                                             `}
-                                            size="lg"
+                                            size="default"
                                         >
                                             {plan.popular && (
                                                 <Crown className="w-4 h-4 mr-2 group-hover:animate-bounce" />
@@ -264,7 +264,7 @@ export function Pricing() {
                                         </Button>
                                     </Link>
 
-                                    <div className="space-y-3">
+                                    <div className="space-y-2">
                                         {plan.features.map(
                                             (feature, featureIndex) => (
                                                 <div
@@ -272,11 +272,11 @@ export function Pricing() {
                                                     className="flex items-start"
                                                 >
                                                     <div
-                                                        className={`w-5 h-5 rounded-full bg-gradient-to-br ${plan.gradient} flex items-center justify-center flex-shrink-0 mt-0.5`}
+                                                        className={`w-4 h-4 rounded-full bg-gradient-to-br ${plan.gradient} flex items-center justify-center flex-shrink-0 mt-0.5`}
                                                     >
-                                                        <Check className="h-3 w-3 text-white" />
+                                                        <Check className="h-2.5 w-2.5 text-white" />
                                                     </div>
-                                                    <span className="text-gray-700 ml-3 text-sm">
+                                                    <span className="text-gray-700 ml-2 text-sm">
                                                         {feature}
                                                     </span>
                                                 </div>
@@ -292,9 +292,9 @@ export function Pricing() {
 
                                 {plan.popular && (
                                     <>
-                                        <div className="absolute top-20 right-4 w-16 h-16 bg-yellow-400/20 rounded-full blur-xl animate-pulse"></div>
+                                        <div className="absolute top-16 right-3 w-12 h-12 bg-yellow-400/20 rounded-full blur-xl animate-pulse"></div>
                                         <div
-                                            className="absolute bottom-20 left-4 w-12 h-12 bg-purple-400/20 rounded-full blur-xl animate-pulse"
+                                            className="absolute bottom-16 left-3 w-10 h-10 bg-purple-400/20 rounded-full blur-xl animate-pulse"
                                             style={{ animationDelay: "1s" }}
                                         ></div>
                                     </>
@@ -305,28 +305,28 @@ export function Pricing() {
                 </div>
 
                 {/* Tutor Plans */}
-                <div className="mb-16">
-                    <div className="text-center mb-12">
-                        <h3 className="text-3xl font-bold text-gray-900 mb-4">
+                <div className="mb-14">
+                    <div className="text-center mb-10">
+                        <h3 className="text-2xl font-bold text-gray-900 mb-3">
                             For Tutors
                         </h3>
-                        <p className="text-lg text-gray-600">
+                        <p className="text-base text-gray-600">
                             Start earning with our comprehensive tutor platform
                         </p>
                     </div>
 
-                    <div className="grid lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                    <div className="grid lg:grid-cols-2 gap-6 max-w-5xl mx-auto">
                         {tutorPlans.map((plan, index) => (
                             <Card
                                 key={index}
                                 className="luxury-card border-0 hover:scale-105 transition-all duration-300 relative overflow-hidden"
                             >
-                                <CardHeader className="pb-4">
-                                    <div className="flex items-center justify-between mb-4">
+                                <CardHeader className="pb-3">
+                                    <div className="flex items-center justify-between mb-3">
                                         <div
-                                            className={`w-12 h-12 rounded-full bg-gradient-to-br ${plan.gradient} flex items-center justify-center`}
+                                            className={`w-10 h-10 rounded-full bg-gradient-to-br ${plan.gradient} flex items-center justify-center`}
                                         >
-                                            <plan.icon className="h-6 w-6 text-white" />
+                                            <plan.icon className="h-5 w-5 text-white" />
                                         </div>
                                         <Badge
                                             variant="outline"
@@ -336,22 +336,22 @@ export function Pricing() {
                                         </Badge>
                                     </div>
 
-                                    <CardTitle className="text-2xl font-bold text-gray-900">
+                                    <CardTitle className="text-lg font-bold text-gray-900">
                                         {plan.name}
                                     </CardTitle>
-                                    <CardDescription className="text-gray-600 mt-2">
+                                    <CardDescription className="text-gray-600 mt-1 text-sm">
                                         {plan.description}
                                     </CardDescription>
 
-                                    <div className="mt-6">
+                                    <div className="mt-4">
                                         <div className="flex items-baseline">
-                                            <span className="text-4xl font-bold royal-text">
+                                            <span className="text-3xl font-bold royal-text">
                                                 {typeof plan.price === "string"
                                                     ? plan.price
                                                     : `$${plan.price}`}
                                             </span>
                                             {typeof plan.price === "number" && (
-                                                <span className="text-gray-600 ml-2">
+                                                <span className="text-gray-600 ml-1 text-sm">
                                                     /{plan.period}
                                                 </span>
                                             )}
@@ -359,11 +359,11 @@ export function Pricing() {
                                     </div>
                                 </CardHeader>
 
-                                <CardContent className="pt-4">
+                                <CardContent className="pt-3">
                                     <Link href={plan.href}>
                                         <Button
-                                            className="w-full mb-6 premium-glass border-2 border-emerald-200 text-emerald-700 hover:text-emerald-800 backdrop-blur-lg font-semibold group"
-                                            size="lg"
+                                            className="w-full mb-5 premium-glass border-2 border-emerald-200 text-emerald-700 hover:text-emerald-800 backdrop-blur-lg font-semibold group text-sm"
+                                            size="default"
                                         >
                                             <Star className="w-4 h-4 mr-2 group-hover:animate-spin" />
                                             {plan.buttonText}
@@ -371,7 +371,7 @@ export function Pricing() {
                                         </Button>
                                     </Link>
 
-                                    <div className="space-y-3">
+                                    <div className="space-y-2">
                                         {plan.features.map(
                                             (feature, featureIndex) => (
                                                 <div
@@ -379,11 +379,11 @@ export function Pricing() {
                                                     className="flex items-start"
                                                 >
                                                     <div
-                                                        className={`w-5 h-5 rounded-full bg-gradient-to-br ${plan.gradient} flex items-center justify-center flex-shrink-0 mt-0.5`}
+                                                        className={`w-4 h-4 rounded-full bg-gradient-to-br ${plan.gradient} flex items-center justify-center flex-shrink-0 mt-0.5`}
                                                     >
-                                                        <Check className="h-3 w-3 text-white" />
+                                                        <Check className="h-2.5 w-2.5 text-white" />
                                                     </div>
-                                                    <span className="text-gray-700 ml-3 text-sm">
+                                                    <span className="text-gray-700 ml-2 text-sm">
                                                         {feature}
                                                     </span>
                                                 </div>
@@ -401,21 +401,21 @@ export function Pricing() {
                 </div>
 
                 {/* Money Back Guarantee */}
-                <div className="luxury-card p-8 rounded-3xl text-center">
-                    <div className="w-16 h-16 mx-auto mb-6 rounded-full royal-gradient flex items-center justify-center">
-                        <Shield className="h-8 w-8 text-white" />
+                <div className="luxury-card p-6 rounded-3xl text-center">
+                    <div className="w-12 h-12 mx-auto mb-4 rounded-full royal-gradient flex items-center justify-center">
+                        <Shield className="h-6 w-6 text-white" />
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                    <h3 className="text-xl font-bold text-gray-900 mb-3">
                         30-Day Money-Back Guarantee
                     </h3>
-                    <p className="text-gray-600 max-w-2xl mx-auto mb-6">
+                    <p className="text-gray-600 max-w-2xl mx-auto mb-5 text-sm">
                         Not satisfied with your learning experience? Get a full
                         refund within 30 days, no questions asked. We're
                         confident you'll love our premium tutoring platform.
                     </p>
                     <div className="flex justify-center">
                         <Link href="/auth/register">
-                            <Button className="premium-button text-white border-0 px-8 py-3 font-semibold group">
+                            <Button className="premium-button text-white border-0 px-6 py-2 font-semibold group text-sm">
                                 Try Risk-Free Now
                                 <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                             </Button>

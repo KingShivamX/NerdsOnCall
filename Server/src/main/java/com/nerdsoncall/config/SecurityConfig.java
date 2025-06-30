@@ -51,6 +51,8 @@ public class SecurityConfig {
                 .requestMatchers("/stripe/webhook").permitAll()
                 .requestMatchers("/ws/**").permitAll()
                 .requestMatchers("/health").permitAll()
+                .requestMatchers("/welcome").permitAll()
+                .requestMatchers("/").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
                 .anyRequest().authenticated()
