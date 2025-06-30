@@ -1,4 +1,6 @@
+import Link from "next/link"
 import { Badge } from "../ui/badge"
+import { Button } from "../ui/button"
 import {
     Card,
     CardContent,
@@ -24,6 +26,8 @@ import {
     Lightbulb,
     Target,
     Rocket,
+    ArrowRight,
+    Play,
 } from "lucide-react"
 
 export function Features() {
@@ -268,14 +272,20 @@ export function Features() {
                         Ready to experience the future of online tutoring?
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <button className="premium-button text-white border-0 px-8 py-4 text-lg font-semibold rounded-lg min-w-[200px]">
-                            <Crown className="mr-2 h-5 w-5" />
-                            Start Learning Today
-                        </button>
-                        <button className="premium-glass border-2 border-purple-200 text-purple-700 hover:text-purple-800 px-8 py-4 text-lg font-semibold rounded-lg min-w-[200px] backdrop-blur-lg transition-all duration-300">
-                            <Star className="mr-2 h-5 w-5" />
-                            View Demo
-                        </button>
+                        <Link href="/auth/register?role=student">
+                            <Button className="premium-button text-white border-0 px-8 py-4 text-lg font-semibold rounded-lg min-w-[220px] group">
+                                <Crown className="mr-2 h-5 w-5 group-hover:animate-bounce" />
+                                Start Learning Today
+                                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                            </Button>
+                        </Link>
+                        <Button
+                            variant="outline"
+                            className="premium-glass border-2 border-purple-200 text-purple-700 hover:text-purple-800 px-8 py-4 text-lg font-semibold rounded-lg min-w-[220px] backdrop-blur-lg transition-all duration-300 group"
+                        >
+                            <Play className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
+                            Watch Demo
+                        </Button>
                     </div>
                 </div>
             </div>

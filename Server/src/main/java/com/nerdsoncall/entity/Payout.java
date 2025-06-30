@@ -24,8 +24,8 @@ public class Payout {
     @JoinColumn(name = "tutor_id", nullable = false)
     private User tutor;
 
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal amount;
+    @Column(nullable = false, precision = 10)
+    private Double amount;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

@@ -67,6 +67,12 @@ public class Session {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    @Column(precision = 10)
+    private Double amount;
+
+    @Column(precision = 10)
+    private Double commission;
+
     public enum Status {
         PENDING, ACTIVE, COMPLETED, CANCELLED, TIMEOUT
     }

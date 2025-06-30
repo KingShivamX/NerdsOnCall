@@ -59,10 +59,10 @@ public class User {
     
     private Integer totalSessions = 0;
 
-    @Column(precision = 10, scale = 2)
+    @Column(precision = 10)
     private Double totalEarnings = 0.0;
 
-    @Column(precision = 10, scale = 2)
+    @Column(precision = 10)
     private Double hourlyRate = 0.0;
 
     // Stripe Connect account for tutors

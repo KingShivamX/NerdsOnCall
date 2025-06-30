@@ -32,8 +32,8 @@ public class Subscription {
     @Column(nullable = false)
     private Status status;
 
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal price;
+    @Column(nullable = false, precision = 10)
+    private Double price;
 
     @Column(nullable = false)
     private LocalDateTime startDate;

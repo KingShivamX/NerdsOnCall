@@ -6,7 +6,6 @@ import com.nerdsoncall.repository.SubscriptionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -22,7 +21,7 @@ public class SubscriptionService {
         subscription.setUser(user);
         subscription.setPlanType(planType);
         subscription.setStatus(Subscription.Status.ACTIVE);
-        subscription.setPrice(BigDecimal.valueOf(planType.getPrice()));
+        subscription.setPrice(Double.valueOf(planType.getPrice()));
         subscription.setStartDate(LocalDateTime.now());
         subscription.setEndDate(LocalDateTime.now().plusMonths(1));
         subscription.setStripeSubscriptionId(stripeSubscriptionId);

@@ -54,6 +54,13 @@
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
+        
+        <!-- H2 Database for local testing -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
 
         <!-- JWT -->
         <dependency>
@@ -79,13 +86,6 @@
             <groupId>com.stripe</groupId>
             <artifactId>stripe-java</artifactId>
             <version>24.16.0</version>
-        </dependency>
-
-        <!-- Supabase -->
-        <dependency>
-            <groupId>io.supabase</groupId>
-            <artifactId>supabase-java</artifactId>
-            <version>1.0.0</version>
         </dependency>
 
         <!-- WebSocket & STOMP -->

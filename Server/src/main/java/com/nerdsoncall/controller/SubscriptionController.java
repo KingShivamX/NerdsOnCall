@@ -34,9 +34,12 @@ public class SubscriptionController {
             User user = userService.findByEmail(authentication.getName())
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
-            return subscriptionService.getActiveSubscription(user)
-                    .map(ResponseEntity::ok)
-                    .orElse(ResponseEntity.ok("No active subscription"));
+            java.util.Optional<Subscription> subscription = subscriptionService.getActiveSubscription(user);
+            if (subscription.isPresent()) {
+                return ResponseEntity.ok(subscription.get());
+            } else {
+                return ResponseEntity.ok("No active subscription");
+            }
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Failed to get subscription: " + e.getMessage());
         }

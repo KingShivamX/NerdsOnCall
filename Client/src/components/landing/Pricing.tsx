@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { Badge } from "../ui/badge"
 import { Button } from "../ui/button"
 import {
@@ -17,6 +18,7 @@ import {
     Heart,
     Trophy,
     Gem,
+    ArrowRight,
 } from "lucide-react"
 
 export function Pricing() {
@@ -40,6 +42,7 @@ export function Pricing() {
             bgGradient: "from-blue-50 to-cyan-50",
             buttonText: "Start Learning",
             accent: "blue",
+            href: "/auth/register?role=student&plan=basic",
         },
         {
             name: "Student Pro",
@@ -64,6 +67,7 @@ export function Pricing() {
             bgGradient: "from-purple-50 to-indigo-50",
             buttonText: "Most Popular",
             accent: "purple",
+            href: "/auth/register?role=student&plan=pro",
         },
         {
             name: "Student Elite",
@@ -88,6 +92,7 @@ export function Pricing() {
             bgGradient: "from-yellow-50 to-orange-50",
             buttonText: "Go Elite",
             accent: "yellow",
+            href: "/auth/register?role=student&plan=elite",
         },
     ]
 
@@ -109,6 +114,7 @@ export function Pricing() {
             icon: Star,
             gradient: "from-emerald-500 to-teal-600",
             buttonText: "Start Teaching",
+            href: "/auth/register?role=tutor&plan=standard",
         },
         {
             name: "Tutor Pro",
@@ -130,6 +136,7 @@ export function Pricing() {
             icon: Trophy,
             gradient: "from-purple-500 to-pink-600",
             buttonText: "Upgrade to Pro",
+            href: "/auth/register?role=tutor&plan=pro",
         },
     ]
 
@@ -237,22 +244,25 @@ export function Pricing() {
                                 </CardHeader>
 
                                 <CardContent className="pt-4">
-                                    <Button
-                                        className={`
-                                            w-full mb-6 font-semibold
-                                            ${
-                                                plan.popular
-                                                    ? "premium-button text-white border-0"
-                                                    : "premium-glass border-2 border-purple-200 text-purple-700 hover:text-purple-800 backdrop-blur-lg"
-                                            }
-                                        `}
-                                        size="lg"
-                                    >
-                                        {plan.popular && (
-                                            <Crown className="w-4 h-4 mr-2" />
-                                        )}
-                                        {plan.buttonText}
-                                    </Button>
+                                    <Link href={plan.href}>
+                                        <Button
+                                            className={`
+                                                w-full mb-6 font-semibold group
+                                                ${
+                                                    plan.popular
+                                                        ? "premium-button text-white border-0"
+                                                        : "premium-glass border-2 border-purple-200 text-purple-700 hover:text-purple-800 backdrop-blur-lg"
+                                                }
+                                            `}
+                                            size="lg"
+                                        >
+                                            {plan.popular && (
+                                                <Crown className="w-4 h-4 mr-2 group-hover:animate-bounce" />
+                                            )}
+                                            {plan.buttonText}
+                                            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                                        </Button>
+                                    </Link>
 
                                     <div className="space-y-3">
                                         {plan.features.map(
@@ -350,13 +360,16 @@ export function Pricing() {
                                 </CardHeader>
 
                                 <CardContent className="pt-4">
-                                    <Button
-                                        className="w-full mb-6 premium-glass border-2 border-emerald-200 text-emerald-700 hover:text-emerald-800 backdrop-blur-lg font-semibold"
-                                        size="lg"
-                                    >
-                                        <Star className="w-4 h-4 mr-2" />
-                                        {plan.buttonText}
-                                    </Button>
+                                    <Link href={plan.href}>
+                                        <Button
+                                            className="w-full mb-6 premium-glass border-2 border-emerald-200 text-emerald-700 hover:text-emerald-800 backdrop-blur-lg font-semibold group"
+                                            size="lg"
+                                        >
+                                            <Star className="w-4 h-4 mr-2 group-hover:animate-spin" />
+                                            {plan.buttonText}
+                                            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                                        </Button>
+                                    </Link>
 
                                     <div className="space-y-3">
                                         {plan.features.map(
@@ -395,11 +408,19 @@ export function Pricing() {
                     <h3 className="text-2xl font-bold text-gray-900 mb-4">
                         30-Day Money-Back Guarantee
                     </h3>
-                    <p className="text-gray-600 max-w-2xl mx-auto">
+                    <p className="text-gray-600 max-w-2xl mx-auto mb-6">
                         Not satisfied with your learning experience? Get a full
                         refund within 30 days, no questions asked. We're
                         confident you'll love our premium tutoring platform.
                     </p>
+                    <div className="flex justify-center">
+                        <Link href="/auth/register">
+                            <Button className="premium-button text-white border-0 px-8 py-3 font-semibold group">
+                                Try Risk-Free Now
+                                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                            </Button>
+                        </Link>
+                    </div>
                 </div>
             </div>
 

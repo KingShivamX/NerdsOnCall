@@ -1,7 +1,16 @@
 import Link from "next/link"
 import { Button } from "../ui/button"
 import { Badge } from "../ui/badge"
-import { Crown, Video, Users, BookOpen, Sparkles, Star } from "lucide-react"
+import {
+    Crown,
+    Video,
+    Users,
+    BookOpen,
+    Sparkles,
+    Star,
+    ArrowRight,
+    Play,
+} from "lucide-react"
 
 export function Hero() {
     return (
@@ -24,7 +33,7 @@ export function Hero() {
                 <div className="mb-8 flex justify-center">
                     <Badge
                         variant="secondary"
-                        className="premium-glass border-0 text-purple-700 px-6 py-2 text-sm font-medium"
+                        className="premium-glass border-0 text-purple-700 px-6 py-2 text-sm font-medium animate-pulse"
                     >
                         <Crown className="w-4 h-4 mr-2" />
                         Premium Tutoring Experience
@@ -68,22 +77,34 @@ export function Hero() {
                     <Link href="/auth/register?role=student">
                         <Button
                             size="lg"
-                            className="premium-button text-white border-0 px-8 py-4 text-lg font-semibold min-w-[200px] h-14"
+                            className="premium-button text-white border-0 px-8 py-4 text-lg font-semibold min-w-[220px] h-14 group"
                         >
-                            <Crown className="mr-2 h-5 w-5" />
+                            <Crown className="mr-2 h-5 w-5 group-hover:animate-bounce" />
                             Start Learning Now
+                            <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                         </Button>
                     </Link>
                     <Link href="/auth/register?role=tutor">
                         <Button
                             variant="outline"
                             size="lg"
-                            className="premium-glass border-2 border-purple-200 text-purple-700 hover:text-purple-800 px-8 py-4 text-lg font-semibold min-w-[200px] h-14 backdrop-blur-lg"
+                            className="premium-glass border-2 border-purple-200 text-purple-700 hover:text-purple-800 px-8 py-4 text-lg font-semibold min-w-[220px] h-14 backdrop-blur-lg group"
                         >
-                            <Star className="mr-2 h-5 w-5" />
+                            <Star className="mr-2 h-5 w-5 group-hover:animate-spin" />
                             Become Elite Tutor
                         </Button>
                     </Link>
+                </div>
+
+                {/* Demo Button */}
+                <div className="mb-16">
+                    <Button
+                        variant="ghost"
+                        className="group text-purple-700 hover:text-purple-800 hover:bg-purple-50 font-medium"
+                    >
+                        <Play className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform" />
+                        Watch Demo Video
+                    </Button>
                 </div>
 
                 {/* Premium features showcase */}
@@ -154,6 +175,42 @@ export function Hero() {
                     <span className="font-medium">
                         Trusted by students from 50+ countries
                     </span>
+                    <div className="hidden sm:block w-1 h-1 bg-gray-300 rounded-full"></div>
+                    <span className="font-medium">
+                        24/7 Expert Support Available
+                    </span>
+                </div>
+
+                {/* Quick stats */}
+                <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
+                    <div className="text-center">
+                        <div className="text-3xl font-bold royal-text mb-1">
+                            50K+
+                        </div>
+                        <div className="text-sm text-gray-600">
+                            Active Students
+                        </div>
+                    </div>
+                    <div className="text-center">
+                        <div className="text-3xl font-bold royal-text mb-1">
+                            5K+
+                        </div>
+                        <div className="text-sm text-gray-600">
+                            Expert Tutors
+                        </div>
+                    </div>
+                    <div className="text-center">
+                        <div className="text-3xl font-bold royal-text mb-1">
+                            99.9%
+                        </div>
+                        <div className="text-sm text-gray-600">Uptime</div>
+                    </div>
+                    <div className="text-center">
+                        <div className="text-3xl font-bold royal-text mb-1">
+                            24/7
+                        </div>
+                        <div className="text-sm text-gray-600">Support</div>
+                    </div>
                 </div>
             </div>
 
