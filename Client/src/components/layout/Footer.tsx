@@ -80,40 +80,40 @@ export function Footer() {
     ]
 
     return (
-        <footer className="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 text-white relative overflow-hidden">
-            {/* Background decorations */}
+        <footer className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
+            {/* Background decorative elements */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
-                <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-yellow-500/10 rounded-full blur-3xl"></div>
+                <div className="absolute top-0 left-1/4 w-96 h-96 bg-slate-700/10 rounded-full blur-3xl"></div>
+                <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl"></div>
             </div>
 
             <div className="relative">
                 {/* Main Footer Content */}
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-8">
+                <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 pt-20 pb-12">
                     {/* Top Section */}
-                    <div className="grid lg:grid-cols-6 gap-8 mb-12">
+                    <div className="grid lg:grid-cols-6 gap-12 mb-16">
                         {/* Brand Section */}
                         <div className="lg:col-span-2">
-                            <div className="flex items-center space-x-3 mb-6">
+                            <div className="flex items-center space-x-4 mb-8">
                                 <div className="relative">
-                                    <div className="w-12 h-12 rounded-full royal-gradient flex items-center justify-center">
-                                        <Crown className="h-6 w-6 text-white" />
+                                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center shadow-lg">
+                                        <Crown className="h-7 w-7 text-amber-400" />
                                     </div>
                                     <div className="absolute -top-1 -right-1 w-4 h-4">
-                                        <Sparkles className="w-3 h-3 text-yellow-400 animate-pulse" />
+                                        <Sparkles className="w-3 h-3 text-amber-400 animate-pulse" />
                                     </div>
                                 </div>
                                 <div>
-                                    <span className="text-2xl font-bold royal-text">
+                                    <span className="text-2xl font-bold text-white">
                                         NerdsOnCall
                                     </span>
-                                    <div className="text-xs text-gray-300">
+                                    <div className="text-sm text-slate-300 font-medium">
                                         Premium Tutoring Platform
                                     </div>
                                 </div>
                             </div>
 
-                            <p className="text-gray-300 mb-6 leading-relaxed">
+                            <p className="text-slate-300 mb-8 leading-relaxed text-base">
                                 Transforming education through premium online
                                 tutoring. Connect with elite tutors worldwide
                                 for personalized learning experiences that drive
@@ -121,21 +121,21 @@ export function Footer() {
                             </p>
 
                             {/* Contact Info */}
-                            <div className="space-y-3">
-                                <div className="flex items-center space-x-3 text-gray-300">
-                                    <Mail className="w-4 h-4 text-purple-400" />
+                            <div className="space-y-4">
+                                <div className="flex items-center space-x-3 text-slate-300">
+                                    <Mail className="w-5 h-5 text-amber-400" />
                                     <span className="text-sm">
                                         hello@nerdsoncall.com
                                     </span>
                                 </div>
-                                <div className="flex items-center space-x-3 text-gray-300">
-                                    <Phone className="w-4 h-4 text-purple-400" />
+                                <div className="flex items-center space-x-3 text-slate-300">
+                                    <Phone className="w-5 h-5 text-amber-400" />
                                     <span className="text-sm">
                                         +1 (555) 123-4567
                                     </span>
                                 </div>
-                                <div className="flex items-center space-x-3 text-gray-300">
-                                    <MapPin className="w-4 h-4 text-purple-400" />
+                                <div className="flex items-center space-x-3 text-slate-300">
+                                    <MapPin className="w-5 h-5 text-amber-400" />
                                     <span className="text-sm">
                                         San Francisco, CA
                                     </span>
@@ -144,18 +144,18 @@ export function Footer() {
                         </div>
 
                         {/* Links Sections */}
-                        <div className="lg:col-span-4 grid grid-cols-2 md:grid-cols-4 gap-8">
+                        <div className="lg:col-span-4 grid grid-cols-2 md:grid-cols-4 gap-10">
                             {/* Platform */}
                             <div>
-                                <h3 className="font-bold text-white mb-4">
+                                <h3 className="font-bold text-white mb-6 text-base">
                                     Platform
                                 </h3>
-                                <ul className="space-y-3">
+                                <ul className="space-y-4">
                                     {footerLinks.platform.map((link) => (
                                         <li key={link.name}>
                                             <Link
                                                 href={link.href}
-                                                className="text-gray-300 hover:text-purple-400 transition-colors duration-200 text-sm"
+                                                className="text-slate-300 hover:text-amber-400 transition-colors duration-200 text-sm block py-1"
                                             >
                                                 {link.name}
                                             </Link>
@@ -166,15 +166,15 @@ export function Footer() {
 
                             {/* Subjects */}
                             <div>
-                                <h3 className="font-bold text-white mb-4">
+                                <h3 className="font-bold text-white mb-6 text-base">
                                     Subjects
                                 </h3>
-                                <ul className="space-y-3">
+                                <ul className="space-y-4">
                                     {footerLinks.subjects.map((link) => (
                                         <li key={link.name}>
                                             <Link
                                                 href={link.href}
-                                                className="text-gray-300 hover:text-purple-400 transition-colors duration-200 text-sm"
+                                                className="text-slate-300 hover:text-amber-400 transition-colors duration-200 text-sm block py-1"
                                             >
                                                 {link.name}
                                             </Link>
@@ -185,15 +185,15 @@ export function Footer() {
 
                             {/* Company */}
                             <div>
-                                <h3 className="font-bold text-white mb-4">
+                                <h3 className="font-bold text-white mb-6 text-base">
                                     Company
                                 </h3>
-                                <ul className="space-y-3">
+                                <ul className="space-y-4">
                                     {footerLinks.company.map((link) => (
                                         <li key={link.name}>
                                             <Link
                                                 href={link.href}
-                                                className="text-gray-300 hover:text-purple-400 transition-colors duration-200 text-sm"
+                                                className="text-slate-300 hover:text-amber-400 transition-colors duration-200 text-sm block py-1"
                                             >
                                                 {link.name}
                                             </Link>
@@ -204,15 +204,15 @@ export function Footer() {
 
                             {/* Support */}
                             <div>
-                                <h3 className="font-bold text-white mb-4">
+                                <h3 className="font-bold text-white mb-6 text-base">
                                     Support
                                 </h3>
-                                <ul className="space-y-3">
+                                <ul className="space-y-4">
                                     {footerLinks.support.map((link) => (
                                         <li key={link.name}>
                                             <Link
                                                 href={link.href}
-                                                className="text-gray-300 hover:text-purple-400 transition-colors duration-200 text-sm"
+                                                className="text-slate-300 hover:text-amber-400 transition-colors duration-200 text-sm block py-1"
                                             >
                                                 {link.name}
                                             </Link>
@@ -224,12 +224,12 @@ export function Footer() {
                     </div>
 
                     {/* Newsletter Section */}
-                    <div className="border-t border-gray-800 pt-8 mb-8">
+                    <div className="border-t border-slate-700 pt-12 mb-12">
                         <div className="max-w-md">
-                            <h3 className="font-bold text-white mb-4">
+                            <h3 className="font-bold text-white mb-4 text-lg">
                                 Stay Updated
                             </h3>
-                            <p className="text-gray-300 text-sm mb-4">
+                            <p className="text-slate-300 text-sm mb-6 leading-relaxed">
                                 Get the latest updates on new features,
                                 subjects, and exclusive offers.
                             </p>
@@ -237,9 +237,9 @@ export function Footer() {
                                 <input
                                     type="email"
                                     placeholder="Enter your email"
-                                    className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                    className="flex-1 px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent h-12"
                                 />
-                                <button className="px-6 py-2 royal-gradient text-white rounded-lg font-medium hover:glow transition-all duration-300">
+                                <button className="px-6 py-3 bg-gradient-to-r from-slate-700 to-slate-900 hover:from-slate-600 hover:to-slate-800 text-white rounded-lg font-medium transition-all duration-300 shadow-lg h-12">
                                     Subscribe
                                 </button>
                             </div>
@@ -247,21 +247,21 @@ export function Footer() {
                     </div>
 
                     {/* Bottom Section */}
-                    <div className="border-t border-gray-800 pt-8">
-                        <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+                    <div className="border-t border-slate-700 pt-10">
+                        <div className="flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">
                             {/* Copyright */}
-                            <div className="text-gray-400 text-sm">
+                            <div className="text-slate-400 text-sm">
                                 © {new Date().getFullYear()} NerdsOnCall. All
                                 rights reserved.
                             </div>
 
                             {/* Legal Links */}
-                            <div className="flex flex-wrap justify-center space-x-6">
+                            <div className="flex flex-wrap justify-center space-x-8">
                                 {footerLinks.legal.map((link) => (
                                     <Link
                                         key={link.name}
                                         href={link.href}
-                                        className="text-gray-400 hover:text-purple-400 transition-colors duration-200 text-sm"
+                                        className="text-slate-400 hover:text-amber-400 transition-colors duration-200 text-sm py-1"
                                     >
                                         {link.name}
                                     </Link>
@@ -276,9 +276,9 @@ export function Footer() {
                                         href={social.href}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="w-10 h-10 rounded-full bg-gray-800 hover:bg-purple-600 flex items-center justify-center transition-colors duration-300 group"
+                                        className="w-12 h-12 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center transition-colors duration-300 group border border-slate-700 hover:border-slate-600"
                                     >
-                                        <social.icon className="w-5 h-5 text-gray-400 group-hover:text-white" />
+                                        <social.icon className="w-5 h-5 text-slate-400 group-hover:text-amber-400 transition-colors duration-300" />
                                     </a>
                                 ))}
                             </div>
@@ -286,33 +286,39 @@ export function Footer() {
                     </div>
 
                     {/* Trust Badges */}
-                    <div className="border-t border-gray-800 pt-8 mt-8">
-                        <div className="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-8 text-center">
-                            <div className="flex items-center space-x-2 text-gray-400">
-                                <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
-                                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                    <div className="border-t border-slate-700 pt-10 mt-10">
+                        <div className="flex flex-col md:flex-row justify-center items-center space-y-6 md:space-y-0 md:space-x-12 text-center">
+                            <div className="flex items-center space-x-3 text-slate-400">
+                                <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg">
+                                    <div className="w-3 h-3 bg-white rounded-full"></div>
                                 </div>
-                                <span className="text-sm">99.9% Uptime</span>
+                                <span className="text-sm font-medium">
+                                    99.9% Uptime
+                                </span>
                             </div>
-                            <div className="flex items-center space-x-2 text-gray-400">
-                                <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
-                                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                            <div className="flex items-center space-x-3 text-slate-400">
+                                <div className="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center shadow-lg">
+                                    <div className="w-3 h-3 bg-white rounded-full"></div>
                                 </div>
-                                <span className="text-sm">
+                                <span className="text-sm font-medium">
                                     Bank-Level Security
                                 </span>
                             </div>
-                            <div className="flex items-center space-x-2 text-gray-400">
-                                <div className="w-6 h-6 rounded-full bg-purple-500 flex items-center justify-center">
-                                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                            <div className="flex items-center space-x-3 text-slate-400">
+                                <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center shadow-lg">
+                                    <div className="w-3 h-3 bg-white rounded-full"></div>
                                 </div>
-                                <span className="text-sm">24/7 Support</span>
+                                <span className="text-sm font-medium">
+                                    24/7 Support
+                                </span>
                             </div>
-                            <div className="flex items-center space-x-2 text-gray-400">
-                                <div className="w-6 h-6 rounded-full bg-yellow-500 flex items-center justify-center">
-                                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                            <div className="flex items-center space-x-3 text-slate-400">
+                                <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center shadow-lg">
+                                    <div className="w-3 h-3 bg-white rounded-full"></div>
                                 </div>
-                                <span className="text-sm">50+ Countries</span>
+                                <span className="text-sm font-medium">
+                                    50+ Countries
+                                </span>
                             </div>
                         </div>
                     </div>

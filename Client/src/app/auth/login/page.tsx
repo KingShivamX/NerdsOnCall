@@ -21,8 +21,15 @@ import {
 } from "lucide-react"
 import toast from "react-hot-toast"
 
+interface FormData {
+    email: string
+    password: string
+    rememberMe: boolean
+}
+
 export default function LoginPage() {
-    const [formData, setFormData] = useState({
+    const router = useRouter()
+    const [formData, setFormData] = useState<FormData>({
         email: "",
         password: "",
         rememberMe: false,
@@ -31,19 +38,16 @@ export default function LoginPage() {
     const [errors, setErrors] = useState<Record<string, string>>({})
     const [isLoading, setIsLoading] = useState(false)
     const { login } = useAuth()
-    const router = useRouter()
 
-    const validateField = (name: string, value: string) => {
+    const validateField = (name: string, value: string | boolean) => {
         switch (name) {
             case "email":
                 if (!value) return "Email is required"
-                if (!/\S+@\S+\.\S+/.test(value))
+                if (typeof value === "string" && !/\S+@\S+\.\S+/.test(value))
                     return "Please enter a valid email"
                 return ""
             case "password":
                 if (!value) return "Password is required"
-                if (value.length < 6)
-                    return "Password must be at least 6 characters"
                 return ""
             default:
                 return ""
@@ -51,8 +55,10 @@ export default function LoginPage() {
     }
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target
-        setFormData((prev) => ({ ...prev, [name]: value }))
+        const { name, value, type, checked } = e.target
+        const fieldValue = type === "checkbox" ? checked : value
+
+        setFormData((prev) => ({ ...prev, [name]: fieldValue }))
 
         // Clear error when user starts typing
         if (errors[name]) {
@@ -74,7 +80,7 @@ export default function LoginPage() {
         const newErrors: Record<string, string> = {}
         Object.entries(formData).forEach(([key, value]) => {
             if (key !== "rememberMe") {
-                const error = validateField(key, value as string)
+                const error = validateField(key, value)
                 if (error) newErrors[key] = error
             }
         })
@@ -102,41 +108,40 @@ export default function LoginPage() {
     }
 
     const handleSocialLogin = async (provider: string) => {
-        toast.info(`${provider} login will be available soon!`)
+        toast(`${provider} login will be available soon!`)
     }
 
     const isFieldValid = (fieldName: string) => {
-        return (
-            formData[fieldName as keyof typeof formData] && !errors[fieldName]
-        )
+        const value = formData[fieldName as keyof FormData]
+        return value && !errors[fieldName]
     }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
             <div className="w-full max-w-md">
                 {/* Header */}
-                <div className="text-center mb-8">
-                    <div className="flex justify-center mb-4">
-                        <div className="w-16 h-16 bg-gradient-to-br from-slate-700 to-slate-900 rounded-full flex items-center justify-center shadow-lg">
-                            <Crown className="h-8 w-8 text-amber-400" />
+                <div className="text-center mb-8 px-2 sm:px-0">
+                    <div className="flex justify-center mb-4 lg:mb-6">
+                        <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-slate-700 to-slate-900 rounded-full flex items-center justify-center shadow-lg">
+                            <Crown className="h-8 w-8 lg:h-10 lg:w-10 text-amber-400" />
                         </div>
                     </div>
-                    <h1 className="text-3xl font-bold text-slate-800 mb-2">
+                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-800 mb-2 leading-tight">
                         Welcome Back
                     </h1>
-                    <p className="text-slate-600">
-                        Sign in to continue your elite learning journey
+                    <p className="text-slate-600 text-base lg:text-lg">
+                        Sign in to your premium account
                     </p>
                 </div>
 
                 {/* Login Form */}
-                <Card className="border border-slate-200 shadow-xl bg-white/95 backdrop-blur-sm">
-                    <CardHeader className="space-y-1 pb-6">
-                        <CardTitle className="text-2xl text-center text-slate-800 font-bold">
+                <Card className="border border-slate-200 shadow-xl bg-white/95 backdrop-blur-sm mx-2 sm:mx-0">
+                    <CardHeader className="space-y-1 pb-6 px-6 lg:px-8">
+                        <CardTitle className="text-xl lg:text-2xl text-center text-slate-800 font-bold">
                             Sign In
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-6">
+                    <CardContent className="space-y-6 px-6 lg:px-8">
                         {/* General Error */}
                         {errors.general && (
                             <div className="p-4 rounded-lg bg-red-50 border border-red-200 flex items-center space-x-2">
@@ -167,7 +172,7 @@ export default function LoginPage() {
                                         value={formData.email}
                                         onChange={handleInputChange}
                                         onBlur={handleBlur}
-                                        className={`pl-10 pr-10 h-12 border-slate-300 focus:border-slate-500 focus:ring-slate-500 bg-white shadow-sm ${
+                                        className={`pl-10 pr-10 h-12 lg:h-14 border-slate-300 focus:border-slate-500 focus:ring-slate-500 bg-white shadow-sm ${
                                             errors.email
                                                 ? "border-red-400 focus:border-red-500 focus:ring-red-500"
                                                 : isFieldValid("email")
@@ -175,13 +180,7 @@ export default function LoginPage() {
                                                 : ""
                                         }`}
                                         placeholder="Enter your email"
-                                        aria-describedby={
-                                            errors.email
-                                                ? "email-error"
-                                                : undefined
-                                        }
                                     />
-                                    {/* Status Icon */}
                                     <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
                                         {errors.email && (
                                             <AlertCircle className="h-4 w-4 text-red-500" />
@@ -192,10 +191,7 @@ export default function LoginPage() {
                                     </div>
                                 </div>
                                 {errors.email && (
-                                    <p
-                                        id="email-error"
-                                        className="text-sm text-red-600 flex items-center gap-1"
-                                    >
+                                    <p className="text-sm text-red-600 flex items-center gap-1">
                                         <AlertCircle className="h-3 w-3" />
                                         {errors.email}
                                     </p>
@@ -204,12 +200,20 @@ export default function LoginPage() {
 
                             {/* Password Field */}
                             <div className="space-y-2">
-                                <label
-                                    htmlFor="password"
-                                    className="text-sm font-semibold text-slate-700"
-                                >
-                                    Password
-                                </label>
+                                <div className="flex items-center justify-between">
+                                    <label
+                                        htmlFor="password"
+                                        className="text-sm font-semibold text-slate-700"
+                                    >
+                                        Password
+                                    </label>
+                                    <Link
+                                        href="/auth/forgot-password"
+                                        className="text-sm text-slate-600 hover:text-slate-800 hover:underline"
+                                    >
+                                        Forgot password?
+                                    </Link>
+                                </div>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <Lock className="h-4 w-4 text-slate-400" />
@@ -223,7 +227,7 @@ export default function LoginPage() {
                                         value={formData.password}
                                         onChange={handleInputChange}
                                         onBlur={handleBlur}
-                                        className={`pl-10 pr-10 h-12 border-slate-300 focus:border-slate-500 focus:ring-slate-500 bg-white shadow-sm ${
+                                        className={`pl-10 pr-10 h-12 lg:h-14 border-slate-300 focus:border-slate-500 focus:ring-slate-500 bg-white shadow-sm ${
                                             errors.password
                                                 ? "border-red-400 focus:border-red-500 focus:ring-red-500"
                                                 : isFieldValid("password")
@@ -231,11 +235,6 @@ export default function LoginPage() {
                                                 : ""
                                         }`}
                                         placeholder="Enter your password"
-                                        aria-describedby={
-                                            errors.password
-                                                ? "password-error"
-                                                : undefined
-                                        }
                                     />
                                     <button
                                         type="button"
@@ -243,11 +242,6 @@ export default function LoginPage() {
                                             setShowPassword(!showPassword)
                                         }
                                         className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
-                                        aria-label={
-                                            showPassword
-                                                ? "Hide password"
-                                                : "Show password"
-                                        }
                                     >
                                         {showPassword ? (
                                             <EyeOff className="h-4 w-4" />
@@ -257,50 +251,36 @@ export default function LoginPage() {
                                     </button>
                                 </div>
                                 {errors.password && (
-                                    <p
-                                        id="password-error"
-                                        className="text-sm text-red-600 flex items-center gap-1"
-                                    >
+                                    <p className="text-sm text-red-600 flex items-center gap-1">
                                         <AlertCircle className="h-3 w-3" />
                                         {errors.password}
                                     </p>
                                 )}
                             </div>
 
-                            {/* Remember Me & Forgot Password */}
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-3">
-                                    <Checkbox
-                                        id="rememberMe"
-                                        checked={formData.rememberMe}
-                                        onCheckedChange={(checked) =>
-                                            setFormData((prev) => ({
-                                                ...prev,
-                                                rememberMe: checked as boolean,
-                                            }))
-                                        }
-                                        className="border-slate-300"
-                                    />
-                                    <label
-                                        htmlFor="rememberMe"
-                                        className="text-sm text-slate-600"
-                                    >
-                                        Remember me
-                                    </label>
-                                </div>
-                                <Link
-                                    href="/auth/forgot-password"
-                                    className="text-sm text-slate-700 hover:text-slate-900 font-medium hover:underline"
+                            {/* Remember Me */}
+                            <div className="flex items-center">
+                                <input
+                                    id="rememberMe"
+                                    name="rememberMe"
+                                    type="checkbox"
+                                    checked={formData.rememberMe}
+                                    onChange={handleInputChange}
+                                    className="h-4 w-4 text-slate-600 focus:ring-slate-500 border-slate-300 rounded"
+                                />
+                                <label
+                                    htmlFor="rememberMe"
+                                    className="ml-2 block text-sm text-slate-600"
                                 >
-                                    Forgot password?
-                                </Link>
+                                    Remember me for 30 days
+                                </label>
                             </div>
 
                             {/* Submit Button */}
                             <Button
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full bg-gradient-to-r from-slate-700 to-slate-900 hover:from-slate-800 hover:to-slate-950 text-white py-3 h-12 font-semibold shadow-lg transition-all duration-200"
+                                className="w-full bg-gradient-to-r from-slate-700 to-slate-900 hover:from-slate-800 hover:to-slate-950 text-white py-3 h-12 lg:h-14 font-semibold shadow-lg transition-all duration-200"
                             >
                                 {isLoading ? (
                                     <div className="flex items-center gap-2">
@@ -333,8 +313,7 @@ export default function LoginPage() {
                             <div className="mt-6 grid grid-cols-2 gap-4">
                                 <Button
                                     variant="outline"
-                                    className="border-slate-300 hover:bg-slate-50 h-11 font-medium"
-                                    onClick={() => handleSocialLogin("Google")}
+                                    className="border-slate-300 hover:bg-slate-50 h-11 lg:h-12 font-medium"
                                 >
                                     <svg
                                         className="w-4 h-4 mr-2"
@@ -361,10 +340,7 @@ export default function LoginPage() {
                                 </Button>
                                 <Button
                                     variant="outline"
-                                    className="border-slate-300 hover:bg-slate-50 h-11 font-medium"
-                                    onClick={() =>
-                                        handleSocialLogin("Facebook")
-                                    }
+                                    className="border-slate-300 hover:bg-slate-50 h-11 lg:h-12 font-medium"
                                 >
                                     <svg
                                         className="w-4 h-4 mr-2"
@@ -381,12 +357,12 @@ export default function LoginPage() {
                         {/* Sign Up Link */}
                         <div className="mt-8 text-center">
                             <p className="text-sm text-slate-600">
-                                Don't have an account?{" "}
+                                Don&apos;t have an account?{" "}
                                 <Link
                                     href="/auth/register"
                                     className="text-slate-700 hover:text-slate-900 font-semibold hover:underline"
                                 >
-                                    Join the elite
+                                    Create account
                                 </Link>
                             </p>
                         </div>

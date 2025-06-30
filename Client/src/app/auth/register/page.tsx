@@ -182,84 +182,90 @@ export default function RegisterPage() {
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
             <div className="w-full max-w-md">
                 {/* Header */}
-                <div className="text-center mb-8">
-                    <div className="flex justify-center mb-4">
-                        <div className="w-16 h-16 bg-gradient-to-br from-slate-700 to-slate-900 rounded-full flex items-center justify-center shadow-lg">
-                            <Crown className="h-8 w-8 text-amber-400" />
+                <div className="text-center mb-8 px-2 sm:px-0">
+                    <div className="flex justify-center mb-4 lg:mb-6">
+                        <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-slate-700 to-slate-900 rounded-full flex items-center justify-center shadow-lg">
+                            <Crown className="h-8 w-8 lg:h-10 lg:w-10 text-amber-400" />
                         </div>
                     </div>
-                    <h1 className="text-3xl font-bold text-slate-800 mb-2">
+                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-800 mb-2 leading-tight">
                         Join NerdsOnCall
                     </h1>
-                    <p className="text-slate-600">
+                    <p className="text-slate-600 text-base lg:text-lg">
                         Begin your premium learning experience
                     </p>
                 </div>
 
                 {/* Registration Form */}
-                <Card className="border border-slate-200 shadow-xl bg-white/95 backdrop-blur-sm">
-                    <CardHeader className="space-y-1 pb-6">
-                        <CardTitle className="text-2xl text-center text-slate-800 font-bold">
+                <Card className="border border-slate-200 shadow-xl bg-white/95 backdrop-blur-sm mx-2 sm:mx-0">
+                    <CardHeader className="space-y-1 pb-6 px-6 lg:px-8">
+                        <CardTitle className="text-xl lg:text-2xl text-center text-slate-800 font-bold">
                             Create Account
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-6">
+                    <CardContent className="space-y-6 px-6 lg:px-8">
                         <form onSubmit={handleSubmit} className="space-y-6">
-                            {/* Role Selection with better spacing */}
-                            <div className="space-y-3 relative z-50">
+                            {/* Role Selection with proper mobile spacing */}
+                            <div className="space-y-3 relative">
                                 <label className="text-sm font-semibold text-slate-700">
                                     I want to join as
                                 </label>
-                                <Select
-                                    value={formData.role}
-                                    onValueChange={handleRoleChange}
-                                >
-                                    <SelectTrigger
-                                        className={`h-12 border-slate-300 focus:border-slate-500 focus:ring-slate-500 bg-white shadow-sm ${
-                                            errors.role ? "border-red-400" : ""
-                                        }`}
+                                <div className="relative z-50">
+                                    <Select
+                                        value={formData.role}
+                                        onValueChange={handleRoleChange}
                                     >
-                                        <SelectValue placeholder="Select your role" />
-                                    </SelectTrigger>
-                                    <SelectContent className="z-50 bg-white border border-slate-200 shadow-xl">
-                                        <SelectItem
-                                            value="student"
-                                            className="hover:bg-slate-50"
+                                        <SelectTrigger
+                                            className={`h-12 lg:h-14 border-slate-300 focus:border-slate-500 focus:ring-slate-500 bg-white shadow-sm ${
+                                                errors.role
+                                                    ? "border-red-400"
+                                                    : ""
+                                            }`}
                                         >
-                                            <div className="flex items-center gap-3 py-2">
-                                                <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
-                                                    <GraduationCap className="h-4 w-4 text-slate-600" />
-                                                </div>
-                                                <div>
-                                                    <div className="font-medium text-slate-800">
-                                                        Student
+                                            <SelectValue placeholder="Select your role" />
+                                        </SelectTrigger>
+                                        <SelectContent className="z-50 bg-white border border-slate-200 shadow-xl">
+                                            <SelectItem
+                                                value="student"
+                                                className="hover:bg-slate-50 py-3"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+                                                        <GraduationCap className="h-4 w-4 text-slate-600" />
                                                     </div>
-                                                    <div className="text-xs text-slate-500">
-                                                        Learn with expert tutors
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </SelectItem>
-                                        <SelectItem
-                                            value="tutor"
-                                            className="hover:bg-slate-50"
-                                        >
-                                            <div className="flex items-center gap-3 py-2">
-                                                <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
-                                                    <BookOpen className="h-4 w-4 text-amber-600" />
-                                                </div>
-                                                <div>
-                                                    <div className="font-medium text-slate-800">
-                                                        Tutor
-                                                    </div>
-                                                    <div className="text-xs text-slate-500">
-                                                        Teach and earn premium
+                                                    <div>
+                                                        <div className="font-medium text-slate-800">
+                                                            Student
+                                                        </div>
+                                                        <div className="text-xs text-slate-500">
+                                                            Learn with expert
+                                                            tutors
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                            </SelectItem>
+                                            <SelectItem
+                                                value="tutor"
+                                                className="hover:bg-slate-50 py-3"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
+                                                        <BookOpen className="h-4 w-4 text-amber-600" />
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-medium text-slate-800">
+                                                            Tutor
+                                                        </div>
+                                                        <div className="text-xs text-slate-500">
+                                                            Teach and earn
+                                                            premium
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                                 {errors.role && (
                                     <p className="text-sm text-red-600 flex items-center gap-1">
                                         <AlertCircle className="h-3 w-3" />
@@ -287,7 +293,7 @@ export default function RegisterPage() {
                                         value={formData.fullName}
                                         onChange={handleInputChange}
                                         onBlur={handleBlur}
-                                        className={`pl-10 pr-10 h-12 border-slate-300 focus:border-slate-500 focus:ring-slate-500 bg-white shadow-sm ${
+                                        className={`pl-10 pr-10 h-12 lg:h-14 border-slate-300 focus:border-slate-500 focus:ring-slate-500 bg-white shadow-sm ${
                                             errors.fullName
                                                 ? "border-red-400 focus:border-red-500 focus:ring-red-500"
                                                 : isFieldValid("fullName")
@@ -332,7 +338,7 @@ export default function RegisterPage() {
                                         value={formData.email}
                                         onChange={handleInputChange}
                                         onBlur={handleBlur}
-                                        className={`pl-10 pr-10 h-12 border-slate-300 focus:border-slate-500 focus:ring-slate-500 bg-white shadow-sm ${
+                                        className={`pl-10 pr-10 h-12 lg:h-14 border-slate-300 focus:border-slate-500 focus:ring-slate-500 bg-white shadow-sm ${
                                             errors.email
                                                 ? "border-red-400 focus:border-red-500 focus:ring-red-500"
                                                 : isFieldValid("email")
@@ -379,7 +385,7 @@ export default function RegisterPage() {
                                         value={formData.password}
                                         onChange={handleInputChange}
                                         onBlur={handleBlur}
-                                        className={`pl-10 pr-10 h-12 border-slate-300 focus:border-slate-500 focus:ring-slate-500 bg-white shadow-sm ${
+                                        className={`pl-10 pr-10 h-12 lg:h-14 border-slate-300 focus:border-slate-500 focus:ring-slate-500 bg-white shadow-sm ${
                                             errors.password
                                                 ? "border-red-400 focus:border-red-500 focus:ring-red-500"
                                                 : isFieldValid("password")
@@ -466,7 +472,7 @@ export default function RegisterPage() {
                                         value={formData.confirmPassword}
                                         onChange={handleInputChange}
                                         onBlur={handleBlur}
-                                        className={`pl-10 pr-10 h-12 border-slate-300 focus:border-slate-500 focus:ring-slate-500 bg-white shadow-sm ${
+                                        className={`pl-10 pr-10 h-12 lg:h-14 border-slate-300 focus:border-slate-500 focus:ring-slate-500 bg-white shadow-sm ${
                                             errors.confirmPassword
                                                 ? "border-red-400 focus:border-red-500 focus:ring-red-500"
                                                 : isFieldValid(
@@ -554,7 +560,7 @@ export default function RegisterPage() {
                             <Button
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full bg-gradient-to-r from-slate-700 to-slate-900 hover:from-slate-800 hover:to-slate-950 text-white py-3 h-12 font-semibold shadow-lg transition-all duration-200"
+                                className="w-full bg-gradient-to-r from-slate-700 to-slate-900 hover:from-slate-800 hover:to-slate-950 text-white py-3 h-12 lg:h-14 font-semibold shadow-lg transition-all duration-200"
                             >
                                 {isLoading ? (
                                     <div className="flex items-center gap-2">
@@ -587,7 +593,7 @@ export default function RegisterPage() {
                             <div className="mt-6 grid grid-cols-2 gap-4">
                                 <Button
                                     variant="outline"
-                                    className="border-slate-300 hover:bg-slate-50 h-11 font-medium"
+                                    className="border-slate-300 hover:bg-slate-50 h-11 lg:h-12 font-medium"
                                 >
                                     <svg
                                         className="w-4 h-4 mr-2"
@@ -614,7 +620,7 @@ export default function RegisterPage() {
                                 </Button>
                                 <Button
                                     variant="outline"
-                                    className="border-slate-300 hover:bg-slate-50 h-11 font-medium"
+                                    className="border-slate-300 hover:bg-slate-50 h-11 lg:h-12 font-medium"
                                 >
                                     <svg
                                         className="w-4 h-4 mr-2"

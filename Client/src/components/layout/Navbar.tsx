@@ -3,8 +3,8 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useAuth } from "../../context/AuthContext"
-import { Button } from "../ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
+import { Button } from "../ui/Button"
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/Avatar"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -38,65 +38,65 @@ export function Navbar() {
     }
 
     return (
-        <nav className="fixed top-0 w-full z-50 royal-nav border-0">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <nav className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-sm border-b border-slate-200 shadow-sm">
+            <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
                 <div className="flex justify-between items-center h-20">
-                    {/* Royal Logo */}
+                    {/* Logo */}
                     <Link
                         href="/"
-                        className="flex items-center space-x-3 group"
+                        className="flex items-center space-x-4 group"
                     >
                         <div className="relative">
-                            <div className="w-12 h-12 rounded-full royal-gradient flex items-center justify-center group-hover:glow transition-all duration-300">
-                                <Crown className="h-7 w-7 text-white" />
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center group-hover:shadow-lg transition-all duration-300">
+                                <Crown className="h-6 w-6 text-amber-400" />
                             </div>
                             <div className="absolute -top-1 -right-1 w-4 h-4">
-                                <Sparkles className="w-3 h-3 text-yellow-400 animate-pulse" />
+                                <Sparkles className="w-3 h-3 text-amber-400 animate-pulse" />
                             </div>
                         </div>
                         <div>
-                            <span className="text-2xl font-bold royal-text">
+                            <span className="text-2xl font-bold text-slate-800">
                                 NerdsOnCall
                             </span>
-                            <div className="text-xs text-gray-500 font-medium">
+                            <div className="text-xs text-slate-500 font-medium">
                                 Premium Tutoring
                             </div>
                         </div>
                     </Link>
 
                     {/* Desktop Navigation */}
-                    <div className="hidden md:flex items-center space-x-8">
+                    <div className="hidden md:flex items-center space-x-10">
                         {!isAuthenticated ? (
                             <>
                                 <Link
                                     href="/features"
-                                    className="text-gray-700 hover:text-purple-600 font-medium transition-colors duration-200"
+                                    className="text-slate-700 hover:text-slate-900 font-medium transition-colors duration-200 py-2"
                                 >
                                     Features
                                 </Link>
                                 <Link
                                     href="/pricing"
-                                    className="text-gray-700 hover:text-purple-600 font-medium transition-colors duration-200"
+                                    className="text-slate-700 hover:text-slate-900 font-medium transition-colors duration-200 py-2"
                                 >
                                     Pricing
                                 </Link>
                                 <Link
                                     href="/how-it-works"
-                                    className="text-gray-700 hover:text-purple-600 font-medium transition-colors duration-200"
+                                    className="text-slate-700 hover:text-slate-900 font-medium transition-colors duration-200 py-2"
                                 >
                                     How It Works
                                 </Link>
-                                <div className="flex items-center space-x-4">
+                                <div className="flex items-center space-x-4 ml-8">
                                     <Link href="/auth/login">
                                         <Button
                                             variant="ghost"
-                                            className="text-purple-700 hover:text-purple-800 hover:bg-purple-50 font-medium"
+                                            className="text-slate-700 hover:text-slate-900 hover:bg-slate-50 font-medium px-6 h-11"
                                         >
                                             Sign In
                                         </Button>
                                     </Link>
                                     <Link href="/auth/register">
-                                        <Button className="premium-button text-white border-0 px-6 font-medium">
+                                        <Button className="bg-gradient-to-r from-slate-700 to-slate-900 hover:from-slate-800 hover:to-slate-950 text-white border-0 px-6 h-11 font-medium shadow-lg">
                                             Get Started
                                         </Button>
                                     </Link>
@@ -107,7 +107,7 @@ export function Navbar() {
                                 <Link href="/dashboard">
                                     <Button
                                         variant="ghost"
-                                        className="text-purple-700 hover:text-purple-800 hover:bg-purple-50 font-medium"
+                                        className="text-slate-700 hover:text-slate-900 hover:bg-slate-50 font-medium px-6 h-11"
                                     >
                                         <BookOpen className="w-4 h-4 mr-2" />
                                         Dashboard
@@ -121,7 +121,7 @@ export function Navbar() {
                                             variant="ghost"
                                             className="relative h-12 w-12 rounded-full p-0"
                                         >
-                                            <Avatar className="h-12 w-12 border-2 border-purple-200 hover:border-purple-400 transition-colors">
+                                            <Avatar className="h-12 w-12 border-2 border-slate-200 hover:border-slate-400 transition-colors">
                                                 <AvatarImage
                                                     src={
                                                         user.profilePicture ||
@@ -129,7 +129,7 @@ export function Navbar() {
                                                     }
                                                     alt={`${user.firstName} ${user.lastName}`}
                                                 />
-                                                <AvatarFallback className="royal-gradient text-white font-bold">
+                                                <AvatarFallback className="bg-gradient-to-br from-slate-700 to-slate-900 text-white font-bold">
                                                     {user.firstName[0]}
                                                     {user.lastName[0]}
                                                 </AvatarFallback>
@@ -137,7 +137,7 @@ export function Navbar() {
                                             {user.role === "TUTOR" && (
                                                 <Badge
                                                     variant="secondary"
-                                                    className="absolute -bottom-2 -right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-0 border-0"
+                                                    className="absolute -bottom-2 -right-2 bg-amber-100 text-amber-800 text-xs px-2 py-0 border-0"
                                                 >
                                                     <Crown className="w-3 h-3" />
                                                 </Badge>
@@ -145,22 +145,22 @@ export function Navbar() {
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent
-                                        className="w-64 luxury-card border-0"
+                                        className="w-64 bg-white/95 backdrop-blur-sm border border-slate-200 shadow-xl rounded-xl"
                                         align="end"
                                         forceMount
                                     >
-                                        <DropdownMenuLabel className="font-normal">
+                                        <DropdownMenuLabel className="font-normal p-4">
                                             <div className="flex flex-col space-y-2">
                                                 <div className="flex items-center space-x-2">
-                                                    <p className="text-sm font-bold leading-none">
+                                                    <p className="text-sm font-bold leading-none text-slate-800">
                                                         {user.firstName}{" "}
                                                         {user.lastName}
                                                     </p>
                                                     {user.role === "TUTOR" && (
-                                                        <Crown className="w-4 h-4 text-yellow-600" />
+                                                        <Crown className="w-4 h-4 text-amber-600" />
                                                     )}
                                                 </div>
-                                                <p className="text-xs text-gray-600">
+                                                <p className="text-xs text-slate-600">
                                                     {user.email}
                                                 </p>
                                                 <Badge
@@ -169,7 +169,11 @@ export function Navbar() {
                                                             ? "default"
                                                             : "secondary"
                                                     }
-                                                    className="w-fit text-xs"
+                                                    className={`w-fit text-xs ${
+                                                        user.role === "TUTOR"
+                                                            ? "bg-slate-700 text-white"
+                                                            : "bg-slate-100 text-slate-700"
+                                                    }`}
                                                 >
                                                     {user.role === "TUTOR"
                                                         ? "Elite Tutor"
@@ -177,25 +181,25 @@ export function Navbar() {
                                                 </Badge>
                                             </div>
                                         </DropdownMenuLabel>
-                                        <DropdownMenuSeparator />
-                                        <DropdownMenuItem className="cursor-pointer">
-                                            <User className="mr-2 h-4 w-4" />
+                                        <DropdownMenuSeparator className="bg-slate-200" />
+                                        <DropdownMenuItem className="cursor-pointer p-3 text-slate-700 hover:bg-slate-50">
+                                            <User className="mr-3 h-4 w-4" />
                                             <span>Profile</span>
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem className="cursor-pointer">
-                                            <Settings className="mr-2 h-4 w-4" />
+                                        <DropdownMenuItem className="cursor-pointer p-3 text-slate-700 hover:bg-slate-50">
+                                            <Settings className="mr-3 h-4 w-4" />
                                             <span>Settings</span>
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem className="cursor-pointer">
-                                            <CreditCard className="mr-2 h-4 w-4" />
+                                        <DropdownMenuItem className="cursor-pointer p-3 text-slate-700 hover:bg-slate-50">
+                                            <CreditCard className="mr-3 h-4 w-4" />
                                             <span>Billing</span>
                                         </DropdownMenuItem>
-                                        <DropdownMenuSeparator />
+                                        <DropdownMenuSeparator className="bg-slate-200" />
                                         <DropdownMenuItem
-                                            className="cursor-pointer text-red-600 focus:text-red-600"
+                                            className="cursor-pointer p-3 text-red-600 focus:text-red-600 hover:bg-red-50"
                                             onClick={handleLogout}
                                         >
-                                            <LogOut className="mr-2 h-4 w-4" />
+                                            <LogOut className="mr-3 h-4 w-4" />
                                             <span>Log out</span>
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
@@ -211,23 +215,23 @@ export function Navbar() {
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="text-purple-700 hover:text-purple-800 hover:bg-purple-50"
+                                    className="text-slate-700 hover:text-slate-900 hover:bg-slate-50 w-11 h-11"
                                 >
                                     <Menu className="h-6 w-6" />
                                 </Button>
                             </SheetTrigger>
                             <SheetContent
                                 side="right"
-                                className="luxury-card border-0 w-80"
+                                className="bg-white/95 backdrop-blur-sm border-l border-slate-200 w-80"
                             >
                                 <div className="flex flex-col h-full">
                                     {/* Mobile Header */}
-                                    <div className="flex items-center justify-between mb-8">
-                                        <div className="flex items-center space-x-2">
-                                            <div className="w-8 h-8 rounded-full royal-gradient flex items-center justify-center">
-                                                <Crown className="h-4 w-4 text-white" />
+                                    <div className="flex items-center justify-between mb-8 pt-4">
+                                        <div className="flex items-center space-x-3">
+                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center">
+                                                <Crown className="h-5 w-5 text-amber-400" />
                                             </div>
-                                            <span className="text-lg font-bold royal-text">
+                                            <span className="text-lg font-bold text-slate-800">
                                                 NerdsOnCall
                                             </span>
                                         </div>
@@ -236,10 +240,10 @@ export function Navbar() {
                                     {/* Mobile Navigation */}
                                     <div className="flex-1">
                                         {!isAuthenticated ? (
-                                            <div className="space-y-4">
+                                            <div className="space-y-2">
                                                 <Link
                                                     href="/features"
-                                                    className="block py-3 px-4 text-gray-700 hover:bg-purple-50 hover:text-purple-700 rounded-lg transition-colors"
+                                                    className="block py-4 px-4 text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-lg transition-colors font-medium"
                                                     onClick={() =>
                                                         setIsMenuOpen(false)
                                                     }
@@ -248,7 +252,7 @@ export function Navbar() {
                                                 </Link>
                                                 <Link
                                                     href="/pricing"
-                                                    className="block py-3 px-4 text-gray-700 hover:bg-purple-50 hover:text-purple-700 rounded-lg transition-colors"
+                                                    className="block py-4 px-4 text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-lg transition-colors font-medium"
                                                     onClick={() =>
                                                         setIsMenuOpen(false)
                                                     }
@@ -257,14 +261,14 @@ export function Navbar() {
                                                 </Link>
                                                 <Link
                                                     href="/how-it-works"
-                                                    className="block py-3 px-4 text-gray-700 hover:bg-purple-50 hover:text-purple-700 rounded-lg transition-colors"
+                                                    className="block py-4 px-4 text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-lg transition-colors font-medium"
                                                     onClick={() =>
                                                         setIsMenuOpen(false)
                                                     }
                                                 >
                                                     How It Works
                                                 </Link>
-                                                <div className="border-t pt-4 mt-6 space-y-3">
+                                                <div className="border-t border-slate-200 pt-6 mt-6 space-y-3">
                                                     <Link
                                                         href="/auth/login"
                                                         onClick={() =>
@@ -273,7 +277,7 @@ export function Navbar() {
                                                     >
                                                         <Button
                                                             variant="outline"
-                                                            className="w-full justify-start"
+                                                            className="w-full justify-start h-12 border-slate-300 text-slate-700 hover:bg-slate-50"
                                                         >
                                                             Sign In
                                                         </Button>
@@ -284,16 +288,16 @@ export function Navbar() {
                                                             setIsMenuOpen(false)
                                                         }
                                                     >
-                                                        <Button className="w-full premium-button text-white border-0">
+                                                        <Button className="w-full bg-gradient-to-r from-slate-700 to-slate-900 hover:from-slate-800 hover:to-slate-950 text-white border-0 h-12 shadow-lg">
                                                             Get Started
                                                         </Button>
                                                     </Link>
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className="space-y-4">
+                                            <div className="space-y-2">
                                                 {/* User Info */}
-                                                <div className="flex items-center space-x-3 p-4 bg-purple-50 rounded-lg">
+                                                <div className="flex items-center space-x-3 p-4 bg-slate-50 rounded-lg mb-6">
                                                     <Avatar className="h-12 w-12">
                                                         <AvatarImage
                                                             src={
@@ -302,23 +306,23 @@ export function Navbar() {
                                                             }
                                                             alt={`${user.firstName} ${user.lastName}`}
                                                         />
-                                                        <AvatarFallback className="royal-gradient text-white font-bold">
+                                                        <AvatarFallback className="bg-gradient-to-br from-slate-700 to-slate-900 text-white font-bold">
                                                             {user.firstName[0]}
                                                             {user.lastName[0]}
                                                         </AvatarFallback>
                                                     </Avatar>
                                                     <div className="flex-1">
                                                         <div className="flex items-center space-x-1">
-                                                            <p className="font-bold text-sm">
+                                                            <p className="font-bold text-sm text-slate-800">
                                                                 {user.firstName}{" "}
                                                                 {user.lastName}
                                                             </p>
                                                             {user.role ===
                                                                 "TUTOR" && (
-                                                                <Crown className="w-4 h-4 text-yellow-600" />
+                                                                <Crown className="w-4 h-4 text-amber-600" />
                                                             )}
                                                         </div>
-                                                        <p className="text-xs text-gray-600">
+                                                        <p className="text-xs text-slate-600">
                                                             {user.email}
                                                         </p>
                                                         <Badge
@@ -328,7 +332,12 @@ export function Navbar() {
                                                                     ? "default"
                                                                     : "secondary"
                                                             }
-                                                            className="w-fit text-xs mt-1"
+                                                            className={`w-fit text-xs mt-1 ${
+                                                                user.role ===
+                                                                "TUTOR"
+                                                                    ? "bg-slate-700 text-white"
+                                                                    : "bg-slate-200 text-slate-700"
+                                                            }`}
                                                         >
                                                             {user.role ===
                                                             "TUTOR"
@@ -341,7 +350,7 @@ export function Navbar() {
                                                 {/* Mobile Menu Items */}
                                                 <Link
                                                     href="/dashboard"
-                                                    className="flex items-center py-3 px-4 text-gray-700 hover:bg-purple-50 hover:text-purple-700 rounded-lg transition-colors"
+                                                    className="flex items-center py-4 px-4 text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-lg transition-colors"
                                                     onClick={() =>
                                                         setIsMenuOpen(false)
                                                     }
@@ -351,7 +360,7 @@ export function Navbar() {
                                                 </Link>
                                                 <Link
                                                     href="/profile"
-                                                    className="flex items-center py-3 px-4 text-gray-700 hover:bg-purple-50 hover:text-purple-700 rounded-lg transition-colors"
+                                                    className="flex items-center py-4 px-4 text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-lg transition-colors"
                                                     onClick={() =>
                                                         setIsMenuOpen(false)
                                                     }
@@ -361,7 +370,7 @@ export function Navbar() {
                                                 </Link>
                                                 <Link
                                                     href="/settings"
-                                                    className="flex items-center py-3 px-4 text-gray-700 hover:bg-purple-50 hover:text-purple-700 rounded-lg transition-colors"
+                                                    className="flex items-center py-4 px-4 text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-lg transition-colors"
                                                     onClick={() =>
                                                         setIsMenuOpen(false)
                                                     }
@@ -371,7 +380,7 @@ export function Navbar() {
                                                 </Link>
                                                 <Link
                                                     href="/billing"
-                                                    className="flex items-center py-3 px-4 text-gray-700 hover:bg-purple-50 hover:text-purple-700 rounded-lg transition-colors"
+                                                    className="flex items-center py-4 px-4 text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-lg transition-colors"
                                                     onClick={() =>
                                                         setIsMenuOpen(false)
                                                     }
@@ -385,10 +394,10 @@ export function Navbar() {
 
                                     {/* Mobile Logout */}
                                     {isAuthenticated && (
-                                        <div className="border-t pt-4">
+                                        <div className="border-t border-slate-200 pt-4">
                                             <Button
                                                 variant="ghost"
-                                                className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 h-12"
                                                 onClick={handleLogout}
                                             >
                                                 <LogOut className="w-5 h-5 mr-3" />

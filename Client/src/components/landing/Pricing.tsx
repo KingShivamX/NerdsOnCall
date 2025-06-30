@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Badge } from "../ui/badge"
-import { Button } from "../ui/button"
+import { Button } from "../ui/Button"
 import {
     Card,
     CardContent,
@@ -24,75 +24,65 @@ import {
 export function Pricing() {
     const plans = [
         {
-            name: "Student Basic",
-            description: "Perfect for getting started with premium tutoring",
-            price: 19,
+            name: "Essential",
+            description: "Perfect for getting started with quality tutoring",
+            price: 29,
             period: "month",
             popular: false,
             features: [
-                "5 tutoring sessions per month",
-                "HD video calls",
+                "Up to 10 hours of tutoring per month",
+                "Access to certified tutors",
+                "HD video sessions",
                 "Basic whiteboard tools",
-                "Session recordings",
                 "Email support",
-                "Mobile app access",
+                "Session recordings (7 days)",
             ],
+            cta: "Start Free Trial",
+            href: "/auth/register?role=student&plan=essential",
             icon: Star,
-            gradient: "from-blue-500 to-cyan-600",
-            bgGradient: "from-blue-50 to-cyan-50",
-            buttonText: "Start Learning",
-            accent: "blue",
-            href: "/auth/register?role=student&plan=basic",
+            color: "slate",
         },
         {
-            name: "Student Pro",
+            name: "Professional",
             description: "Most popular choice for serious learners",
-            price: 49,
+            price: 79,
             period: "month",
             popular: true,
             features: [
-                "Unlimited tutoring sessions",
-                "4K video calls with AI enhancement",
-                "Advanced whiteboard with AI tools",
-                "Session recordings & transcripts",
-                "Priority matching",
-                "24/7 chat support",
-                "Progress analytics",
-                "Exam preparation tools",
-                "Study group access",
-                "Mobile & desktop apps",
+                "Unlimited tutoring hours",
+                "Premium tutor selection",
+                "HD video + screen sharing",
+                "Advanced whiteboard tools",
+                "Priority support",
+                "Session recordings (30 days)",
+                "Progress tracking",
+                "Mobile app access",
             ],
+            cta: "Get Started",
+            href: "/auth/register?role=student&plan=professional",
             icon: Crown,
-            gradient: "from-purple-500 to-indigo-600",
-            bgGradient: "from-purple-50 to-indigo-50",
-            buttonText: "Most Popular",
-            accent: "purple",
-            href: "/auth/register?role=student&plan=pro",
+            color: "slate",
         },
         {
-            name: "Student Elite",
-            description: "Ultimate learning experience with VIP benefits",
-            price: 99,
+            name: "Enterprise",
+            description: "For institutions and teams",
+            price: 199,
             period: "month",
             popular: false,
             features: [
-                "Everything in Pro",
-                "1-on-1 dedicated tutor matching",
-                "Personalized learning paths",
-                "Instant tutor connections",
-                "VIP support line",
-                "Advanced AI study assistant",
-                "Career counseling sessions",
-                "University application help",
-                "Scholarship guidance",
-                "Exclusive masterclasses",
+                "Everything in Professional",
+                "Dedicated account manager",
+                "Custom integrations",
+                "Admin dashboard",
+                "Bulk user management",
+                "Custom branding",
+                "SLA guarantee",
+                "24/7 phone support",
             ],
-            icon: Gem,
-            gradient: "from-yellow-500 to-orange-600",
-            bgGradient: "from-yellow-50 to-orange-50",
-            buttonText: "Go Elite",
-            accent: "yellow",
-            href: "/auth/register?role=student&plan=elite",
+            cta: "Contact Sales",
+            href: "/auth/register?role=student&plan=enterprise",
+            icon: Shield,
+            color: "slate",
         },
     ]
 
@@ -141,299 +131,153 @@ export function Pricing() {
     ]
 
     return (
-        <section className="py-20 hero-background relative overflow-hidden">
+        <section className="py-16 lg:py-20 bg-gradient-to-br from-slate-50 to-gray-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                {/* Section Header */}
-                <div className="text-center mb-16">
-                    <div className="flex justify-center mb-5">
-                        <Badge
-                            variant="secondary"
-                            className="premium-glass border-0 text-purple-700 px-5 py-2 text-sm font-medium"
-                        >
-                            <Sparkles className="w-4 h-4 mr-2" />
-                            Flexible Pricing
-                            <Crown className="w-4 h-4 ml-2" />
-                        </Badge>
-                    </div>
-
-                    <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-5">
-                        <span className="text-gray-900 premium-text-shadow">
-                            Choose Your
-                        </span>
-                        <br />
-                        <span className="royal-text">Learning Journey</span>
+                <div className="text-center mb-12 lg:mb-16 px-2 sm:px-0">
+                    <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-800 mb-4 leading-tight">
+                        Simple, Transparent Pricing
                     </h2>
-
-                    <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                        Unlock your potential with our premium tutoring plans
-                        designed for every learning style and budget.
+                    <p className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
+                        Choose the perfect plan for your learning journey. All
+                        plans include our core features with no hidden fees.
                     </p>
                 </div>
 
-                {/* Student Plans */}
-                <div className="mb-16">
-                    <div className="text-center mb-10">
-                        <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                            For Students
-                        </h3>
-                        <p className="text-base text-gray-600">
-                            Transform your learning experience with our premium
-                            student plans
-                        </p>
-                    </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto mb-12 lg:mb-16">
+                    {plans.map((plan, index) => (
+                        <Card
+                            key={index}
+                            className={`relative border-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-white ${
+                                plan.popular
+                                    ? "border-slate-300 shadow-lg scale-105 lg:scale-110"
+                                    : "border-slate-200 hover:border-slate-300"
+                            }`}
+                        >
+                            {plan.popular && (
+                                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                                    <Badge className="bg-slate-700 text-white px-4 py-1 text-sm font-semibold">
+                                        Most Popular
+                                    </Badge>
+                                </div>
+                            )}
 
-                    <div className="grid lg:grid-cols-3 gap-6">
-                        {plans.map((plan, index) => (
-                            <Card
-                                key={index}
-                                className={`
-                                    relative overflow-hidden border-0 transition-all duration-300 
-                                    ${
-                                        plan.popular
-                                            ? "pricing-card transform scale-105 z-10 shadow-2xl"
-                                            : "luxury-card hover:scale-105"
-                                    }
-                                `}
-                            >
-                                {plan.popular && (
-                                    <div className="absolute top-0 left-0 right-0 royal-gradient p-2 text-center">
-                                        <span className="text-white font-bold text-sm flex items-center justify-center">
-                                            <Crown className="w-3 h-3 mr-1" />
-                                            MOST POPULAR
-                                            <Crown className="w-3 h-3 ml-1" />
-                                        </span>
+                            <CardHeader className="text-center pb-6">
+                                <div className="flex justify-center mb-4">
+                                    <div
+                                        className={`w-16 h-16 rounded-full flex items-center justify-center ${
+                                            plan.popular
+                                                ? "bg-gradient-to-br from-slate-700 to-slate-900"
+                                                : "bg-slate-100"
+                                        }`}
+                                    >
+                                        <plan.icon
+                                            className={`h-8 w-8 ${
+                                                plan.popular
+                                                    ? "text-amber-400"
+                                                    : "text-slate-600"
+                                            }`}
+                                        />
                                     </div>
-                                )}
+                                </div>
 
-                                <CardHeader
-                                    className={`pb-3 ${
-                                        plan.popular ? "pt-12" : "pt-6"
-                                    }`}
-                                >
-                                    <div className="flex items-center justify-between mb-3">
-                                        <div
-                                            className={`w-10 h-10 rounded-full bg-gradient-to-br ${plan.gradient} flex items-center justify-center`}
-                                        >
-                                            <plan.icon className="h-5 w-5 text-white" />
-                                        </div>
-                                        {plan.popular && (
-                                            <Badge className="royal-gradient text-white border-0 text-xs">
-                                                <Sparkles className="w-3 h-3 mr-1" />
-                                                Best Value
-                                            </Badge>
-                                        )}
-                                    </div>
+                                <CardTitle className="text-xl font-bold text-slate-800 mb-2">
+                                    {plan.name}
+                                </CardTitle>
+                                <p className="text-sm text-slate-600 mb-4">
+                                    {plan.description}
+                                </p>
 
-                                    <CardTitle className="text-lg font-bold text-gray-900">
-                                        {plan.name}
-                                    </CardTitle>
-                                    <CardDescription className="text-gray-600 mt-1 text-sm">
-                                        {plan.description}
-                                    </CardDescription>
+                                <div className="flex items-baseline justify-center mb-6">
+                                    <span className="text-4xl font-bold text-slate-800">
+                                        ${plan.price}
+                                    </span>
+                                    <span className="text-slate-600 ml-2">
+                                        /{plan.period}
+                                    </span>
+                                </div>
+                            </CardHeader>
 
-                                    <div className="mt-4">
-                                        <div className="flex items-baseline">
-                                            <span className="text-3xl font-bold royal-text">
-                                                ${plan.price}
-                                            </span>
-                                            <span className="text-gray-600 ml-1 text-sm">
-                                                /{plan.period}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </CardHeader>
-
-                                <CardContent className="pt-3">
-                                    <Link href={plan.href}>
-                                        <Button
-                                            className={`
-                                                w-full mb-5 font-semibold group text-sm
-                                                ${
-                                                    plan.popular
-                                                        ? "premium-button text-white border-0"
-                                                        : "premium-glass border-2 border-purple-200 text-purple-700 hover:text-purple-800 backdrop-blur-lg"
-                                                }
-                                            `}
-                                            size="default"
-                                        >
-                                            {plan.popular && (
-                                                <Crown className="w-4 h-4 mr-2 group-hover:animate-bounce" />
-                                            )}
-                                            {plan.buttonText}
-                                            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                                        </Button>
-                                    </Link>
-
-                                    <div className="space-y-2">
-                                        {plan.features.map(
-                                            (feature, featureIndex) => (
-                                                <div
-                                                    key={featureIndex}
-                                                    className="flex items-start"
-                                                >
-                                                    <div
-                                                        className={`w-4 h-4 rounded-full bg-gradient-to-br ${plan.gradient} flex items-center justify-center flex-shrink-0 mt-0.5`}
-                                                    >
-                                                        <Check className="h-2.5 w-2.5 text-white" />
-                                                    </div>
-                                                    <span className="text-gray-700 ml-2 text-sm">
-                                                        {feature}
-                                                    </span>
+                            <CardContent className="pt-0">
+                                <ul className="space-y-3 mb-8">
+                                    {plan.features.map(
+                                        (feature, featureIndex) => (
+                                            <li
+                                                key={featureIndex}
+                                                className="flex items-start gap-3"
+                                            >
+                                                <div className="flex-shrink-0 w-5 h-5 bg-emerald-100 rounded-full flex items-center justify-center mt-0.5">
+                                                    <Check className="h-3 w-3 text-emerald-600" />
                                                 </div>
-                                            )
-                                        )}
-                                    </div>
-                                </CardContent>
-
-                                {/* Decorative elements */}
-                                <div
-                                    className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${plan.gradient} opacity-60`}
-                                ></div>
-
-                                {plan.popular && (
-                                    <>
-                                        <div className="absolute top-16 right-3 w-12 h-12 bg-yellow-400/20 rounded-full blur-xl animate-pulse"></div>
-                                        <div
-                                            className="absolute bottom-16 left-3 w-10 h-10 bg-purple-400/20 rounded-full blur-xl animate-pulse"
-                                            style={{ animationDelay: "1s" }}
-                                        ></div>
-                                    </>
-                                )}
-                            </Card>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Tutor Plans */}
-                <div className="mb-14">
-                    <div className="text-center mb-10">
-                        <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                            For Tutors
-                        </h3>
-                        <p className="text-base text-gray-600">
-                            Start earning with our comprehensive tutor platform
-                        </p>
-                    </div>
-
-                    <div className="grid lg:grid-cols-2 gap-6 max-w-5xl mx-auto">
-                        {tutorPlans.map((plan, index) => (
-                            <Card
-                                key={index}
-                                className="luxury-card border-0 hover:scale-105 transition-all duration-300 relative overflow-hidden"
-                            >
-                                <CardHeader className="pb-3">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <div
-                                            className={`w-10 h-10 rounded-full bg-gradient-to-br ${plan.gradient} flex items-center justify-center`}
-                                        >
-                                            <plan.icon className="h-5 w-5 text-white" />
-                                        </div>
-                                        <Badge
-                                            variant="outline"
-                                            className="text-xs"
-                                        >
-                                            {plan.commission} Commission
-                                        </Badge>
-                                    </div>
-
-                                    <CardTitle className="text-lg font-bold text-gray-900">
-                                        {plan.name}
-                                    </CardTitle>
-                                    <CardDescription className="text-gray-600 mt-1 text-sm">
-                                        {plan.description}
-                                    </CardDescription>
-
-                                    <div className="mt-4">
-                                        <div className="flex items-baseline">
-                                            <span className="text-3xl font-bold royal-text">
-                                                {typeof plan.price === "string"
-                                                    ? plan.price
-                                                    : `$${plan.price}`}
-                                            </span>
-                                            {typeof plan.price === "number" && (
-                                                <span className="text-gray-600 ml-1 text-sm">
-                                                    /{plan.period}
+                                                <span className="text-sm text-slate-600">
+                                                    {feature}
                                                 </span>
-                                            )}
-                                        </div>
-                                    </div>
-                                </CardHeader>
+                                            </li>
+                                        )
+                                    )}
+                                </ul>
 
-                                <CardContent className="pt-3">
-                                    <Link href={plan.href}>
-                                        <Button
-                                            className="w-full mb-5 premium-glass border-2 border-emerald-200 text-emerald-700 hover:text-emerald-800 backdrop-blur-lg font-semibold group text-sm"
-                                            size="default"
-                                        >
-                                            <Star className="w-4 h-4 mr-2 group-hover:animate-spin" />
-                                            {plan.buttonText}
-                                            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                                        </Button>
-                                    </Link>
+                                <Link href={plan.href}>
+                                    <Button
+                                        className={`w-full h-12 font-semibold transition-all duration-200 ${
+                                            plan.popular
+                                                ? "bg-slate-700 hover:bg-slate-800 text-white"
+                                                : "bg-white border-2 border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400"
+                                        }`}
+                                        variant={
+                                            plan.popular ? "default" : "outline"
+                                        }
+                                    >
+                                        {plan.cta}
+                                    </Button>
+                                </Link>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
 
-                                    <div className="space-y-2">
-                                        {plan.features.map(
-                                            (feature, featureIndex) => (
-                                                <div
-                                                    key={featureIndex}
-                                                    className="flex items-start"
-                                                >
-                                                    <div
-                                                        className={`w-4 h-4 rounded-full bg-gradient-to-br ${plan.gradient} flex items-center justify-center flex-shrink-0 mt-0.5`}
-                                                    >
-                                                        <Check className="h-2.5 w-2.5 text-white" />
-                                                    </div>
-                                                    <span className="text-gray-700 ml-2 text-sm">
-                                                        {feature}
-                                                    </span>
-                                                </div>
-                                            )
-                                        )}
-                                    </div>
-                                </CardContent>
-
-                                <div
-                                    className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${plan.gradient} opacity-60`}
-                                ></div>
-                            </Card>
-                        ))}
+                {/* Additional Info */}
+                <div className="text-center mt-12">
+                    <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 max-w-3xl mx-auto border border-slate-200">
+                        <div className="flex justify-center mb-4">
+                            <Zap className="h-6 w-6 text-amber-500" />
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-800 mb-2">
+                            Start with a Free Trial
+                        </h3>
+                        <p className="text-slate-600 mb-4">
+                            All plans come with a 7-day free trial. No credit
+                            card required. Cancel anytime.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-3 justify-center text-sm text-slate-500">
+                            <span>✓ No setup fees</span>
+                            <span>✓ Cancel anytime</span>
+                            <span>✓ 30-day money-back guarantee</span>
+                        </div>
                     </div>
                 </div>
 
-                {/* Money Back Guarantee */}
-                <div className="luxury-card p-6 rounded-3xl text-center">
-                    <div className="w-12 h-12 mx-auto mb-4 rounded-full royal-gradient flex items-center justify-center">
-                        <Shield className="h-6 w-6 text-white" />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-3">
-                        30-Day Money-Back Guarantee
-                    </h3>
-                    <p className="text-gray-600 max-w-2xl mx-auto mb-5 text-sm">
-                        Not satisfied with your learning experience? Get a full
-                        refund within 30 days, no questions asked. We're
-                        confident you'll love our premium tutoring platform.
-                    </p>
-                    <div className="flex justify-center">
-                        <Link href="/auth/register">
-                            <Button className="premium-button text-white border-0 px-6 py-2 font-semibold group text-sm">
-                                Try Risk-Free Now
-                                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                {/* Tutor CTA */}
+                <div className="text-center mt-12">
+                    <div className="bg-slate-100 rounded-2xl p-8 max-w-2xl mx-auto">
+                        <h3 className="text-xl font-bold text-slate-800 mb-3">
+                            Ready to Start Teaching?
+                        </h3>
+                        <p className="text-slate-600 mb-6">
+                            Join our community of expert tutors and start
+                            earning premium rates for your expertise.
+                        </p>
+                        <Link href="/auth/register?role=tutor">
+                            <Button
+                                variant="outline"
+                                className="border-2 border-slate-300 text-slate-700 hover:text-slate-800 hover:bg-white font-semibold px-8 h-12"
+                            >
+                                <Crown className="mr-2 h-4 w-4 text-amber-500" />
+                                Become a Tutor
                             </Button>
                         </Link>
                     </div>
                 </div>
             </div>
-
-            {/* Background decorations */}
-            <div className="absolute top-20 left-10 w-24 h-24 bg-purple-400/10 rounded-full blur-xl animate-pulse float"></div>
-            <div
-                className="absolute bottom-20 right-10 w-32 h-32 bg-yellow-400/10 rounded-full blur-xl animate-pulse float"
-                style={{ animationDelay: "2s" }}
-            ></div>
-            <div
-                className="absolute top-1/2 left-1/3 w-16 h-16 bg-purple-400/5 rounded-full blur-xl animate-pulse float"
-                style={{ animationDelay: "4s" }}
-            ></div>
         </section>
     )
 }
