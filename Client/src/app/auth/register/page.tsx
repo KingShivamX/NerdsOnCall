@@ -10,7 +10,8 @@ import toast from "react-hot-toast"
 
 export default function RegisterPage() {
     const [formData, setFormData] = useState({
-        name: "",
+        firstName: "",
+        lastName: "",
         email: "",
         password: "",
         confirmPassword: "",
@@ -41,7 +42,8 @@ export default function RegisterPage() {
 
         try {
             await register({
-                name: formData.name,
+                firstName: formData.firstName,
+                lastName: formData.lastName,
                 email: formData.email,
                 password: formData.password,
                 role: formData.role,
@@ -75,16 +77,30 @@ export default function RegisterPage() {
                 <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
                     <div className="space-y-4">
                         <div>
-                            <label htmlFor="name" className="sr-only">
-                                Full Name
+                            <label htmlFor="firstName" className="sr-only">
+                                First Name
                             </label>
                             <Input
-                                id="name"
-                                name="name"
+                                id="firstName"
+                                name="firstName"
                                 type="text"
                                 required
-                                placeholder="Full Name"
-                                value={formData.name}
+                                placeholder="First Name"
+                                value={formData.firstName}
+                                onChange={handleChange}
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="lastName" className="sr-only">
+                                Last Name
+                            </label>
+                            <Input
+                                id="lastName"
+                                name="lastName"
+                                type="text"
+                                required
+                                placeholder="Last Name"
+                                value={formData.lastName}
                                 onChange={handleChange}
                             />
                         </div>

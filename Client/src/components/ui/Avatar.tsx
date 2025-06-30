@@ -1,4 +1,5 @@
 import { forwardRef } from "react"
+import Image from "next/image"
 import { cn } from "../../lib/utils"
 import { cva, type VariantProps } from "class-variance-authority"
 
@@ -45,10 +46,12 @@ const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
                 {...props}
             >
                 {src ? (
-                    <img
+                    <Image
                         className="aspect-square h-full w-full object-cover"
                         src={src}
-                        alt={alt}
+                        alt={alt || "Avatar"}
+                        width={40}
+                        height={40}
                     />
                 ) : (
                     <div className="flex h-full w-full items-center justify-center rounded-full bg-muted">

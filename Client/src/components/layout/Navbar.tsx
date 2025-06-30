@@ -52,8 +52,11 @@ export function Navbar() {
                                 </Link>
                                 <div className="relative group">
                                     <Avatar
-                                        src={user?.profileImage}
-                                        alt={user?.name || "User"}
+                                        src={user?.profilePicture}
+                                        alt={
+                                            `${user?.firstName} ${user?.lastName}` ||
+                                            "User"
+                                        }
                                         size="sm"
                                         className="cursor-pointer"
                                     />

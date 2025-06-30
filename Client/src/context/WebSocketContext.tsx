@@ -22,13 +22,13 @@ const WebSocketContext = createContext<WebSocketContextType | undefined>(
 )
 
 export function WebSocketProvider({ children }: { children: React.ReactNode }) {
-    const { user, isAuthenticated } = useAuth()
+    const { user } = useAuth()
     const [socket, setSocket] = useState<Socket | null>(null)
     const [connected, setConnected] = useState(false)
     const socketRef = useRef<Socket | null>(null)
 
     useEffect(() => {
-        if (isAuthenticated && user) {
+        if (user) {
             // Connect to WebSocket server
             const newSocket = io(
                 process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") ||
@@ -66,7 +66,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
                 setConnected(false)
             }
         }
-    }, [isAuthenticated, user])
+    }, [user])
 
     const subscribeToTutorUpdates = (tutorId: number) => {
         if (socket) {
