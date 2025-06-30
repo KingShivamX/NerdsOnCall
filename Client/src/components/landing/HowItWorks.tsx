@@ -137,14 +137,14 @@ export function HowItWorks() {
     ]
 
     return (
-        <section className="py-16 lg:py-24 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 relative overflow-hidden">
+        <section className="bg-transparent relative overflow-hidden">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Section Header with mobile optimization */}
                 <div className="text-center mb-16 lg:mb-20 px-2 sm:px-0">
                     <div className="flex justify-center mb-5 lg:mb-6">
                         <Badge
                             variant="secondary"
-                            className="bg-white/90 border border-slate-200 text-slate-700 px-6 py-2 text-sm font-semibold shadow-sm"
+                            className="bg-white/90 border border-slate-200 text-slate-700 px-6 py-2 text-sm font-semibold shadow-sm backdrop-blur-sm"
                         >
                             <Sparkles className="w-4 h-4 mr-2 text-amber-500" />
                             Simple Process
@@ -190,7 +190,7 @@ export function HowItWorks() {
                                     </div>
                                 </div>
 
-                                <Card className="bg-white/90 backdrop-blur-sm border border-slate-200 shadow-xl group hover:shadow-2xl transition-all duration-300 h-full">
+                                <Card className="bg-white/85 backdrop-blur-md border border-slate-200/50 shadow-xl group hover:shadow-2xl transition-all duration-300 h-full">
                                     <CardHeader className="pt-6 pb-4 text-center px-4 lg:px-6">
                                         <div
                                             className={`w-12 h-12 lg:w-16 lg:h-16 mx-auto rounded-full bg-gradient-to-br ${step.gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-all duration-300`}
@@ -228,7 +228,7 @@ export function HowItWorks() {
                 </div>
 
                 {/* For Tutors with enhanced mobile layout */}
-                <div className="mb-16 lg:mb-20">
+                <div className="mb-20 lg:mb-28 mt-12 lg:mt-16">
                     <div className="text-center mb-12 lg:mb-16 px-2 sm:px-0">
                         <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-800 mb-3 lg:mb-4">
                             For Tutors
@@ -252,7 +252,7 @@ export function HowItWorks() {
                                     </div>
                                 </div>
 
-                                <Card className="bg-white/90 backdrop-blur-sm border border-slate-200 shadow-xl group hover:shadow-2xl transition-all duration-300 h-full">
+                                <Card className="bg-white/85 backdrop-blur-md border border-slate-200/50 shadow-xl group hover:shadow-2xl transition-all duration-300 h-full">
                                     <CardHeader className="pt-6 pb-4 text-center px-4 lg:px-6">
                                         <div
                                             className={`w-12 h-12 lg:w-16 lg:h-16 mx-auto rounded-full bg-gradient-to-br ${step.gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-all duration-300`}
@@ -289,8 +289,8 @@ export function HowItWorks() {
                     </div>
                 </div>
 
-                {/* Call to Action with mobile optimization */}
-                <div className="bg-white/90 backdrop-blur-sm border border-slate-200 p-6 sm:p-8 lg:p-12 rounded-3xl text-center shadow-xl mx-2 sm:mx-0">
+                {/* Call to Action with mobile optimization and more spacing */}
+                <div className="bg-white/80 backdrop-blur-lg border border-white/30 p-6 sm:p-8 lg:p-12 rounded-3xl text-center shadow-xl mx-2 sm:mx-0 mt-16 lg:mt-20">
                     <div className="w-16 h-16 lg:w-20 lg:h-20 mx-auto mb-6 lg:mb-8 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center shadow-lg">
                         <Zap className="h-8 w-8 lg:h-10 lg:w-10 text-amber-400" />
                     </div>
@@ -322,15 +322,11 @@ export function HowItWorks() {
                 </div>
             </div>
 
-            {/* Background decorations */}
-            <div className="absolute top-20 left-10 w-20 h-20 bg-slate-200/30 rounded-full blur-xl animate-pulse float"></div>
+            {/* Background decorations - reduced since main page has blur balls */}
+            <div className="absolute top-20 left-10 w-20 h-20 bg-slate-200/10 rounded-full blur-xl animate-pulse float"></div>
             <div
-                className="absolute bottom-20 right-10 w-24 h-24 bg-blue-200/20 rounded-full blur-xl animate-pulse float"
+                className="absolute bottom-20 right-10 w-24 h-24 bg-blue-200/10 rounded-full blur-xl animate-pulse float"
                 style={{ animationDelay: "2s" }}
-            ></div>
-            <div
-                className="absolute top-1/2 left-1/4 w-16 h-16 bg-indigo-200/20 rounded-full blur-xl animate-pulse float"
-                style={{ animationDelay: "4s" }}
             ></div>
         </section>
     )

@@ -131,7 +131,7 @@ export function Pricing() {
     ]
 
     return (
-        <section className="py-16 lg:py-20 bg-gradient-to-br from-slate-50 to-gray-100">
+        <section className="bg-transparent">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-12 lg:mb-16 px-2 sm:px-0">
                     <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-800 mb-4 leading-tight">
@@ -147,7 +147,7 @@ export function Pricing() {
                     {plans.map((plan, index) => (
                         <Card
                             key={index}
-                            className={`relative border-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-white ${
+                            className={`relative border-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-white/85 backdrop-blur-md ${
                                 plan.popular
                                     ? "border-slate-300 shadow-lg scale-105 lg:scale-110"
                                     : "border-slate-200 hover:border-slate-300"
@@ -237,7 +237,7 @@ export function Pricing() {
 
                 {/* Additional Info */}
                 <div className="text-center mt-12">
-                    <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 max-w-3xl mx-auto border border-slate-200">
+                    <div className="bg-white/70 backdrop-blur-md rounded-2xl p-6 max-w-3xl mx-auto border border-white/20">
                         <div className="flex justify-center mb-4">
                             <Zap className="h-6 w-6 text-amber-500" />
                         </div>
@@ -258,7 +258,7 @@ export function Pricing() {
 
                 {/* Tutor CTA */}
                 <div className="text-center mt-12">
-                    <div className="bg-slate-100 rounded-2xl p-8 max-w-2xl mx-auto">
+                    <div className="bg-white/70 backdrop-blur-md rounded-2xl p-8 max-w-2xl mx-auto border border-white/20">
                         <h3 className="text-xl font-bold text-slate-800 mb-3">
                             Ready to Start Teaching?
                         </h3>

@@ -14,20 +14,7 @@ import {
 
 export function Hero() {
     return (
-        <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-gray-100 overflow-hidden">
-            {/* Background decorative elements */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-20 left-10 w-72 h-72 bg-slate-200/30 rounded-full mix-blend-multiply filter blur-3xl animate-pulse float"></div>
-                <div
-                    className="absolute top-40 right-10 w-96 h-96 bg-blue-200/20 rounded-full mix-blend-multiply filter blur-3xl animate-pulse float"
-                    style={{ animationDelay: "2s" }}
-                ></div>
-                <div
-                    className="absolute bottom-20 left-1/3 w-80 h-80 bg-slate-100/20 rounded-full mix-blend-multiply filter blur-3xl animate-pulse float"
-                    style={{ animationDelay: "4s" }}
-                ></div>
-            </div>
-
+        <section className="relative w-full bg-transparent">
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                 {/* Main heading with better mobile spacing */}
                 <div className="mt-16 mb-8 px-2 sm:px-0">
@@ -85,7 +72,7 @@ export function Hero() {
 
                 {/* Features showcase with enhanced mobile design */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 max-w-5xl mx-auto px-4 sm:px-0">
-                    <div className="bg-white/70 backdrop-blur-sm p-4 sm:p-6 rounded-xl border border-slate-200 hover:shadow-lg transition-all duration-300">
+                    <div className="bg-white/80 backdrop-blur-md p-4 sm:p-6 rounded-xl border border-white/30 hover:shadow-lg transition-all duration-300">
                         <div className="mb-4">
                             <div className="w-12 h-12 mx-auto rounded-full bg-slate-100 flex items-center justify-center mb-3">
                                 <Video className="h-6 w-6 text-slate-700" />
@@ -100,7 +87,7 @@ export function Hero() {
                         </p>
                     </div>
 
-                    <div className="bg-white/70 backdrop-blur-sm p-4 sm:p-6 rounded-xl border border-slate-200 hover:shadow-lg transition-all duration-300">
+                    <div className="bg-white/80 backdrop-blur-md p-4 sm:p-6 rounded-xl border border-white/30 hover:shadow-lg transition-all duration-300">
                         <div className="mb-4">
                             <div className="w-12 h-12 mx-auto rounded-full bg-slate-100 flex items-center justify-center mb-3">
                                 <BookOpen className="h-6 w-6 text-slate-700" />
@@ -115,7 +102,7 @@ export function Hero() {
                         </p>
                     </div>
 
-                    <div className="bg-white/70 backdrop-blur-sm p-4 sm:p-6 rounded-xl border border-slate-200 hover:shadow-lg transition-all duration-300">
+                    <div className="bg-white/80 backdrop-blur-md p-4 sm:p-6 rounded-xl border border-white/30 hover:shadow-lg transition-all duration-300">
                         <div className="mb-4">
                             <div className="w-12 h-12 mx-auto rounded-full bg-slate-100 flex items-center justify-center mb-3">
                                 <Users className="h-6 w-6 text-slate-700" />

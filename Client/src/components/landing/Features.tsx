@@ -72,7 +72,7 @@ const features = [
 
 export function Features() {
     return (
-        <section className="py-16 lg:py-20 bg-white">
+        <section className="bg-transparent">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-12 lg:mb-16 px-2 sm:px-0">
                     <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-800 mb-4 leading-tight">
@@ -88,7 +88,7 @@ export function Features() {
                     {features.map((feature, index) => (
                         <Card
                             key={index}
-                            className="border border-slate-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-white group"
+                            className="border border-slate-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-white/80 backdrop-blur-sm group"
                         >
                             <CardContent className="p-6 lg:p-8">
                                 <div className="mb-4">
@@ -108,7 +108,7 @@ export function Features() {
                 </div>
 
                 <div className="text-center px-2 sm:px-0">
-                    <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-6 sm:p-8 lg:p-10 mb-8">
+                    <div className="bg-white/70 backdrop-blur-md rounded-2xl p-6 sm:p-8 lg:p-10 mb-8 border border-white/20">
                         <div className="flex justify-center mb-4 lg:mb-6">
                             <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-slate-700 to-slate-900 rounded-full flex items-center justify-center shadow-lg">
                                 <Sparkles className="h-8 w-8 lg:h-10 lg:w-10 text-amber-400" />
