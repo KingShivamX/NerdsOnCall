@@ -4,24 +4,25 @@ spring:
     profiles:
         active: production
 ---
-# Production profile with Supabase
+# Production profile with Supabase REST API and minimal H2 for JPA
 spring:
     config:
         activate:
             on-profile: production
+    # Minimal H2 database for JPA entities (won't be used actively)
     datasource:
-        url: ${SPRING_DATASOURCE_URL}
-        username: ${SPRING_DATASOURCE_USERNAME}
-        password: ${SPRING_DATASOURCE_PASSWORD}
-        driver-class-name: org.postgresql.Driver
+        url: jdbc:h2:mem:tempdb
+        driver-class-name: org.h2.Driver
+        username: sa
+        password:
     jpa:
+        database-platform: org.hibernate.dialect.H2Dialect
         hibernate:
-            ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
-        properties:
-            hibernate:
-                dialect: ${SPRING_JPA_DATABASE_PLATFORM:org.hibernate.dialect.PostgreSQLDialect}
-                format_sql: true
-        show-sql: ${SPRING_JPA_SHOW_SQL:false}
+            ddl-auto: create-drop
+        show-sql: false
+    h2:
+        console:
+            enabled: false
     security:
         oauth2:
             client:
@@ -51,7 +52,6 @@ logging:
     level:
         com.nerdsoncall: INFO
         org.springframework.security: INFO
-        org.hibernate.SQL: DEBUG
 
 ---
 # Local development profile with H2 database (for development only)
