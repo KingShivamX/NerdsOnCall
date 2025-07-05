@@ -36,14 +36,15 @@ export function HowItWorks() {
                 "Goal setting wizard",
             ],
         },
-        {
+       {
             step: 2,
             title: "Find Your Perfect Tutor",
             description:
-                "Our AI-powered matching system connects you with elite tutors who specialize in your subjects.",
+                "Our smart matching system connects you with elite tutors who specialize in your subjects.",
             icon: Search,
+            gradient: "from-slate-600 to-slate-800",
             details: [
-                "AI-powered matching",
+                "Personalized tutor matching",
                 "Browse tutor profiles",
                 "Read reviews & ratings",
             ],
