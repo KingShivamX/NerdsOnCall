@@ -7,12 +7,13 @@ import React, {
     useState,
     ReactNode,
 } from "react"
-import { User } from "../types"
-import { api, login as apiLogin } from "../lib/api"
+import { User, LoginRequest, RegisterRequest } from "../types"
+import { api } from "../lib/api"
 
 interface AuthContextType {
     user: User | null
     login: (email: string, password: string) => Promise<void>
+    register: (data: RegisterRequest) => Promise<void>
     logout: () => void
     loading: boolean
 }
@@ -56,27 +57,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const login = async (email: string, password: string) => {
         try {
-            const response = await apiLogin({ email, password })
+            const response = await api.post("/auth/login", { email, password })
             const { token, user: userData } = response.data
 
             localStorage.setItem("token", token)
-            api.defaults.headers.Authorization = `Bearer ${token}`
             setUser(userData)
         } catch (error) {
-            console.error("Login failed:", error)
+            throw error
+        }
+    }
+
+    const register = async (data: RegisterRequest) => {
+        try {
+            const response = await api.post("/auth/register", data)
+            const { token, user: userData } = response.data
+
+            localStorage.setItem("token", token)
+            setUser(userData)
+        } catch (error) {
             throw error
         }
     }
 
     const logout = () => {
         localStorage.removeItem("token")
-        delete api.defaults.headers.Authorization
         setUser(null)
     }
 
     const value: AuthContextType = {
         user,
         login,
+        register,
         logout,
         loading,
     }

@@ -9,7 +9,7 @@ interface ProvidersProps {
     children: ReactNode
 }
 
-export function Providers({ children }: ProvidersProps) {
+export function ReactQueryProvider({ children }: ProvidersProps) {
     const [queryClient] = useState(
         () =>
             new QueryClient({

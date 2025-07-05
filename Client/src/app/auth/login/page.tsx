@@ -19,7 +19,7 @@ import {
     CheckCircle2,
     ArrowRight,
 } from "lucide-react"
-import { toast } from "sonner"
+import toast from "react-hot-toast"
 
 interface FormData {
     email: string
@@ -90,7 +90,7 @@ export default function LoginPage() {
         if (Object.keys(newErrors).length === 0) {
             try {
                 await login(formData.email, formData.password)
-                toast.success("Login successful!")
+                toast.success("Welcome back to your elite learning experience!")
                 router.push("/dashboard")
             } catch (error: any) {
                 const errorMessage =
@@ -108,7 +108,7 @@ export default function LoginPage() {
     }
 
     const handleSocialLogin = async (provider: string) => {
-        toast.info(`${provider} login will be available soon!`)
+        toast(`${provider} login will be available soon!`)
     }
 
     const isFieldValid = (fieldName: string) => {
