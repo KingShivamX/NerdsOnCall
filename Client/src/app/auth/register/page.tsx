@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/Button"
@@ -28,13 +28,16 @@ import {
     CheckCircle2,
     ArrowRight,
 } from "lucide-react"
+import { toast } from "sonner"
+import { register } from "@/lib/api"
 
 interface FormData {
-    fullName: string
+    firstName: string
+    lastName: string
     email: string
     password: string
     confirmPassword: string
-    role: "student" | "tutor" | ""
+    role: "STUDENT" | "TUTOR" | ""
     agreeToTerms: boolean
 }
 
@@ -46,25 +49,34 @@ export default function RegisterPage() {
         | "tutor"
         | null
 
-    const [formData, setFormData] = useState<FormData>({
-        fullName: "",
+    const [formData, setFormData] = useState({
+        firstName: "",
+        lastName: "",
         email: "",
         password: "",
         confirmPassword: "",
-        role: preSelectedRole || "",
+        role: preSelectedRole
+            ? (preSelectedRole.toUpperCase() as "STUDENT" | "TUTOR")
+            : "",
         agreeToTerms: false,
     })
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const [errors, setErrors] = useState<Record<string, string>>({})
+    const [apiError, setApiError] = useState<string | null>(null)
     const [isLoading, setIsLoading] = useState(false)
 
     const validateField = (name: string, value: string | boolean) => {
         switch (name) {
-            case "fullName":
-                if (!value) return "Full name is required"
+            case "firstName":
+                if (!value) return "First name is required"
                 if (typeof value === "string" && value.length < 2)
-                    return "Name must be at least 2 characters"
+                    return "First name must be at least 2 characters"
+                return ""
+            case "lastName":
+                if (!value) return "Last name is required"
+                if (typeof value === "string" && value.length < 2)
+                    return "Last name must be at least 2 characters"
                 return ""
             case "email":
                 if (!value) return "Email is required"
@@ -104,6 +116,7 @@ export default function RegisterPage() {
         if (errors[name]) {
             setErrors((prev) => ({ ...prev, [name]: "" }))
         }
+        if (apiError) setApiError(null)
 
         // Also validate confirm password when password changes
         if (name === "password" && formData.confirmPassword) {
@@ -129,7 +142,10 @@ export default function RegisterPage() {
     }
 
     const handleRoleChange = (value: string) => {
-        setFormData((prev) => ({ ...prev, role: value as "student" | "tutor" }))
+        setFormData((prev) => ({
+            ...prev,
+            role: value.toUpperCase() as "STUDENT" | "TUTOR",
+        }))
         if (errors.role) {
             setErrors((prev) => ({ ...prev, role: "" }))
         }
@@ -138,6 +154,7 @@ export default function RegisterPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setIsLoading(true)
+        setApiError(null)
 
         // Validate all fields
         const newErrors: Record<string, string> = {}
@@ -149,13 +166,21 @@ export default function RegisterPage() {
         setErrors(newErrors)
 
         if (Object.keys(newErrors).length === 0) {
-            // Simulate API call
-            setTimeout(() => {
+            try {
+                const { confirmPassword, agreeToTerms, ...registerData } =
+                    formData
+                await register(registerData)
+                toast.success("Registration successful! Please login.")
+                router.push("/auth/login")
+            } catch (error: any) {
+                const message =
+                    error.response?.data?.message ||
+                    "An unexpected error occurred."
+                setApiError(message)
+                toast.error(message)
+            } finally {
                 setIsLoading(false)
-                // Handle successful registration here
-                console.log("Registration successful:", formData)
-                router.push("/dashboard")
-            }, 2000)
+            }
         } else {
             setIsLoading(false)
         }
@@ -205,6 +230,12 @@ export default function RegisterPage() {
                     </CardHeader>
                     <CardContent className="space-y-6 px-6 lg:px-8">
                         <form onSubmit={handleSubmit} className="space-y-6">
+                            {apiError && (
+                                <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded-md text-sm flex items-center gap-2">
+                                    <AlertCircle className="h-4 w-4" />
+                                    <span>{apiError}</span>
+                                </div>
+                            )}
                             {/* Role Selection with proper mobile spacing */}
                             <div className="space-y-3 relative">
                                 <label className="text-sm font-semibold text-slate-700">
@@ -212,7 +243,7 @@ export default function RegisterPage() {
                                 </label>
                                 <div className="relative z-50">
                                     <Select
-                                        value={formData.role}
+                                        value={formData.role.toLowerCase()}
                                         onValueChange={handleRoleChange}
                                     >
                                         <SelectTrigger
@@ -274,49 +305,93 @@ export default function RegisterPage() {
                                 )}
                             </div>
 
-                            {/* Full Name Field */}
-                            <div className="space-y-2">
-                                <label
-                                    htmlFor="fullName"
-                                    className="text-sm font-semibold text-slate-700"
-                                >
-                                    Full Name
-                                </label>
-                                <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <User className="h-4 w-4 text-slate-400" />
+                            {/* Name Fields */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {/* First Name Field */}
+                                <div className="space-y-2">
+                                    <label
+                                        htmlFor="firstName"
+                                        className="text-sm font-semibold text-slate-700"
+                                    >
+                                        First Name
+                                    </label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <User className="h-4 w-4 text-slate-400" />
+                                        </div>
+                                        <Input
+                                            id="firstName"
+                                            name="firstName"
+                                            type="text"
+                                            value={formData.firstName}
+                                            onChange={handleInputChange}
+                                            onBlur={handleBlur}
+                                            className={`pl-10 pr-10 h-12 lg:h-14 border-slate-300 focus:border-slate-500 focus:ring-slate-500 bg-white shadow-sm ${
+                                                errors.firstName
+                                                    ? "border-red-400 focus:border-red-500 focus:ring-red-500"
+                                                    : isFieldValid("firstName")
+                                                    ? "border-emerald-400 focus:border-emerald-500 focus:ring-emerald-500"
+                                                    : ""
+                                            }`}
+                                            placeholder="John"
+                                        />
+                                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                            {errors.firstName && (
+                                                <AlertCircle className="h-4 w-4 text-red-500" />
+                                            )}
+                                            {isFieldValid("firstName") && (
+                                                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                                            )}
+                                        </div>
                                     </div>
-                                    <Input
-                                        id="fullName"
-                                        name="fullName"
-                                        type="text"
-                                        value={formData.fullName}
-                                        onChange={handleInputChange}
-                                        onBlur={handleBlur}
-                                        className={`pl-10 pr-10 h-12 lg:h-14 border-slate-300 focus:border-slate-500 focus:ring-slate-500 bg-white shadow-sm ${
-                                            errors.fullName
-                                                ? "border-red-400 focus:border-red-500 focus:ring-red-500"
-                                                : isFieldValid("fullName")
-                                                ? "border-emerald-400 focus:border-emerald-500 focus:ring-emerald-500"
-                                                : ""
-                                        }`}
-                                        placeholder="Enter your full name"
-                                    />
-                                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                                        {errors.fullName && (
-                                            <AlertCircle className="h-4 w-4 text-red-500" />
-                                        )}
-                                        {isFieldValid("fullName") && (
-                                            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                                        )}
-                                    </div>
+                                    {errors.firstName && (
+                                        <p className="text-sm text-red-600 flex items-center gap-1">
+                                            <AlertCircle className="h-3 w-3" />
+                                            {errors.firstName}
+                                        </p>
+                                    )}
                                 </div>
-                                {errors.fullName && (
-                                    <p className="text-sm text-red-600 flex items-center gap-1">
-                                        <AlertCircle className="h-3 w-3" />
-                                        {errors.fullName}
-                                    </p>
-                                )}
+                                {/* Last Name Field */}
+                                <div className="space-y-2">
+                                    <label
+                                        htmlFor="lastName"
+                                        className="text-sm font-semibold text-slate-700"
+                                    >
+                                        Last Name
+                                    </label>
+                                    <div className="relative">
+                                        <Input
+                                            id="lastName"
+                                            name="lastName"
+                                            type="text"
+                                            value={formData.lastName}
+                                            onChange={handleInputChange}
+                                            onBlur={handleBlur}
+                                            className={`pr-10 h-12 lg:h-14 border-slate-300 focus:border-slate-500 focus:ring-slate-500 bg-white shadow-sm ${
+                                                errors.lastName
+                                                    ? "border-red-400 focus:border-red-500 focus:ring-red-500"
+                                                    : isFieldValid("lastName")
+                                                    ? "border-emerald-400 focus:border-emerald-500 focus:ring-emerald-500"
+                                                    : ""
+                                            }`}
+                                            placeholder="Doe"
+                                        />
+                                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                            {errors.lastName && (
+                                                <AlertCircle className="h-4 w-4 text-red-500" />
+                                            )}
+                                            {isFieldValid("lastName") && (
+                                                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                                            )}
+                                        </div>
+                                    </div>
+                                    {errors.lastName && (
+                                        <p className="text-sm text-red-600 flex items-center gap-1">
+                                            <AlertCircle className="h-3 w-3" />
+                                            {errors.lastName}
+                                        </p>
+                                    )}
+                                </div>
                             </div>
 
                             {/* Email Field */}

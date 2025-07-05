@@ -1,6 +1,7 @@
 import axios from "axios"
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api"
+const API_URL =
+    process.env.NEXT_PUBLIC_API_URL || "https://nerds-on-call.up.railway.app"
 
 export const api = axios.create({
     baseURL: API_URL,
@@ -34,3 +35,11 @@ api.interceptors.response.use(
         return Promise.reject(error)
     }
 )
+
+export const register = async (data: any) => {
+    return api.post("/auth/register", data)
+}
+
+export const login = async (data: any) => {
+    return api.post("/auth/login", data)
+}
