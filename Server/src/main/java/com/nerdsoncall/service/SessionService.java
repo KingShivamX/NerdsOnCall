@@ -9,6 +9,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -118,7 +119,7 @@ public class SessionService {
         if (hourlyRate == null || hourlyRate == 0) {
             hourlyRate = 25.0; // Default rate
         }
-        return new BigDecimal(hourlyRate).multiply(new BigDecimal(minutes)).divide(new BigDecimal(60), 2, BigDecimal.ROUND_HALF_UP);
+        return new BigDecimal(hourlyRate).multiply(new BigDecimal(minutes)).divide(new BigDecimal(60), 2, RoundingMode.HALF_UP);
     }
 
     public List<Session> getCompletedSessionsByTutorAndDateRange(User tutor, LocalDateTime startDate, LocalDateTime endDate) {

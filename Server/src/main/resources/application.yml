@@ -1,31 +1,20 @@
 spring:
     application:
         name: nerds-on-call
-    profiles:
-        active: production
----
-# Production profile with Supabase REST API and minimal H2 for JPA
-spring:
-    config:
-        activate:
-            on-profile: production
-    # Force H2 database configuration (override any Railway variables)
+    # Supabase PostgreSQL database configuration
     datasource:
-        url: jdbc:h2:mem:tempdb
-        driver-class-name: org.h2.Driver
-        username: sa
-        password: ""
+        url: ${DB_URL:jdbc:postgresql://aws-0-ap-south-1.pooler.supabase.com:6543/postgres}
+        driver-class-name: org.postgresql.Driver
+        username: ${DB_USERNAME:postgres.eaesjbeluniwvnhcangb}
+        password: ${DB_PASSWORD:NerdsOnCall@123}
         hikari:
             auto-commit: true
     jpa:
-        database-platform: org.hibernate.dialect.H2Dialect
+        database-platform: org.hibernate.dialect.PostgreSQLDialect
         hibernate:
-            ddl-auto: create-drop
-        show-sql: false
-        database: h2
-    h2:
-        console:
-            enabled: false
+            ddl-auto: create
+        show-sql: true
+        database: postgresql
     security:
         oauth2:
             client:
@@ -36,15 +25,13 @@ spring:
 
 server:
     port: ${PORT:8080}
-    servlet:
-        context-path: /api
 
 jwt:
-    secret: ${JWT_SECRET}
+    secret: ${JWT_SECRET:your_jwt_secret_key_should_be_at_least_256_bits_long_for_security_purposes_in_production}
     expiration: 86400000
 
 supabase:
-    url: ${SUPABASE_URL}
+    url: ${SUPABASE_URL:https://eaesjbeluniwvnhcangb.supabase.co}
     service-key: ${SUPABASE_SERVICE_KEY}
 
 stripe:
@@ -55,42 +42,3 @@ logging:
     level:
         com.nerdsoncall: INFO
         org.springframework.security: INFO
-
----
-# Local development profile with H2 database (for development only)
-spring:
-    config:
-        activate:
-            on-profile: local
-    datasource:
-        url: jdbc:h2:mem:testdb
-        driver-class-name: org.h2.Driver
-        username: sa
-        password: password
-    jpa:
-        database-platform: org.hibernate.dialect.H2Dialect
-        hibernate:
-            ddl-auto: create-drop
-        show-sql: true
-    h2:
-        console:
-            enabled: true
-            path: /h2-console
-
-server:
-    port: ${PORT:8080}
-    servlet:
-        context-path: /api
-
-jwt:
-    secret: ${JWT_SECRET:your_jwt_secret_key_should_be_at_least_256_bits_long_for_security_purposes_in_production}
-    expiration: 86400000
-
-stripe:
-    secret-key: ${STRIPE_SECRET_KEY:sk_test_placeholder}
-    webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_placeholder}
-
-logging:
-    level:
-        com.nerdsoncall: DEBUG
-        org.springframework.security: DEBUG

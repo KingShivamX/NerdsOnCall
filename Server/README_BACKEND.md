@@ -1,471 +1,184 @@
-# NerdsOnCall Backend API
-
-Spring Boot REST API for the NerdsOnCall real-time doubt-solving platform.
-
-## Table of Contents
-
-1. [Overview](#overview)
-2. [Tech Stack](#tech-stack)
-3. [Project Structure](#project-structure)
-4. [Setup & Installation](#setup--installation)
-5. [Environment Variables](#environment-variables)
-6. [Database Schema](#database-schema)
-7. [API Documentation](#api-documentation)
-8. [WebSocket Endpoints](#websocket-endpoints)
-9. [Authentication](#authentication)
-10. [Error Handling](#error-handling)
-11. [Deployment](#deployment)
-
-## Overview
-
-This backend provides REST APIs for:
-
--   User authentication and management
--   Doubt creation and management
--   Real-time tutor matching
--   Video session management
--   Subscription and payment processing
--   Feedback and rating system
--   WebSocket communication for real-time features
-
-## Tech Stack
-
--   **Framework**: Spring Boot 3.2.0
--   **Database**: PostgreSQL (via Supabase)
--   **Authentication**: JWT
--   **Real-time**: WebSocket + STOMP
--   **Payments**: Stripe
--   **Build Tool**: Maven
--   **Java Version**: 17
-
-## Project Structure
-
-```
-src/main/java/com/nerdsoncall/
-├── config/                 # Configuration classes
-│   ├── SecurityConfig.java    # Spring Security configuration
-│   └── WebSocketConfig.java   # WebSocket/STOMP configuration
-├── controller/             # REST Controllers
-│   ├── AuthController.java    # Authentication endpoints
-│   ├── UserController.java    # User management
-│   ├── DoubtController.java   # Doubt management
-│   ├── SessionController.java # Session management
-│   ├── SubscriptionController.java # Subscription management
-│   ├── PaymentController.java     # Stripe webhooks
-│   ├── FeedbackController.java    # Feedback system
-│   ├── WebSocketController.java   # WebSocket handlers
-│   └── HealthController.java      # Health check
-├── dto/                    # Data Transfer Objects
-│   ├── LoginRequest.java
-│   ├── LoginResponse.java
-│   ├── RegisterRequest.java
-│   ├── CreateDoubtRequest.java
-│   ├── CreateSessionRequest.java
-│   └── CreateFeedbackRequest.java
-├── entity/                 # JPA Entities
-│   ├── User.java          # User entity with roles
-│   ├── Subscription.java  # Subscription plans
-│   ├── Doubt.java         # Student doubts
-│   ├── Session.java       # Tutoring sessions
-│   ├── Feedback.java      # Rating system
-│   └── Payout.java        # Tutor earnings
-├── repository/             # JPA Repositories
-│   ├── UserRepository.java
-│   ├── SubscriptionRepository.java
-│   ├── DoubtRepository.java
-│   ├── SessionRepository.java
-│   ├── FeedbackRepository.java
-│   └── PayoutRepository.java
-├── security/               # Security components
-│   ├── JwtUtil.java           # JWT utility
-│   ├── JwtAuthenticationFilter.java
-│   └── JwtAuthenticationEntryPoint.java
-├── service/                # Business Logic
-│   ├── AuthService.java       # Authentication service
-│   ├── UserService.java       # User management
-│   ├── DoubtService.java      # Doubt management
-│   ├── SessionService.java    # Session management
-│   ├── SubscriptionService.java # Subscription logic
-│   ├── PaymentService.java    # Stripe integration
-│   └── FeedbackService.java   # Feedback system
-└── NerdsOnCallApplication.java # Main application class
-```
-
-## Setup & Installation
-
-### Prerequisites
-
--   Java 17 or higher
--   Maven 3.6+
--   PostgreSQL database (or Supabase account)
--   Stripe account for payments
-
-### Installation Steps
-
-1. **Clone the repository**
-
-    ```bash
-    git clone <repository-url>
-    cd Server
-    ```
-
-2. **Configure environment variables**
-   Create a `.env` file in the root directory:
-
-    ```env
-    SPRING_DATASOURCE_URL=jdbc:postgresql://your-db-host:5432/your-db-name
-    SPRING_DATASOURCE_USERNAME=your-db-username
-    SPRING_DATASOURCE_PASSWORD=your-db-password
-    JWT_SECRET=your-jwt-secret-key-minimum-32-characters
-    SUPABASE_URL=https://your-project.supabase.co
-    SUPABASE_SERVICE_KEY=your-supabase-service-key
-    STRIPE_SECRET_KEY=sk_test_your-stripe-secret-key
-    STRIPE_WEBHOOK_SECRET=whsec_your-webhook-secret
-    ```
-
-3. **Build the application**
-
-    ```bash
-    mvn clean package
-    ```
-
-4. **Run the application**
-
-    ```bash
-    java -jar target/backend.jar
-    ```
-
-    Or for development:
-
-    ```bash
-    mvn spring-boot:run
-    ```
-
-The application will start on `http://localhost:8080`
-
-## Environment Variables
-
-| Variable                     | Description                       | Required |
-| ---------------------------- | --------------------------------- | -------- |
-| `SPRING_DATASOURCE_URL`      | PostgreSQL database URL           | Yes      |
-| `SPRING_DATASOURCE_USERNAME` | Database username                 | Yes      |
-| `SPRING_DATASOURCE_PASSWORD` | Database password                 | Yes      |
-| `JWT_SECRET`                 | JWT signing secret (min 32 chars) | Yes      |
-| `SUPABASE_URL`               | Supabase project URL              | Yes      |
-| `SUPABASE_SERVICE_KEY`       | Supabase service role key         | Yes      |
-| `STRIPE_SECRET_KEY`          | Stripe secret key                 | Yes      |
-| `STRIPE_WEBHOOK_SECRET`      | Stripe webhook secret             | Yes      |
-
-## API Documentation
-
-### Base URL
-
-All API endpoints are prefixed with `/api`
-
-### Authentication Endpoints
-
-#### POST `/api/auth/register`
-
-Register a new user (student or tutor)
-
-**Request Body:**
-
-```json
-{
-  "email": "user@example.com",
-  "password": "password123",
-  "firstName": "John",
-  "lastName": "Doe",
-  "role": "STUDENT",
-  "phoneNumber": "+1234567890",
-  "bio": "Experienced tutor",
-  "subjects": ["MATHEMATICS", "PHYSICS"],
-  "hourlyRate": 25.0
-}
-```
-
-#### POST `/api/auth/login`
-
-Authenticate user and get JWT token
-
-**Request Body:**
-
-```json
-{
-  "email": "user@example.com",
-  "password": "password123"
-}
-```
-
-**Response:**
-
-```json
-{
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "user": {
-    "id": 1,
-    "email": "user@example.com",
-    "firstName": "John",
-    "lastName": "Doe",
-    "role": "STUDENT"
-  }
-}
-```
-
-#### POST `/api/auth/logout`
-
-Logout user (requires authentication)
-
-#### GET `/api/auth/me`
-
-Get current user information (requires authentication)
-
-### User Management Endpoints
-
-#### GET `/api/users/profile`
-
-Get current user's profile (requires authentication)
-
-#### PUT `/api/users/profile`
-
-Update current user's profile (requires authentication)
-
-#### GET `/api/users/tutors`
-
-Get list of online tutors
-
--   Query param: `subject` (optional)
-
-#### GET `/api/users/tutors/top-rated`
-
-Get top-rated tutors
-
--   Query param: `subject` (optional)
-
-#### GET `/api/users/{id}`
-
-Get user by ID
-
-#### PUT `/api/users/online-status`
-
-Update online status (requires authentication)
-
--   Query param: `isOnline` (true/false)
-
-### Doubt Management Endpoints
-
-#### POST `/api/doubts`
-
-Create a new doubt (students only, requires authentication)
-
-**Request Body:**
-
-```json
-{
-  "subject": "MATHEMATICS",
-  "title": "Calculus Integration Problem",
-  "description": "I need help with integration by parts",
-  "priority": "MEDIUM",
-  "attachments": ["https://example.com/image1.jpg"],
-  "preferredTutorId": 2
-}
-```
-
-#### GET `/api/doubts/my-doubts`
-
-Get current user's doubts (requires authentication)
-
-#### GET `/api/doubts/available`
-
-Get available doubts for tutors (tutors only, requires authentication)
-
--   Query param: `subject` (optional)
-
-#### GET `/api/doubts/preferred`
-
-Get doubts where current tutor is preferred (tutors only, requires authentication)
-
-#### GET `/api/doubts/{id}`
-
-Get doubt by ID
-
-#### PUT `/api/doubts/{id}/status`
-
-Update doubt status
-
--   Query param: `status` (OPEN, ASSIGNED, IN_PROGRESS, RESOLVED, CANCELLED)
-
-### Session Management Endpoints
-
-#### POST `/api/sessions`
-
-Create a new session (tutors only, requires authentication)
-
-**Request Body:**
-
-```json
-{
-  "doubtId": 1,
-  "studentId": 1
-}
-```
-
-#### GET `/api/sessions/my-sessions`
-
-Get current user's sessions (requires authentication)
-
-#### GET `/api/sessions/{id}`
-
-Get session by ID
-
-#### GET `/api/sessions/session/{sessionId}`
-
-Get session by session ID
-
-#### PUT `/api/sessions/{id}/end`
-
-End a session (requires authentication)
-
-#### PUT `/api/sessions/{id}/notes`
-
-Update session notes
-
-#### PUT `/api/sessions/{id}/canvas`
-
-Update canvas data
-
-### Subscription Management Endpoints
-
-#### GET `/api/subscriptions/my-subscription`
-
-Get current user's active subscription (requires authentication)
-
-#### GET `/api/subscriptions/history`
-
-Get subscription history (requires authentication)
-
-#### POST `/api/subscriptions/checkout`
-
-Create Stripe checkout session (students only, requires authentication)
-
--   Query params: `planType`, `successUrl`, `cancelUrl`
-
-#### POST `/api/subscriptions/cancel/{id}`
-
-Cancel subscription (requires authentication)
-
-#### GET `/api/subscriptions/can-create-session`
-
-Check if user can create a session (requires authentication)
-
-### Feedback Endpoints
-
-#### POST `/api/feedback`
-
-Create feedback for a session (requires authentication)
-
-**Request Body:**
-
-```json
-{
-  "sessionId": 1,
-  "rating": 5,
-  "comment": "Excellent tutoring session!"
-}
-```
-
-#### GET `/api/feedback/tutor/{tutorId}`
-
-Get feedback for a specific tutor
-
-#### GET `/api/feedback/my-feedback`
-
-Get feedback created by current user (requires authentication)
-
-### Payment Endpoints
-
-#### POST `/api/stripe/webhook`
-
-Stripe webhook endpoint for payment events
-
-### Health Check
-
-#### GET `/api/health`
-
-Health check endpoint
-
-## WebSocket Endpoints
-
-### Connection
-
-Connect to WebSocket at: `ws://localhost:8080/api/ws`
-
-### Subscriptions
-
--   `/topic/tutor/{tutorId}` - Receive new doubts
--   `/topic/student/{studentId}` - Receive session updates
--   `/topic/session/{sessionId}/canvas` - Canvas updates
--   `/topic/session/{sessionId}/screen` - Screen share
--   `/topic/session/{sessionId}/webrtc` - WebRTC signaling
-
-### Message Destinations
-
--   `/app/canvas/{sessionId}` - Send canvas updates
--   `/app/screen/{sessionId}` - Send screen share data
--   `/app/webrtc/{sessionId}` - Send WebRTC signaling
-
-## Authentication
-
-### JWT Token
-
-All protected endpoints require a JWT token in the Authorization header:
-
-```
-Authorization: Bearer <your-jwt-token>
-```
-
-### Roles
-
--   **STUDENT**: Can create doubts, join sessions, provide feedback
--   **TUTOR**: Can accept doubts, create sessions, receive payments
--   **ADMIN**: Full access to all resources
-
-## Error Handling
-
-### Standard Error Response
-
-```json
-{
-  "error": "Error message description",
-  "timestamp": "2024-01-01T12:00:00",
-  "path": "/api/endpoint"
-}
-```
-
-### HTTP Status Codes
-
--   `200` - Success
--   `201` - Created
--   `400` - Bad Request
--   `401` - Unauthorized
--   `403` - Forbidden
--   `404` - Not Found
--   `500` - Internal Server Error
-
-## Deployment
-
-### Railway Deployment
-
-1. Connect GitHub repository to Railway
-2. Set environment variables in Railway dashboard
-3. Railway will automatically build and deploy
-
-### Manual Deployment
-
-1. Build the JAR file: `mvn clean package`
-2. Run with: `java -jar target/backend.jar`
-3. Ensure all environment variables are set
+# NerdsOnCall API Documentation
+
+This document provides a concise overview of the database schema and API endpoints for the NerdsOnCall backend.
+
+## 1. Database Schema
+
+The database is built on PostgreSQL. The schema consists of the following tables:
+
+### `users`
+
+Stores user account information for students, tutors, and admins.
+
+| Field               | Data Type        | Constraints      | Description                           |
+| :------------------ | :--------------- | :--------------- | :------------------------------------ |
+| `id`                | `bigserial`      | Primary Key      | Unique identifier for the user        |
+| `email`             | `varchar(255)`   | Not Null, Unique | User's email address                  |
+| `password`          | `varchar(255)`   | Not Null         | Hashed password                       |
+| `first_name`        | `varchar(255)`   | Not Null         | User's first name                     |
+| `last_name`         | `varchar(255)`   | Not Null         | User's last name                      |
+| `role`              | `varchar(255)`   | Not Null         | `STUDENT`, `TUTOR`, or `ADMIN`        |
+| `is_active`         | `boolean`        | Not Null         | If the user account is active         |
+| `is_online`         | `boolean`        | Not Null         | User's current online status          |
+| `profile_picture`   | `varchar(255)`   |                  | URL to profile picture                |
+| `phone_number`      | `varchar(255)`   |                  | User's phone number                   |
+| `bio`               | `varchar(255)`   |                  | Short biography (for tutors)          |
+| `subjects`          | `varchar(255)[]` |                  | List of subjects a tutor teaches      |
+| `rating`            | `float8`         |                  | Average rating for a tutor            |
+| `total_sessions`    | `integer`        |                  | Total number of completed sessions    |
+| `total_earnings`    | `float8`         |                  | Total earnings (for tutors)           |
+| `hourly_rate`       | `float8`         |                  | Tutor's hourly rate                   |
+| `stripe_account_id` | `varchar(255)`   |                  | Stripe Connect account ID for payouts |
+| `created_at`        | `timestamp`      |                  | Timestamp of creation                 |
+| `updated_at`        | `timestamp`      |                  | Timestamp of last update              |
+
+### `doubts`
+
+Stores the details of questions or doubts submitted by students.
+
+| Field                | Data Type        | Constraints             | Description                                                |
+| :------------------- | :--------------- | :---------------------- | :--------------------------------------------------------- |
+| `id`                 | `bigserial`      | Primary Key             | Unique identifier for the doubt                            |
+| `student_id`         | `bigint`         | Not Null, FK to `users` | The student who created the doubt                          |
+| `subject`            | `varchar(255)`   | Not Null                | The subject of the doubt                                   |
+| `title`              | `varchar(255)`   | Not Null                | A brief title for the doubt                                |
+| `description`        | `oid`            | Not Null                | A detailed description of the doubt                        |
+| `priority`           | `varchar(255)`   | Not Null                | `LOW`, `MEDIUM`, `HIGH`, `URGENT`                          |
+| `status`             | `varchar(255)`   | Not Null                | `OPEN`, `ASSIGNED`, `IN_PROGRESS`, `RESOLVED`, `CANCELLED` |
+| `attachments`        | `varchar(255)[]` |                         | URLs to any attached files                                 |
+| `preferred_tutor_id` | `bigint`         |                         | ID of a specific tutor the student requested               |
+| `created_at`         | `timestamp`      |                         | Timestamp of creation                                      |
+| `updated_at`         | `timestamp`      |                         | Timestamp of last update                                   |
+
+### `sessions`
+
+Stores information about each tutoring session.
+
+| Field               | Data Type       | Constraints              | Description                                              |
+| :------------------ | :-------------- | :----------------------- | :------------------------------------------------------- |
+| `id`                | `bigserial`     | Primary Key              | Unique identifier for the session                        |
+| `student_id`        | `bigint`        | Not Null, FK to `users`  | The student in the session                               |
+| `tutor_id`          | `bigint`        | FK to `users`            | The tutor in the session                                 |
+| `doubt_id`          | `bigint`        | Not Null, FK to `doubts` | The doubt this session is for                            |
+| `status`            | `varchar(255)`  | Not Null                 | `PENDING`, `ACTIVE`, `COMPLETED`, `CANCELLED`, `TIMEOUT` |
+| `start_time`        | `timestamp`     | Not Null                 | When the session started                                 |
+| `end_time`          | `timestamp`     |                          | When the session ended                                   |
+| `duration_minutes`  | `bigint`        |                          | Total duration of the session in minutes                 |
+| `cost`              | `numeric(10,2)` |                          | Total cost of the session                                |
+| `tutor_earnings`    | `numeric(10,2)` |                          | How much the tutor earned                                |
+| `session_id`        | `varchar(255)`  |                          | Unique ID for WebRTC signaling                           |
+| `room_id`           | `varchar(255)`  |                          | Video call room identifier                               |
+| `session_notes`     | `oid`           |                          | Shared notes from the session                            |
+| `canvas_data`       | `oid`           |                          | JSON data for the collaborative canvas                   |
+| `recording_enabled` | `boolean`       |                          | If the session was recorded                              |
+| `recording_url`     | `varchar(255)`  |                          | URL to the session recording                             |
+| `created_at`        | `timestamp`     |                          | Timestamp of creation                                    |
+| `updated_at`        | `timestamp`     |                          | Timestamp of last update                                 |
+
+### `subscriptions`
+
+Manages user subscription plans.
+
+| Field                    | Data Type      | Constraints             | Description                                 |
+| :----------------------- | :------------- | :---------------------- | :------------------------------------------ |
+| `id`                     | `bigserial`    | Primary Key             | Unique identifier for the subscription      |
+| `user_id`                | `bigint`       | Not Null, FK to `users` | The user who owns the subscription          |
+| `plan_type`              | `varchar(255)` | Not Null                | `BASIC`, `STANDARD`, `PREMIUM`              |
+| `status`                 | `varchar(255)` | Not Null                | `ACTIVE`, `CANCELED`, `EXPIRED`, `PAST_DUE` |
+| `price`                  | `float8`       | Not Null                | The price paid for the subscription         |
+| `start_date`             | `timestamp`    | Not Null                | Subscription start date                     |
+| `end_date`               | `timestamp`    | Not Null                | Subscription end date                       |
+| `stripe_subscription_id` | `varchar(255)` |                         | ID from Stripe                              |
+| `sessions_used`          | `integer`      |                         | Number of sessions used in the period       |
+| `sessions_limit`         | `integer`      |                         | Maximum number of sessions allowed          |
+| `created_at`             | `timestamp`    |                         | Timestamp of creation                       |
+| `updated_at`             | `timestamp`    |                         | Timestamp of last update                    |
+
+### `feedbacks`
+
+Stores ratings and comments from users after a session.
+
+| Field         | Data Type      | Constraints                | Description                              |
+| :------------ | :------------- | :------------------------- | :--------------------------------------- |
+| `id`          | `bigserial`    | Primary Key                | Unique identifier for the feedback       |
+| `session_id`  | `bigint`       | Not Null, FK to `sessions` | The session this feedback is for         |
+| `reviewer_id` | `bigint`       | Not Null, FK to `users`    | The user who gave the feedback           |
+| `reviewee_id` | `bigint`       | Not Null, FK to `users`    | The user who received the feedback       |
+| `rating`      | `integer`      | Not Null                   | Rating from 1 to 5                       |
+| `comment`     | `oid`          |                            | The text comment                         |
+| `type`        | `varchar(255)` | Not Null                   | `STUDENT_TO_TUTOR` or `TUTOR_TO_STUDENT` |
+| `created_at`  | `timestamp`    |                            | Timestamp of creation                    |
+
+### `payouts`
+
+Tracks money paid out to tutors.
+
+| Field                | Data Type      | Constraints             | Description                                                 |
+| :------------------- | :------------- | :---------------------- | :---------------------------------------------------------- |
+| `id`                 | `bigserial`    | Primary Key             | Unique identifier for the payout                            |
+| `tutor_id`           | `bigint`       | Not Null, FK to `users` | The tutor receiving the payout                              |
+| `amount`             | `float8`       | Not Null                | The amount of the payout                                    |
+| `status`             | `varchar(255)` | Not Null                | `PENDING`, `PROCESSING`, `COMPLETED`, `FAILED`, `CANCELLED` |
+| `period_start`       | `timestamp`    | Not Null                | Start of the earnings period                                |
+| `period_end`         | `timestamp`    | Not Null                | End of the earnings period                                  |
+| `stripe_transfer_id` | `varchar(255)` |                         | The transfer ID from Stripe                                 |
+| `created_at`         | `timestamp`    |                         | Timestamp of creation                                       |
+| `updated_at`         | `timestamp`    |                         | Timestamp of last update                                    |
 
 ---
 
-For any questions or issues, please refer to the main project documentation.
+## 2. API Endpoints
+
+All endpoints are relative to the base URL (e.g., `http://localhost:8080`).
+
+| Method                       | Path                                | Description                                            |
+| :--------------------------- | :---------------------------------- | :----------------------------------------------------- |
+| `GET`                        | `/`                                 | Serves the static `index.html` welcome page.           |
+| `GET`                        | `/info`                             | Returns a JSON object with API details.                |
+| `GET`                        | `/health`                           | Health check endpoint. Returns status `UP`.            |
+| `GET`                        | `/welcome`                          | Alias for the `/info` endpoint.                        |
+|                              |                                     |                                                        |
+| **Authentication**           |                                     |                                                        |
+| `POST`                       | `/auth/register`                    | Register a new user.                                   |
+| `POST`                       | `/auth/login`                       | Login and receive a JWT token.                         |
+| `POST`                       | `/auth/logout`                      | Logout the current user.                               |
+| `GET`                        | `/auth/me`                          | Get the current authenticated user's details.          |
+|                              |                                     |                                                        |
+| **Users**                    |                                     |                                                        |
+| `GET`                        | `/users/profile`                    | Get the profile of the current user.                   |
+| `PUT`                        | `/users/profile`                    | Update the profile of the current user.                |
+| `GET`                        | `/users/tutors`                     | Get a list of online tutors (can filter by `subject`). |
+| `GET`                        | `/users/tutors/top-rated`           | Get a list of top-rated tutors.                        |
+| `GET`                        | `/users/{id}`                       | Get user details by their ID.                          |
+| `PUT`                        | `/users/online-status`              | Update the `isOnline` status for the current user.     |
+|                              |                                     |                                                        |
+| **Doubts**                   |                                     |                                                        |
+| `POST`                       | `/doubts`                           | Create a new doubt.                                    |
+| `GET`                        | `/doubts/my-doubts`                 | Get all doubts created by the current user.            |
+| `GET`                        | `/doubts/available`                 | Get all open doubts available for tutors.              |
+| `GET`                        | `/doubts/preferred`                 | Get doubts where the current tutor is preferred.       |
+| `GET`                        | `/doubts/{id}`                      | Get a specific doubt by its ID.                        |
+| `PUT`                        | `/doubts/{id}/status`               | Update the status of a doubt.                          |
+|                              |                                     |                                                        |
+| **Sessions**                 |                                     |                                                        |
+| `POST`                       | `/sessions`                         | Create a new tutoring session.                         |
+| `GET`                        | `/sessions/my-sessions`             | Get all sessions for the current user.                 |
+| `GET`                        | `/sessions/{id}`                    | Get a specific session by its ID.                      |
+| `PUT`                        | `/sessions/{id}/end`                | End a session and calculate costs.                     |
+| `PUT`                        | `/sessions/{id}/notes`              | Update the shared notes for a session.                 |
+| `PUT`                        | `/sessions/{id}/canvas`             | Update the shared canvas data for a session.           |
+|                              |                                     |                                                        |
+| **Subscriptions & Payments** |                                     |                                                        |
+| `POST`                       | `/subscriptions/checkout`           | Creates a Stripe checkout session for a plan.          |
+| `POST`                       | `/subscriptions/cancel/{id}`        | Cancels a user's subscription.                         |
+| `GET`                        | `/subscriptions/my-subscription`    | Get the current user's active subscription.            |
+| `GET`                        | `/subscriptions/history`            | Get the subscription history for the current user.     |
+| `GET`                        | `/subscriptions/can-create-session` | Check if the user can start a new session.             |
+| `POST`                       | `/stripe/webhook`                   | Handles incoming webhook events from Stripe.           |
+|                              |                                     |                                                        |
+| **Feedback**                 |                                     |                                                        |
+| `POST`                       | `/feedback`                         | Submit feedback for a completed session.               |
+| `GET`                        | `/feedback/tutor/{tutorId}`         | Get all feedback for a specific tutor.                 |
+| `GET`                        | `/feedback/my-feedback`             | Get all feedback submitted by the current user.        |
+
+---

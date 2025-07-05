@@ -13,8 +13,8 @@ import java.util.Arrays;
 @RestController
 public class WelcomeController {
 
-    @GetMapping("/")
-    public ResponseEntity<Map<String, Object>> welcome() {
+    @GetMapping("/info")
+    public ResponseEntity<Map<String, Object>> getApiInfo() {
         Map<String, Object> response = new HashMap<>();
         response.put("service", "NerdsOnCall Backend API");
         response.put("version", "1.0.0");
@@ -23,25 +23,25 @@ public class WelcomeController {
         response.put("description", "Real-Time Doubt-Solving Platform Backend");
         
         Map<String, Object> endpoints = new HashMap<>();
-        endpoints.put("health", "/api/health");
-        endpoints.put("authentication", "/api/auth/*");
-        endpoints.put("users", "/api/users/*");
-        endpoints.put("sessions", "/api/sessions/*");
-        endpoints.put("doubts", "/api/doubts/*");
-        endpoints.put("subscriptions", "/api/subscriptions/*");
-        endpoints.put("payments", "/api/payments/*");
-        endpoints.put("feedback", "/api/feedback/*");
-        endpoints.put("websocket", "/api/ws");
+        endpoints.put("health", "/health");
+        endpoints.put("authentication", "/auth/*");
+        endpoints.put("users", "/users/*");
+        endpoints.put("sessions", "/sessions/*");
+        endpoints.put("doubts", "/doubts/*");
+        endpoints.put("subscriptions", "/subscriptions/*");
+        endpoints.put("payments", "/payments/*");
+        endpoints.put("feedback", "/feedback/*");
+        endpoints.put("websocket", "/ws");
         
         response.put("available_endpoints", endpoints);
-        response.put("api_base_url", "/api");
-        response.put("documentation", "Visit /api/health to check service status");
+        response.put("api_base_url", "/");
+        response.put("documentation", "Visit /health to check service status");
         
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/welcome")
-    public ResponseEntity<Map<String, Object>> welcomeApi() {
-        return welcome();
+    public ResponseEntity<Map<String, Object>> welcome() {
+        return getApiInfo();
     }
 } 
