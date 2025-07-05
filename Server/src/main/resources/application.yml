@@ -3,16 +3,18 @@ spring:
         name: nerds-on-call
     # Supabase PostgreSQL database configuration
     datasource:
-        url: ${DB_URL:jdbc:postgresql://aws-0-ap-south-1.pooler.supabase.com:6543/postgres}
+        url: ${DB_URL:jdbc:postgresql://aws-0-ap-south-1.pooler.supabase.com:5432/postgres}
         driver-class-name: org.postgresql.Driver
-        username: ${DB_USERNAME:postgres.eaesjbeluniwvnhcangb}
+        username: ${DB_USERNAME:postgres.folubwlbyhtrbsqiednk}
         password: ${DB_PASSWORD:NerdsOnCall@123}
         hikari:
             auto-commit: true
+            maximum-pool-size: 5
+            connection-timeout: 30000
     jpa:
         database-platform: org.hibernate.dialect.PostgreSQLDialect
         hibernate:
-            ddl-auto: create
+            ddl-auto: update
         show-sql: true
         database: postgresql
     security:
@@ -31,7 +33,7 @@ jwt:
     expiration: 86400000
 
 supabase:
-    url: ${SUPABASE_URL:https://eaesjbeluniwvnhcangb.supabase.co}
+    url: ${SUPABASE_URL:https://folubwlbyhtrbsqiednk.supabase.co}
     service-key: ${SUPABASE_SERVICE_KEY}
 
 stripe:
@@ -42,3 +44,12 @@ logging:
     level:
         com.nerdsoncall: INFO
         org.springframework.security: INFO
+
+---
+spring:
+    config:
+        activate:
+            on-profile: production
+    jpa:
+        hibernate:
+            ddl-auto: update
