@@ -35,11 +35,12 @@
         "next-themes": "^0.4.6",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
-        "react-hot-toast": "^2.4.1",
+        "react-hot-toast": "^2.5.2",
         "simple-peer": "^9.11.1",
         "socket.io-client": "^4.7.4",
         "sonner": "^2.0.5",
-        "tailwind-merge": "^2.6.0"
+        "tailwind-merge": "^2.6.0",
+        "textarea": "^0.3.0"
     },
     "devDependencies": {
         "@tailwindcss/postcss": "^4.0.0-alpha.26",
