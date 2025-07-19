@@ -1,7 +1,9 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useAuth } from "@/context/AuthContext"
+import { api } from "@/lib/api"
 import { Navbar } from "@/components/layout/Navbar"
 import { Button } from "@/components/ui/Button"
 import {
@@ -39,10 +41,40 @@ import {
     Bell,
     Search,
     Filter,
+    Settings,
+    Power,
+    CheckCircle,
+    XCircle,
 } from "lucide-react"
 
 export default function DashboardPage() {
     const { user, loading } = useAuth()
+    const [isOnline, setIsOnline] = useState(user?.isOnline || false)
+    const [updatingStatus, setUpdatingStatus] = useState(false)
+
+    // Sync local state with user data when user changes
+    useEffect(() => {
+        if (user) {
+            setIsOnline(user.isOnline || false)
+        }
+    }, [user])
+
+    const handleOnlineStatusToggle = async () => {
+        if (updatingStatus) return
+        
+        setUpdatingStatus(true)
+        try {
+            const newStatus = !isOnline
+            await api.put(`/users/online-status?isOnline=${newStatus}`)
+            setIsOnline(newStatus)
+            // Update the user context if needed
+            window.location.reload() // Simple refresh to update the user state
+        } catch (error) {
+            console.error("Error updating online status:", error)
+        } finally {
+            setUpdatingStatus(false)
+        }
+    }
 
     if (loading) {
         return (
@@ -106,8 +138,8 @@ export default function DashboardPage() {
                                             isTutor ? "default" : "secondary"
                                         }
                                         className={`w-fit ${isTutor
-                                                ? "bg-slate-700 text-white border-0"
-                                                : "bg-slate-100 text-slate-700"
+                                            ? "bg-slate-700 text-white border-0"
+                                            : "bg-slate-100 text-slate-700"
                                             }`}
                                     >
                                         {isTutor && (
@@ -516,6 +548,84 @@ export default function DashboardPage() {
                                 </Card>
                             )}
 
+                            {/* Tutor Manage Profile */}
+                            {isTutor && (
+                                <Card className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-lg">
+                                    <CardHeader className="px-4 sm:px-6">
+                                        <CardTitle className="flex items-center text-slate-800">
+                                            <Settings className="w-5 h-5 mr-2 text-slate-600" />
+                                            Manage Profile
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="px-4 sm:px-6">
+                                        <div className="space-y-4">
+                                            {/* Online Status Toggle */}
+                                            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                                                <div className="flex items-center space-x-3">
+                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                                                        isOnline ? 'bg-emerald-500' : 'bg-slate-400'
+                                                    }`}>
+                                                        <Power className="h-4 w-4 text-white" />
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-sm font-medium text-slate-700">
+                                                            Online Status
+                                                        </span>
+                                                        <p className="text-xs text-slate-500">
+                                                            {isOnline ? 'Available for students' : 'Not accepting requests'}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <Button
+                                                    size="sm"
+                                                    variant={isOnline ? "default" : "outline"}
+                                                    onClick={handleOnlineStatusToggle}
+                                                    disabled={updatingStatus}
+                                                    className={`${
+                                                        isOnline 
+                                                            ? 'bg-emerald-500 hover:bg-emerald-600 text-white' 
+                                                            : 'border-slate-300 text-slate-700 hover:bg-slate-50'
+                                                    }`}
+                                                >
+                                                    {updatingStatus ? (
+                                                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                                                    ) : (
+                                                        <>
+                                                            {isOnline ? (
+                                                                <CheckCircle className="h-3 w-3 mr-1" />
+                                                            ) : (
+                                                                <XCircle className="h-3 w-3 mr-1" />
+                                                            )}
+                                                            {isOnline ? 'Online' : 'Offline'}
+                                                        </>
+                                                    )}
+                                                </Button>
+                                            </div>
+
+                                            {/* Availability Info */}
+                                            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                                <div className="flex items-start space-x-2">
+                                                    <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                                        <span className="text-white text-xs font-bold">i</span>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs font-medium text-blue-800">
+                                                            Visibility Status
+                                                        </p>
+                                                        <p className="text-xs text-blue-700 mt-1">
+                                                            {isOnline 
+                                                                ? 'You are visible to students and can receive connection requests.'
+                                                                : 'You are hidden from student searches. Toggle online to start receiving requests.'
+                                                            }
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            )}
+
                             {/* Tutor Student Requests Overview */}
                             {isTutor && (
                                 <Card className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-lg">
@@ -564,8 +674,6 @@ export default function DashboardPage() {
                                     </CardContent>
                                 </Card>
                             )}
-
-
                         </div>
                     </div>
                 </div>
