@@ -127,14 +127,14 @@ export default function DashboardPage() {
                                 </div>
                             </div>
                             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
-                                <Button
+                                {/* <Button
                                     variant="outline"
                                     size="sm"
                                     className="group border-slate-300 text-slate-700 hover:bg-slate-50 w-full sm:w-auto"
                                 >
                                     <Bell className="w-4 h-4 mr-2 group-hover:animate-pulse" />
                                     Notifications
-                                </Button>
+                                </Button> */}
                                 <Link
                                     href={
                                         isStudent
@@ -142,110 +142,153 @@ export default function DashboardPage() {
                                             : "/create-session"
                                     }
                                 >
-                                    <Button className="bg-gradient-to-r from-slate-700 to-slate-900 hover:from-slate-800 hover:to-slate-950 text-white border-0 group w-full sm:w-auto">
+                                    {/* <Button className="bg-gradient-to-r from-slate-700 to-slate-900 hover:from-slate-800 hover:to-slate-950 text-white border-0 group w-full sm:w-auto">
                                         <PlusCircle className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform" />
                                         {isStudent
                                             ? "Book Session"
                                             : "Create Session"}
                                         <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                                    </Button>
+                                    </Button> */}
                                 </Link>
                             </div>
                         </div>
                     </div>
 
-                    {/* Stats Cards with enhanced mobile layout */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8 lg:mb-10">
-                        <Card className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-lg group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6">
-                                <CardTitle className="text-sm font-medium text-slate-600">
-                                    {isStudent
-                                        ? "Sessions Attended"
-                                        : "Sessions Taught"}
-                                </CardTitle>
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center">
-                                    <Video className="h-5 w-5 text-white" />
-                                </div>
-                            </CardHeader>
-                            <CardContent className="px-4 sm:px-6">
-                                <div className="text-2xl font-bold text-slate-800">
-                                    24
-                                </div>
-                                <p className="text-xs text-slate-600 mt-1">
-                                    <span className="text-emerald-600">
-                                        +12%
-                                    </span>{" "}
-                                    from last month
-                                </p>
-                            </CardContent>
-                        </Card>
+                    {/* Stats Cards - Only for Students */}
+                    {isStudent && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-8 lg:mb-10">
+                            <Card className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-lg group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6">
+                                    <CardTitle className="text-sm font-medium text-slate-600">
+                                        Sessions Attended
+                                    </CardTitle>
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center">
+                                        <Video className="h-5 w-5 text-white" />
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="px-4 sm:px-6">
+                                    <div className="text-2xl font-bold text-slate-800">
+                                        {user.totalSessions || 0}
+                                    </div>
+                                    <p className="text-xs text-slate-600 mt-1">
+                                        Total learning sessions
+                                    </p>
+                                </CardContent>
+                            </Card>
 
-                        <Card className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-lg group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6">
-                                <CardTitle className="text-sm font-medium text-slate-600">
-                                    Hours {isStudent ? "Learned" : "Taught"}
-                                </CardTitle>
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center">
-                                    <Clock className="h-5 w-5 text-white" />
-                                </div>
-                            </CardHeader>
-                            <CardContent className="px-4 sm:px-6">
-                                <div className="text-2xl font-bold text-slate-800">
-                                    48.5
-                                </div>
-                                <p className="text-xs text-slate-600 mt-1">
-                                    <span className="text-emerald-600">
-                                        +2.5h
-                                    </span>{" "}
-                                    this week
-                                </p>
-                            </CardContent>
-                        </Card>
+                            <Card className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-lg group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6">
+                                    <CardTitle className="text-sm font-medium text-slate-600">
+                                        Hours Learned
+                                    </CardTitle>
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center">
+                                        <Clock className="h-5 w-5 text-white" />
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="px-4 sm:px-6">
+                                    <div className="text-2xl font-bold text-slate-800">
+                                        {Math.round((user.totalSessions || 0) * 1.5)}
+                                    </div>
+                                    <p className="text-xs text-slate-600 mt-1">
+                                        Estimated learning time
+                                    </p>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    )}
 
-                        <Card className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-lg group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6">
-                                <CardTitle className="text-sm font-medium text-slate-600">
-                                    Average Rating
-                                </CardTitle>
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center">
-                                    <Star className="h-5 w-5 text-white" />
-                                </div>
-                            </CardHeader>
-                            <CardContent className="px-4 sm:px-6">
-                                <div className="text-2xl font-bold text-slate-800">
-                                    4.9
-                                </div>
-                                <p className="text-xs text-slate-600 mt-1">
-                                    <span className="text-emerald-600">
-                                        +0.1
-                                    </span>{" "}
-                                    improvement
-                                </p>
-                            </CardContent>
-                        </Card>
+                    {/* Tutor Stats - Keep existing for tutors */}
+                    {isTutor && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8 lg:mb-10">
+                            <Card className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-lg group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6">
+                                    <CardTitle className="text-sm font-medium text-slate-600">
+                                        Sessions Taught
+                                    </CardTitle>
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center">
+                                        <Video className="h-5 w-5 text-white" />
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="px-4 sm:px-6">
+                                    <div className="text-2xl font-bold text-slate-800">
+                                        {user.totalSessions || 0}
+                                    </div>
+                                    <p className="text-xs text-slate-600 mt-1">
+                                        <span className="text-emerald-600">
+                                            +12%
+                                        </span>{" "}
+                                        from last month
+                                    </p>
+                                </CardContent>
+                            </Card>
 
-                        <Card className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-lg group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6">
-                                <CardTitle className="text-sm font-medium text-slate-600">
-                                    {isStudent ? "Credits Used" : "Earnings"}
-                                </CardTitle>
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center">
-                                    <DollarSign className="h-5 w-5 text-white" />
-                                </div>
-                            </CardHeader>
-                            <CardContent className="px-4 sm:px-6">
-                                <div className="text-2xl font-bold text-slate-800">
-                                    {isStudent ? "150" : "$1,240"}
-                                </div>
-                                <p className="text-xs text-slate-600 mt-1">
-                                    <span className="text-emerald-600">
-                                        +8%
-                                    </span>{" "}
-                                    from last month
-                                </p>
-                            </CardContent>
-                        </Card>
-                    </div>
+                            <Card className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-lg group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6">
+                                    <CardTitle className="text-sm font-medium text-slate-600">
+                                        Hours Taught
+                                    </CardTitle>
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center">
+                                        <Clock className="h-5 w-5 text-white" />
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="px-4 sm:px-6">
+                                    <div className="text-2xl font-bold text-slate-800">
+                                        {Math.round((user.totalSessions || 0) * 1.5)}
+                                    </div>
+                                    <p className="text-xs text-slate-600 mt-1">
+                                        <span className="text-emerald-600">
+                                            +2.5h
+                                        </span>{" "}
+                                        this week
+                                    </p>
+                                </CardContent>
+                            </Card>
+
+                            <Card className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-lg group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6">
+                                    <CardTitle className="text-sm font-medium text-slate-600">
+                                        Average Rating
+                                    </CardTitle>
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center">
+                                        <Star className="h-5 w-5 text-white" />
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="px-4 sm:px-6">
+                                    <div className="text-2xl font-bold text-slate-800">
+                                        {user.rating?.toFixed(1) || "0.0"}
+                                    </div>
+                                    <p className="text-xs text-slate-600 mt-1">
+                                        <span className="text-emerald-600">
+                                            +0.1
+                                        </span>{" "}
+                                        improvement
+                                    </p>
+                                </CardContent>
+                            </Card>
+
+                            <Card className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-lg group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6">
+                                    <CardTitle className="text-sm font-medium text-slate-600">
+                                        Earnings
+                                    </CardTitle>
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center">
+                                        <DollarSign className="h-5 w-5 text-white" />
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="px-4 sm:px-6">
+                                    <div className="text-2xl font-bold text-slate-800">
+                                        ${user.totalEarnings?.toFixed(0) || "0"}
+                                    </div>
+                                    <p className="text-xs text-slate-600 mt-1">
+                                        <span className="text-emerald-600">
+                                            +8%
+                                        </span>{" "}
+                                        from last month
+                                    </p>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    )}
 
                     {/* Main Content with improved mobile layout */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
@@ -288,31 +331,31 @@ export default function DashboardPage() {
                                                         </span>
                                                     </Button>
                                                 </Link>
-                                                <Link href="/study-materials">
+                                                <Link href="/my-sessions">
                                                     <Button
                                                         variant="outline"
                                                         className="bg-white border-2 border-slate-300 text-slate-700 hover:bg-slate-50 h-auto p-4 flex-col w-full group"
                                                     >
-                                                        <BookOpen className="h-6 w-6 mb-2 text-slate-600 group-hover:scale-110 transition-transform" />
+                                                        <Video className="h-6 w-6 mb-2 text-slate-600 group-hover:scale-110 transition-transform" />
                                                         <span className="font-semibold text-slate-700">
-                                                            Study Materials
+                                                            My Sessions
                                                         </span>
                                                         <span className="text-xs text-slate-600">
-                                                            Access resources
+                                                            View history
                                                         </span>
                                                     </Button>
                                                 </Link>
-                                                <Link href="/progress-report">
+                                                <Link href="/my-doubts">
                                                     <Button
                                                         variant="outline"
                                                         className="bg-white border-2 border-slate-300 text-slate-700 hover:bg-slate-50 h-auto p-4 flex-col w-full group"
                                                     >
-                                                        <BarChart3 className="h-6 w-6 mb-2 text-slate-600 group-hover:scale-110 transition-transform" />
+                                                        <MessageCircle className="h-6 w-6 mb-2 text-slate-600 group-hover:scale-110 transition-transform" />
                                                         <span className="font-semibold text-slate-700">
-                                                            Progress Report
+                                                            My Questions
                                                         </span>
                                                         <span className="text-xs text-slate-600">
-                                                            View analytics
+                                                            Track progress
                                                         </span>
                                                     </Button>
                                                 </Link>
@@ -458,121 +501,114 @@ export default function DashboardPage() {
 
                         {/* Right Column with mobile optimization */}
                         <div className="space-y-6 lg:space-y-8">
-                            {/* Progress Card */}
-                            <Card className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-lg">
-                                <CardHeader className="px-4 sm:px-6">
-                                    <CardTitle className="flex items-center text-slate-800">
-                                        <TrendingUp className="w-5 h-5 mr-2 text-slate-600" />
-                                        {isStudent
-                                            ? "Learning Progress"
-                                            : "Teaching Stats"}
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="px-4 sm:px-6">
-                                    <div className="space-y-4 lg:space-y-6">
-                                        <div>
-                                            <div className="flex justify-between text-sm mb-2">
-                                                <span className="font-medium text-slate-700">
-                                                    Mathematics
-                                                </span>
-                                                <span className="text-slate-600">
-                                                    85%
-                                                </span>
+                            {/* Student Quick Stats */}
+                            {isStudent && (
+                                <Card className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-lg">
+                                    <CardHeader className="px-4 sm:px-6">
+                                        <CardTitle className="flex items-center text-slate-800">
+                                            <GraduationCap className="w-5 h-5 mr-2 text-slate-600" />
+                                            Quick Overview
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="px-4 sm:px-6">
+                                        <div className="space-y-4">
+                                            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                                <div className="flex items-center space-x-3">
+                                                    <div className="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center">
+                                                        <Video className="h-4 w-4 text-white" />
+                                                    </div>
+                                                    <span className="text-sm font-medium text-slate-700">
+                                                        Active Sessions
+                                                    </span>
+                                                </div>
+                                                <span className="text-sm text-slate-600">0</span>
                                             </div>
-                                            <Progress
-                                                value={85}
-                                                className="h-2"
-                                            />
-                                        </div>
-                                        <div>
-                                            <div className="flex justify-between text-sm mb-2">
-                                                <span className="font-medium text-slate-700">
-                                                    Physics
-                                                </span>
-                                                <span className="text-slate-600">
-                                                    72%
-                                                </span>
+                                            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                                <div className="flex items-center space-x-3">
+                                                    <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center">
+                                                        <MessageCircle className="h-4 w-4 text-white" />
+                                                    </div>
+                                                    <span className="text-sm font-medium text-slate-700">
+                                                        Open Questions
+                                                    </span>
+                                                </div>
+                                                <span className="text-sm text-slate-600">0</span>
                                             </div>
-                                            <Progress
-                                                value={72}
-                                                className="h-2"
-                                            />
-                                        </div>
-                                        <div>
-                                            <div className="flex justify-between text-sm mb-2">
-                                                <span className="font-medium text-slate-700">
-                                                    Chemistry
-                                                </span>
-                                                <span className="text-slate-600">
-                                                    91%
-                                                </span>
+                                            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                                <div className="flex items-center space-x-3">
+                                                    <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center">
+                                                        <Users className="h-4 w-4 text-white" />
+                                                    </div>
+                                                    <span className="text-sm font-medium text-slate-700">
+                                                        Favorite Tutors
+                                                    </span>
+                                                </div>
+                                                <span className="text-sm text-slate-600">0</span>
                                             </div>
-                                            <Progress
-                                                value={91}
-                                                className="h-2"
-                                            />
                                         </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
+                                    </CardContent>
+                                </Card>
+                            )}
 
-                            {/* Achievements with mobile optimization */}
-                            <Card className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-lg">
-                                <CardHeader className="px-4 sm:px-6">
-                                    <CardTitle className="flex items-center text-slate-800">
-                                        <Trophy className="w-5 h-5 mr-2 text-amber-600" />
-                                        Achievements
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="px-4 sm:px-6">
-                                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                                        <div className="text-center p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors group cursor-pointer">
-                                            <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                                <Trophy className="h-4 w-4 text-white" />
+                            {/* Tutor Progress Card - Keep existing for tutors */}
+                            {isTutor && (
+                                <Card className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-lg">
+                                    <CardHeader className="px-4 sm:px-6">
+                                        <CardTitle className="flex items-center text-slate-800">
+                                            <TrendingUp className="w-5 h-5 mr-2 text-slate-600" />
+                                            Teaching Stats
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="px-4 sm:px-6">
+                                        <div className="space-y-4 lg:space-y-6">
+                                            <div>
+                                                <div className="flex justify-between text-sm mb-2">
+                                                    <span className="font-medium text-slate-700">
+                                                        Mathematics
+                                                    </span>
+                                                    <span className="text-slate-600">
+                                                        85%
+                                                    </span>
+                                                </div>
+                                                <Progress
+                                                    value={85}
+                                                    className="h-2"
+                                                />
                                             </div>
-                                            <div className="text-xs font-medium text-slate-700">
-                                                Perfect Week
+                                            <div>
+                                                <div className="flex justify-between text-sm mb-2">
+                                                    <span className="font-medium text-slate-700">
+                                                        Physics
+                                                    </span>
+                                                    <span className="text-slate-600">
+                                                        72%
+                                                    </span>
+                                                </div>
+                                                <Progress
+                                                    value={72}
+                                                    className="h-2"
+                                                />
                                             </div>
-                                            <div className="text-xs text-slate-500">
-                                                7 sessions
+                                            <div>
+                                                <div className="flex justify-between text-sm mb-2">
+                                                    <span className="font-medium text-slate-700">
+                                                        Chemistry
+                                                    </span>
+                                                    <span className="text-slate-600">
+                                                        91%
+                                                    </span>
+                                                </div>
+                                                <Progress
+                                                    value={91}
+                                                    className="h-2"
+                                                />
                                             </div>
                                         </div>
-                                        <div className="text-center p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors group cursor-pointer">
-                                            <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                                <Star className="h-4 w-4 text-white" />
-                                            </div>
-                                            <div className="text-xs font-medium text-slate-700">
-                                                Top Rated
-                                            </div>
-                                            <div className="text-xs text-slate-500">
-                                                4.9+ rating
-                                            </div>
-                                        </div>
-                                        <div className="text-center p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors group cursor-pointer">
-                                            <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                                <Target className="h-4 w-4 text-white" />
-                                            </div>
-                                            <div className="text-xs font-medium text-slate-700">
-                                                Goal Crusher
-                                            </div>
-                                            <div className="text-xs text-slate-500">
-                                                10 goals met
-                                            </div>
-                                        </div>
-                                        <div className="text-center p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors group cursor-pointer">
-                                            <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                                <Heart className="h-4 w-4 text-white" />
-                                            </div>
-                                            <div className="text-xs font-medium text-slate-700">
-                                                Mentor
-                                            </div>
-                                            <div className="text-xs text-slate-500">
-                                                50+ hours
-                                            </div>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
+                                    </CardContent>
+                                </Card>
+                            )}
+
+  
                         </div>
                     </div>
                 </div>
