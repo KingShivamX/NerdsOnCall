@@ -105,11 +105,10 @@ export default function DashboardPage() {
                                         variant={
                                             isTutor ? "default" : "secondary"
                                         }
-                                        className={`w-fit ${
-                                            isTutor
+                                        className={`w-fit ${isTutor
                                                 ? "bg-slate-700 text-white border-0"
                                                 : "bg-slate-100 text-slate-700"
-                                        }`}
+                                            }`}
                                     >
                                         {isTutor && (
                                             <Crown className="w-4 h-4 mr-1" />
@@ -362,59 +361,26 @@ export default function DashboardPage() {
                                             </>
                                         ) : (
                                             <>
-                                                <Link href="/schedule">
-                                                    <Button className="bg-gradient-to-r from-slate-700 to-slate-900 hover:from-slate-800 hover:to-slate-950 text-white border-0 h-auto p-4 flex-col w-full group">
-                                                        <Calendar className="h-6 w-6 mb-2 group-hover:scale-110 transition-transform" />
-                                                        <span className="font-semibold">
-                                                            Open Schedule
-                                                        </span>
-                                                        <span className="text-xs opacity-90">
-                                                            Set availability
-                                                        </span>
-                                                    </Button>
-                                                </Link>
                                                 <Link href="/student-requests">
-                                                    <Button
-                                                        variant="outline"
-                                                        className="bg-white border-2 border-slate-300 text-slate-700 hover:bg-slate-50 h-auto p-4 flex-col w-full group"
-                                                    >
+                                                    <Button className="bg-gradient-to-r from-slate-700 to-slate-900 hover:from-slate-800 hover:to-slate-950 text-white border-0 h-auto p-4 flex-col w-full group">
                                                         <Users className="h-6 w-6 mb-2 text-slate-600 group-hover:scale-110 transition-transform" />
-                                                        <span className="font-semibold text-slate-700">
+                                                        <span className="font-semibold">
                                                             Student Requests
                                                         </span>
-                                                        <span className="text-xs text-slate-600">
-                                                            View pending
+                                                        <span className="text-xs opacity-90">
+                                                            View pending requests
                                                         </span>
                                                     </Button>
                                                 </Link>
-                                                <Link href="/earnings">
-                                                    <Button
-                                                        variant="outline"
-                                                        className="bg-white border-2 border-slate-300 text-slate-700 hover:bg-slate-50 h-auto p-4 flex-col w-full group"
-                                                    >
-                                                        <TrendingUp className="h-6 w-6 mb-2 text-slate-600 group-hover:scale-110 transition-transform" />
-                                                        <span className="font-semibold text-slate-700">
-                                                            Earnings
-                                                        </span>
-                                                        <span className="text-xs text-slate-600">
-                                                            View analytics
-                                                        </span>
-                                                    </Button>
-                                                </Link>
-                                                <Link href="/achievements">
-                                                    <Button
-                                                        variant="outline"
-                                                        className="bg-white border-2 border-slate-300 text-slate-700 hover:bg-slate-50 h-auto p-4 flex-col w-full group"
-                                                    >
-                                                        <Award className="h-6 w-6 mb-2 text-slate-600 group-hover:scale-110 transition-transform" />
-                                                        <span className="font-semibold text-slate-700">
-                                                            Achievements
-                                                        </span>
-                                                        <span className="text-xs text-slate-600">
-                                                            Your badges
-                                                        </span>
-                                                    </Button>
-                                                </Link>
+                                                <div className="bg-slate-50 border-2 border-dashed border-slate-300 h-auto p-4 flex-col w-full flex items-center justify-center rounded-lg">
+                                                    <MessageCircle className="h-6 w-6 mb-2 text-slate-400" />
+                                                    <span className="font-semibold text-slate-500 text-sm">
+                                                        More features
+                                                    </span>
+                                                    <span className="text-xs text-slate-400">
+                                                        Coming soon
+                                                    </span>
+                                                </div>
                                             </>
                                         )}
                                     </div>
@@ -550,65 +516,56 @@ export default function DashboardPage() {
                                 </Card>
                             )}
 
-                            {/* Tutor Progress Card - Keep existing for tutors */}
+                            {/* Tutor Student Requests Overview */}
                             {isTutor && (
                                 <Card className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-lg">
                                     <CardHeader className="px-4 sm:px-6">
                                         <CardTitle className="flex items-center text-slate-800">
-                                            <TrendingUp className="w-5 h-5 mr-2 text-slate-600" />
-                                            Teaching Stats
+                                            <Users className="w-5 h-5 mr-2 text-slate-600" />
+                                            Student Requests
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="px-4 sm:px-6">
-                                        <div className="space-y-4 lg:space-y-6">
-                                            <div>
-                                                <div className="flex justify-between text-sm mb-2">
-                                                    <span className="font-medium text-slate-700">
-                                                        Mathematics
-                                                    </span>
-                                                    <span className="text-slate-600">
-                                                        85%
+                                        <div className="space-y-4">
+                                            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                                <div className="flex items-center space-x-3">
+                                                    <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center">
+                                                        <Clock className="h-4 w-4 text-white" />
+                                                    </div>
+                                                    <span className="text-sm font-medium text-slate-700">
+                                                        Pending Requests
                                                     </span>
                                                 </div>
-                                                <Progress
-                                                    value={85}
-                                                    className="h-2"
-                                                />
+                                                <span className="text-sm text-slate-600">0</span>
                                             </div>
-                                            <div>
-                                                <div className="flex justify-between text-sm mb-2">
-                                                    <span className="font-medium text-slate-700">
-                                                        Physics
-                                                    </span>
-                                                    <span className="text-slate-600">
-                                                        72%
+                                            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                                <div className="flex items-center space-x-3">
+                                                    <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center">
+                                                        <Video className="h-4 w-4 text-white" />
+                                                    </div>
+                                                    <span className="text-sm font-medium text-slate-700">
+                                                        Active Sessions
                                                     </span>
                                                 </div>
-                                                <Progress
-                                                    value={72}
-                                                    className="h-2"
-                                                />
+                                                <span className="text-sm text-slate-600">0</span>
                                             </div>
-                                            <div>
-                                                <div className="flex justify-between text-sm mb-2">
-                                                    <span className="font-medium text-slate-700">
-                                                        Chemistry
-                                                    </span>
-                                                    <span className="text-slate-600">
-                                                        91%
+                                            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                                <div className="flex items-center space-x-3">
+                                                    <div className="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center">
+                                                        <MessageCircle className="h-4 w-4 text-white" />
+                                                    </div>
+                                                    <span className="text-sm font-medium text-slate-700">
+                                                        Today's Questions
                                                     </span>
                                                 </div>
-                                                <Progress
-                                                    value={91}
-                                                    className="h-2"
-                                                />
+                                                <span className="text-sm text-slate-600">0</span>
                                             </div>
                                         </div>
                                     </CardContent>
                                 </Card>
                             )}
 
-  
+
                         </div>
                     </div>
                 </div>
