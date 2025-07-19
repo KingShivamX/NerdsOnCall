@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/context/AuthContext"
+import { api } from "@/lib/api"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -91,7 +92,24 @@ export default function LoginPage() {
             try {
                 await login(formData.email, formData.password)
                 toast.success("Welcome back to your elite learning experience!")
-                router.push("/dashboard")
+                
+                // Get user data after login to determine redirect
+                const token = localStorage.getItem("token")
+                if (token) {
+                    const userResponse = await api.get("/auth/me")
+                    const userData = userResponse.data
+                    
+                    // Role-based redirection
+                    if (userData.role === "STUDENT") {
+                        router.push("/dashboard")
+                    } else if (userData.role === "TUTOR") {
+                        router.push("/dashboard")
+                    } else {
+                        router.push("/dashboard")
+                    }
+                } else {
+                    router.push("/dashboard")
+                }
             } catch (error: any) {
                 const errorMessage =
                     error?.response?.data?.message ||

@@ -43,4 +43,8 @@ public class AuthService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         userService.updateOnlineStatus(user.getId(), false);
     }
+
+    public String generateTokenForUser(User user) {
+        return jwtUtil.generateToken(user.getEmail(), user.getId(), user.getRole().name());
+    }
 } 

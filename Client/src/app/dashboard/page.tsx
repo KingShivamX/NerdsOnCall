@@ -42,7 +42,20 @@ import {
 } from "lucide-react"
 
 export default function DashboardPage() {
-    const { user } = useAuth()
+    const { user, loading } = useAuth()
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-gray-100">
+                <div className="text-center">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center shadow-lg animate-pulse">
+                        <Crown className="h-8 w-8 text-amber-400" />
+                    </div>
+                    <p className="text-slate-600">Loading your dashboard...</p>
+                </div>
+            </div>
+        )
+    }
 
     if (!user) {
         return (

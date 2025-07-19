@@ -61,6 +61,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             const { token, user: userData } = response.data
 
             localStorage.setItem("token", token)
+            // Also set cookie for middleware
+            document.cookie = `token=${token}; path=/; max-age=${7 * 24 * 60 * 60}` // 7 days
             setUser(userData)
         } catch (error) {
             throw error
@@ -73,6 +75,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             const { token, user: userData } = response.data
 
             localStorage.setItem("token", token)
+            // Also set cookie for middleware
+            document.cookie = `token=${token}; path=/; max-age=${7 * 24 * 60 * 60}` // 7 days
             setUser(userData)
         } catch (error) {
             throw error
@@ -81,6 +85,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const logout = () => {
         localStorage.removeItem("token")
+        // Clear cookie
+        document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
         setUser(null)
     }
 

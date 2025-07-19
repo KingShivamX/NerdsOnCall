@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/nerdsoncall_db
+    username: postgres
+    password: your_local_postgres_password
+  jpa:
+    hibernate:
+      ddl-auto: create-drop  # Creates tables automatically
+    show-sql: true
