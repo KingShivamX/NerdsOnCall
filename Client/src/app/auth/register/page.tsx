@@ -157,15 +157,29 @@ export default function RegisterPage() {
             ...data,
             role: data.role as "STUDENT" | "TUTOR",
             hourlyRate:
-                data.role === "TUTOR" ? parseFloat(data.hourlyRate) : undefined,
+                data.role === "TUTOR" && data.hourlyRate ? parseFloat(data.hourlyRate) : undefined,
         }
+
+        console.log("Registration data being sent:", registrationData)
 
         try {
             await register(registrationData)
-            toast.success("Registration successful! Please log in.")
-            router.push("/auth/login")
+            toast.success("Registration successful! Welcome to NerdsOnCall!")
+            
+            // Role-based redirection after successful registration
+            if (registrationData.role === "STUDENT") {
+                router.push("/dashboard")
+            } else if (registrationData.role === "TUTOR") {
+                router.push("/dashboard")
+            } else {
+                router.push("/dashboard")
+            }
         } catch (err: any) {
-            toast.error(err?.response?.data?.message || "Registration failed.")
+            console.error("Registration error:", err)
+            const errorMessage = err?.response?.data || err?.message || "Registration failed."
+            console.error("Error message:", errorMessage)
+            toast.error(errorMessage)
+            setErrors({ general: errorMessage })
         } finally {
             setIsLoading(false)
         }
@@ -231,6 +245,15 @@ export default function RegisterPage() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="px-6 lg:px-8 pb-8">
+                        {/* General Error Display */}
+                        {errors.general && (
+                            <div className="p-4 rounded-lg bg-red-50 border border-red-200 flex items-center space-x-2 mb-4">
+                                <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
+                                <span className="text-sm text-red-700">
+                                    {errors.general}
+                                </span>
+                            </div>
+                        )}
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="space-y-2">
                                 <label

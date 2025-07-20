@@ -29,4 +29,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     
     @Query("SELECT u FROM User u WHERE u.role = 'TUTOR' AND u.isActive = true AND :subject MEMBER OF u.subjects ORDER BY u.rating DESC")
     List<User> findTopRatedTutorsBySubject(@Param("subject") User.Subject subject);
+    
+    Optional<User> findByResetToken(String resetToken);
 } 

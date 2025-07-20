@@ -40,14 +40,45 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const initAuth = async () => {
             try {
                 const token = localStorage.getItem("token")
+                console.log("AuthContext: Initializing auth, token exists:", !!token)
+                
                 if (token) {
+                    // Check if token is expired before making API call
+                    try {
+                        const payload = JSON.parse(atob(token.split('.')[1]))
+                        const now = Math.floor(Date.now() / 1000)
+                        
+                        console.log("AuthContext: Token payload:", payload)
+                        console.log("AuthContext: Token expires at:", payload.exp, "Current time:", now)
+                        
+                        if (payload.exp && payload.exp < now) {
+                            // Token is expired, clear it
+                            console.log("AuthContext: Token is expired, clearing...")
+                            localStorage.removeItem("token")
+                            document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+                            return
+                        }
+                    } catch (tokenError) {
+                        // Invalid token format, clear it
+                        console.log("AuthContext: Invalid token format, clearing...", tokenError)
+                        localStorage.removeItem("token")
+                        document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+                        return
+                    }
+                    
+                    console.log("AuthContext: Making API call to /auth/me")
                     const response = await api.get("/auth/me")
+                    console.log("AuthContext: User data received:", response.data)
                     setUser(response.data)
+                } else {
+                    console.log("AuthContext: No token found")
                 }
             } catch (error) {
                 console.error("Auth initialization error:", error)
                 localStorage.removeItem("token")
+                document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
             } finally {
+                console.log("AuthContext: Setting loading to false")
                 setLoading(false)
             }
         }
@@ -61,6 +92,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             const { token, user: userData } = response.data
 
             localStorage.setItem("token", token)
+            // Also set cookie for middleware
+            document.cookie = `token=${token}; path=/; max-age=${7 * 24 * 60 * 60}` // 7 days
             setUser(userData)
         } catch (error) {
             throw error
@@ -73,6 +106,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             const { token, user: userData } = response.data
 
             localStorage.setItem("token", token)
+            // Also set cookie for middleware
+            document.cookie = `token=${token}; path=/; max-age=${7 * 24 * 60 * 60}` // 7 days
             setUser(userData)
         } catch (error) {
             throw error
@@ -81,6 +116,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const logout = () => {
         localStorage.removeItem("token")
+        // Clear cookie
+        document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
         setUser(null)
     }
 

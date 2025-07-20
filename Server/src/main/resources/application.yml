@@ -1,12 +1,11 @@
 spring:
     application:
         name: nerds-on-call
-    # Supabase PostgreSQL database configuration
     datasource:
-        url: ${DB_URL:jdbc:postgresql://aws-0-ap-south-1.pooler.supabase.com:5432/postgres}
+        url: jdbc:postgresql://localhost:5432/nerdsoncall_db
         driver-class-name: org.postgresql.Driver
-        username: ${DB_USERNAME:postgres.folubwlbyhtrbsqiednk}
-        password: ${DB_PASSWORD:NerdsOnCall@123}
+        username: postgres
+        password: shiv
         hikari:
             auto-commit: true
             maximum-pool-size: 5
@@ -24,6 +23,17 @@ spring:
                     google:
                         client-id: ${GOOGLE_CLIENT_ID:}
                         client-secret: ${GOOGLE_CLIENT_SECRET:}
+    mail:
+        host: smtp.gmail.com
+        port: 587
+        username: ${MAIL_USERNAME:}
+        password: ${MAIL_PASSWORD:}
+        properties:
+            mail:
+                smtp:
+                    auth: true
+                    starttls:
+                        enable: true
 
 server:
     port: ${PORT:8080}
@@ -33,7 +43,7 @@ jwt:
         expiration: 86400000
 
 supabase:
-    url: ${SUPABASE_URL:https://folubwlbyhtrbsqiednk.supabase.co}
+    url: ${SUPABASE_URL:https://oawusllurfsclcnbdehn.supabase.co}
     service-key: ${SUPABASE_SERVICE_KEY}
 
 stripe:
@@ -44,6 +54,12 @@ logging:
     level:
         com.nerdsoncall: INFO
         org.springframework.security: INFO
+
+
+
+# Frontend URL for password reset links
+app:
+    frontend-url: ${FRONTEND_URL:http://localhost:3000}
 
 ---
 spring:
