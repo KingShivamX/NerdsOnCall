@@ -111,7 +111,7 @@ export default function ForgotPasswordPage() {
                             Check Your Email
                         </h1>
                         <p className="text-slate-600 text-base lg:text-lg">
-                            We've sent you a password reset link
+                            We&apos;ve sent you a password reset link
                         </p>
                     </div>
 
@@ -127,7 +127,7 @@ export default function ForgotPasswordPage() {
                                         Reset Link Sent
                                     </h3>
                                     <p className="text-slate-600 text-sm">
-                                        We've sent a password reset link to{" "}
+                                        We&apos;ve sent a password reset link to{" "}
                                         <span className="font-medium text-slate-800">
                                             {formData.email}
                                         </span>
@@ -136,8 +136,8 @@ export default function ForgotPasswordPage() {
                                 <div className="text-xs text-slate-500 space-y-1">
                                     <p>• The link will expire in 1 hour</p>
                                     <p>
-                                        • Check your spam folder if you don't
-                                        see it
+                                        • Check your spam folder if you
+                                        don&apos;t see it
                                     </p>
                                     <p>
                                         • Make sure to use the same email you

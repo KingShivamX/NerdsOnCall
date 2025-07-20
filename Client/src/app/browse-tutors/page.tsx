@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useAuth } from "@/context/AuthContext"
 import { api } from "@/lib/api"
 import { Navbar } from "@/components/layout/Navbar"
@@ -59,14 +59,6 @@ export default function BrowseTutorsPage() {
     const [selectedSubject, setSelectedSubject] = useState<string>("all")
     const [sortBy, setSortBy] = useState<string>("rating")
 
-    useEffect(() => {
-        fetchTutors()
-    }, [])
-
-    useEffect(() => {
-        filterAndSortTutors()
-    }, [tutors, searchQuery, selectedSubject, sortBy])
-
     const fetchTutors = async () => {
         try {
             setLoading(true)
@@ -80,23 +72,31 @@ export default function BrowseTutorsPage() {
         }
     }
 
-    const filterAndSortTutors = () => {
+    const filterAndSortTutors = useCallback(() => {
         let filtered = [...tutors]
 
         // Filter by search query
         if (searchQuery) {
-            filtered = filtered.filter(tutor =>
-                `${tutor.firstName} ${tutor.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                tutor.bio?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                tutor.subjects?.some(subject =>
-                    subject.toLowerCase().replace(/_/g, ' ').includes(searchQuery.toLowerCase())
-                )
+            filtered = filtered.filter(
+                (tutor) =>
+                    `${tutor.firstName} ${tutor.lastName}`
+                        .toLowerCase()
+                        .includes(searchQuery.toLowerCase()) ||
+                    tutor.bio
+                        ?.toLowerCase()
+                        .includes(searchQuery.toLowerCase()) ||
+                    tutor.subjects?.some((subject) =>
+                        subject
+                            .toLowerCase()
+                            .replace(/_/g, " ")
+                            .includes(searchQuery.toLowerCase())
+                    )
             )
         }
 
         // Filter by subject
         if (selectedSubject !== "all") {
-            filtered = filtered.filter(tutor =>
+            filtered = filtered.filter((tutor) =>
                 tutor.subjects?.includes(selectedSubject as Subject)
             )
         }
@@ -118,7 +118,15 @@ export default function BrowseTutorsPage() {
         })
 
         setFilteredTutors(filtered)
-    }
+    }, [tutors, searchQuery, selectedSubject, sortBy])
+
+    useEffect(() => {
+        fetchTutors()
+    }, [])
+
+    useEffect(() => {
+        filterAndSortTutors()
+    }, [filterAndSortTutors])
 
     const handleConnectTutor = (tutorId: number) => {
         // TODO: Implement connect functionality
@@ -149,7 +157,8 @@ export default function BrowseTutorsPage() {
                             Browse Available Tutors
                         </h1>
                         <p className="text-slate-600">
-                            Connect with online tutors ready to help you right now
+                            Connect with online tutors ready to help you right
+                            now
                         </p>
                     </div>
 
@@ -163,20 +172,30 @@ export default function BrowseTutorsPage() {
                                     <Input
                                         placeholder="Search tutors..."
                                         value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        onChange={(e) =>
+                                            setSearchQuery(e.target.value)
+                                        }
                                         className="pl-10"
                                     />
                                 </div>
 
                                 {/* Subject Filter */}
-                                <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+                                <Select
+                                    value={selectedSubject}
+                                    onValueChange={setSelectedSubject}
+                                >
                                     <SelectTrigger>
                                         <SelectValue placeholder="All Subjects" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="all">All Subjects</SelectItem>
+                                        <SelectItem value="all">
+                                            All Subjects
+                                        </SelectItem>
                                         {subjectsList.map((subject) => (
-                                            <SelectItem key={subject} value={subject}>
+                                            <SelectItem
+                                                key={subject}
+                                                value={subject}
+                                            >
                                                 {subject.replace(/_/g, " ")}
                                             </SelectItem>
                                         ))}
@@ -184,15 +203,26 @@ export default function BrowseTutorsPage() {
                                 </Select>
 
                                 {/* Sort By */}
-                                <Select value={sortBy} onValueChange={setSortBy}>
+                                <Select
+                                    value={sortBy}
+                                    onValueChange={setSortBy}
+                                >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Sort by" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="rating">Highest Rated</SelectItem>
-                                        <SelectItem value="sessions">Most Sessions</SelectItem>
-                                        <SelectItem value="price_low">Price: Low to High</SelectItem>
-                                        <SelectItem value="price_high">Price: High to Low</SelectItem>
+                                        <SelectItem value="rating">
+                                            Highest Rated
+                                        </SelectItem>
+                                        <SelectItem value="sessions">
+                                            Most Sessions
+                                        </SelectItem>
+                                        <SelectItem value="price_low">
+                                            Price: Low to High
+                                        </SelectItem>
+                                        <SelectItem value="price_high">
+                                            Price: High to Low
+                                        </SelectItem>
                                     </SelectContent>
                                 </Select>
 
@@ -224,17 +254,22 @@ export default function BrowseTutorsPage() {
                     {!loading && (
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                             {filteredTutors.map((tutor) => (
-                                <Card key={tutor.id} className="bg-white border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-1">
+                                <Card
+                                    key={tutor.id}
+                                    className="bg-white border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-1"
+                                >
                                     <CardContent className="p-6">
                                         {/* Header with Avatar and Name */}
                                         <div className="flex items-center space-x-3 mb-4">
                                             <div className="w-12 h-12 bg-gradient-to-br from-slate-600 to-slate-800 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                                                {tutor.firstName?.[0]}{tutor.lastName?.[0]}
+                                                {tutor.firstName?.[0]}
+                                                {tutor.lastName?.[0]}
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center space-x-2">
                                                     <h3 className="font-semibold text-slate-800 truncate">
-                                                        {tutor.firstName} {tutor.lastName}
+                                                        {tutor.firstName}{" "}
+                                                        {tutor.lastName}
                                                     </h3>
                                                     {tutor.isOnline && (
                                                         <div className="w-2 h-2 bg-emerald-500 rounded-full flex-shrink-0"></div>
@@ -243,10 +278,15 @@ export default function BrowseTutorsPage() {
                                                 <div className="flex items-center space-x-1 mt-1">
                                                     <Star className="h-3 w-3 text-amber-500 fill-current" />
                                                     <span className="text-sm font-medium text-slate-700">
-                                                        {tutor.rating?.toFixed(1) || "0.0"}
+                                                        {tutor.rating?.toFixed(
+                                                            1
+                                                        ) || "0.0"}
                                                     </span>
                                                     <span className="text-xs text-slate-500">
-                                                        ({tutor.totalSessions || 0})
+                                                        (
+                                                        {tutor.totalSessions ||
+                                                            0}
+                                                        )
                                                     </span>
                                                 </div>
                                             </div>
@@ -254,20 +294,36 @@ export default function BrowseTutorsPage() {
 
                                         {/* Bio */}
                                         <p className="text-sm text-slate-600 mb-3 line-clamp-2">
-                                            {tutor.bio || "Experienced tutor ready to help you succeed."}
+                                            {tutor.bio ||
+                                                "Experienced tutor ready to help you succeed."}
                                         </p>
 
                                         {/* Subjects */}
                                         <div className="mb-4">
                                             <div className="flex flex-wrap gap-1">
-                                                {tutor.subjects?.slice(0, 2).map((subject) => (
-                                                    <Badge key={subject} variant="secondary" className="text-xs px-2 py-1">
-                                                        {subject.replace(/_/g, " ")}
-                                                    </Badge>
-                                                ))}
-                                                {(tutor.subjects?.length || 0) > 2 && (
-                                                    <Badge variant="secondary" className="text-xs px-2 py-1">
-                                                        +{(tutor.subjects?.length || 0) - 2}
+                                                {tutor.subjects
+                                                    ?.slice(0, 2)
+                                                    .map((subject) => (
+                                                        <Badge
+                                                            key={subject}
+                                                            variant="secondary"
+                                                            className="text-xs px-2 py-1"
+                                                        >
+                                                            {subject.replace(
+                                                                /_/g,
+                                                                " "
+                                                            )}
+                                                        </Badge>
+                                                    ))}
+                                                {(tutor.subjects?.length || 0) >
+                                                    2 && (
+                                                    <Badge
+                                                        variant="secondary"
+                                                        className="text-xs px-2 py-1"
+                                                    >
+                                                        +
+                                                        {(tutor.subjects
+                                                            ?.length || 0) - 2}
                                                     </Badge>
                                                 )}
                                             </div>
@@ -281,7 +337,9 @@ export default function BrowseTutorsPage() {
                                             </div>
                                             <div className="flex items-center space-x-1">
                                                 <DollarSign className="h-3 w-3" />
-                                                <span className="font-medium">${tutor.hourlyRate || 0}/hr</span>
+                                                <span className="font-medium">
+                                                    ${tutor.hourlyRate || 0}/hr
+                                                </span>
                                             </div>
                                         </div>
 
@@ -290,7 +348,9 @@ export default function BrowseTutorsPage() {
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                onClick={() => handleConnectTutor(tutor.id)}
+                                                onClick={() =>
+                                                    handleConnectTutor(tutor.id)
+                                                }
                                                 className="text-xs h-8"
                                             >
                                                 <Video className="h-3 w-3 mr-1" />
@@ -320,7 +380,8 @@ export default function BrowseTutorsPage() {
                                     No tutors found
                                 </h3>
                                 <p className="text-slate-600 mb-4">
-                                    Try adjusting your search criteria or filters
+                                    Try adjusting your search criteria or
+                                    filters
                                 </p>
                                 <Button
                                     variant="outline"
