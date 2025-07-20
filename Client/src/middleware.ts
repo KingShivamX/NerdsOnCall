@@ -1,12 +1,35 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
+function isValidToken(token: string): boolean {
+  if (!token) return false
+  
+  try {
+    // Basic JWT structure check
+    const parts = token.split('.')
+    if (parts.length !== 3) return false
+    
+    // Decode payload to check expiration
+    const payload = JSON.parse(atob(parts[1]))
+    const now = Math.floor(Date.now() / 1000)
+    
+    // Check if token is expired
+    if (payload.exp && payload.exp < now) {
+      return false
+    }
+    
+    return true
+  } catch (error) {
+    return false
+  }
+}
+
 export function middleware(request: NextRequest) {
   const token = request.cookies.get('token')?.value || 
                 request.headers.get('authorization')?.replace('Bearer ', '')
 
   // Protected routes that require authentication
-  const protectedPaths = ['/dashboard', '/profile', '/sessions', '/doubts']
+  const protectedPaths = ['/dashboard', '/profile', '/sessions', '/doubts', '/browse-tutors', '/student-requests', '/test-video-call']
   const authPaths = ['/auth/login', '/auth/register']
   
   const isProtectedPath = protectedPaths.some(path => 
@@ -17,14 +40,30 @@ export function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith(path)
   )
 
-  // If accessing protected route without token, redirect to login
-  if (isProtectedPath && !token) {
-    return NextResponse.redirect(new URL('/auth/login', request.url))
+  // Check if token is valid
+  const hasValidToken = token && isValidToken(token)
+
+  // If accessing protected route without valid token, redirect to login
+  if (isProtectedPath && !hasValidToken) {
+    // Clear invalid token cookie if it exists
+    const response = NextResponse.redirect(new URL('/auth/login', request.url))
+    if (token && !hasValidToken) {
+      response.cookies.delete('token')
+    }
+    return response
   }
 
-  // If accessing auth pages with token, redirect to dashboard
-  if (isAuthPath && token) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+  // If accessing auth pages with valid token, redirect to dashboard
+  // Temporarily disabled to debug the issue
+  // if (isAuthPath && hasValidToken) {
+  //   return NextResponse.redirect(new URL('/dashboard', request.url))
+  // }
+
+  // If accessing auth pages with invalid token, clear the token and allow access
+  if (isAuthPath && token && !hasValidToken) {
+    const response = NextResponse.next()
+    response.cookies.delete('token')
+    return response
   }
 
   return NextResponse.next()
@@ -36,6 +75,9 @@ export const config = {
     '/profile/:path*',
     '/sessions/:path*',
     '/doubts/:path*',
+    '/browse-tutors/:path*',
+    '/student-requests/:path*',
+    '/test-video-call/:path*',
     '/auth/login',
     '/auth/register'
   ]
