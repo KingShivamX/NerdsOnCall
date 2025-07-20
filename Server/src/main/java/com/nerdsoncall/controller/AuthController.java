@@ -1,8 +1,10 @@
 package com.nerdsoncall.controller;
 
+import com.nerdsoncall.dto.ForgotPasswordRequest;
 import com.nerdsoncall.dto.LoginRequest;
 import com.nerdsoncall.dto.LoginResponse;
 import com.nerdsoncall.dto.RegisterRequest;
+import com.nerdsoncall.dto.ResetPasswordRequest;
 import com.nerdsoncall.entity.User;
 import com.nerdsoncall.service.AuthService;
 import com.nerdsoncall.service.UserService;
@@ -147,6 +149,44 @@ public class AuthController {
             return ResponseEntity.ok(user);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Failed to get user: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        try {
+            authService.forgotPassword(request.getEmail());
+            return ResponseEntity.ok("If an account with that email exists, a password reset link has been sent.");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Failed to process forgot password request: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        try {
+            boolean success = authService.resetPassword(request.getToken(), request.getNewPassword());
+            if (success) {
+                return ResponseEntity.ok("Password has been reset successfully.");
+            } else {
+                return ResponseEntity.badRequest().body("Invalid or expired reset token.");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Failed to reset password: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/validate-reset-token")
+    public ResponseEntity<?> validateResetToken(@RequestParam String token) {
+        try {
+            boolean isValid = authService.validateResetToken(token);
+            if (isValid) {
+                return ResponseEntity.ok("Token is valid.");
+            } else {
+                return ResponseEntity.badRequest().body("Invalid or expired token.");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Failed to validate token: " + e.getMessage());
         }
     }
 } 

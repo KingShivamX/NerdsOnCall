@@ -74,6 +74,10 @@ public class User {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    // Password reset fields
+    private String resetToken;
+    private LocalDateTime resetTokenExpiry;
+
     public enum Role {
         STUDENT, TUTOR, ADMIN
     }

@@ -5,7 +5,7 @@ spring:
         url: jdbc:postgresql://localhost:5432/nerdsoncall_db
         driver-class-name: org.postgresql.Driver
         username: postgres
-        password: Jidnyesh@1210
+        password: shiv
         hikari:
             auto-commit: true
             maximum-pool-size: 5
@@ -23,6 +23,17 @@ spring:
                     google:
                         client-id: ${GOOGLE_CLIENT_ID:}
                         client-secret: ${GOOGLE_CLIENT_SECRET:}
+    mail:
+        host: smtp.gmail.com
+        port: 587
+        username: ${MAIL_USERNAME:}
+        password: ${MAIL_PASSWORD:}
+        properties:
+            mail:
+                smtp:
+                    auth: true
+                    starttls:
+                        enable: true
 
 server:
     port: ${PORT:8080}
@@ -43,6 +54,12 @@ logging:
     level:
         com.nerdsoncall: INFO
         org.springframework.security: INFO
+
+
+
+# Frontend URL for password reset links
+app:
+    frontend-url: ${FRONTEND_URL:http://localhost:3000}
 
 ---
 spring:

@@ -108,12 +108,14 @@
             <artifactId>jackson-databind</artifactId>
         </dependency>
 
-        <!-- Lombok for cleaner code -->
+        <!-- Dotenv for environment variables -->
         <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
+            <groupId>me.paulschwarz</groupId>
+            <artifactId>spring-dotenv</artifactId>
+            <version>4.0.0</version>
         </dependency>
+
+
 
         <!-- Development tools -->
         <dependency>
