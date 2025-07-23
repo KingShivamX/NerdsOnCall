@@ -16,6 +16,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Avatar } from "@/components/ui/Avatar"
+import { VideoCallModal } from "@/components/VideoCall/VideoCallModal"
 import {
     Star,
     Search,
@@ -126,9 +127,12 @@ export default function BrowseTutorsPage() {
         setFilteredTutors(filtered)
     }
 
-    const handleConnectTutor = (tutorId: number) => {
-        // TODO: Implement connect functionality
-        console.log("Connect with tutor:", tutorId)
+    const [selectedTutor, setSelectedTutor] = useState<User | null>(null)
+    const [isCallModalOpen, setIsCallModalOpen] = useState(false)
+
+    const handleConnectTutor = (tutor: User) => {
+        setSelectedTutor(tutor)
+        setIsCallModalOpen(true)
     }
 
 
@@ -292,7 +296,7 @@ export default function BrowseTutorsPage() {
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                onClick={() => handleConnectTutor(tutor.id)}
+                                                onClick={() => handleConnectTutor(tutor)}
                                                 className="text-xs h-8"
                                             >
                                                 <Video className="h-3 w-3 mr-1" />
@@ -339,6 +343,16 @@ export default function BrowseTutorsPage() {
                     )}
                 </div>
             </div>
+
+            {/* Video Call Modal */}
+            {selectedTutor && (
+                <VideoCallModal
+                    isOpen={isCallModalOpen}
+                    onClose={() => setIsCallModalOpen(false)}
+                    tutorId={selectedTutor.id}
+                    tutorName={`${selectedTutor.firstName} ${selectedTutor.lastName}`}
+                />
+            )}
         </div>
     )
 }
