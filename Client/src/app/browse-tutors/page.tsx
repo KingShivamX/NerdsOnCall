@@ -61,17 +61,23 @@ export default function BrowseTutorsPage() {
 
     useEffect(() => {
         fetchTutors()
-    }, [])
+    }, [selectedSubject, sortBy])
 
     useEffect(() => {
         filterAndSortTutors()
-    }, [tutors, searchQuery, selectedSubject, sortBy])
+    }, [tutors, searchQuery])
 
     const fetchTutors = async () => {
         try {
             setLoading(true)
-            // Fetch only online tutors
-            const response = await api.get("/users/tutors")
+            // Use the new dedicated tutors API endpoint with query parameters
+            const response = await api.get("/api/tutors", {
+                params: {
+                    subject: selectedSubject !== "all" ? selectedSubject : null,
+                    sortBy: sortBy,
+                    onlineOnly: true
+                }
+            })
             setTutors(response.data)
         } catch (error) {
             console.error("Error fetching tutors:", error)
