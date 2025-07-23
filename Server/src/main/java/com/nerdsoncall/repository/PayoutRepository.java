@@ -15,6 +15,8 @@ public interface PayoutRepository extends JpaRepository<Payout, Long> {
     
     List<Payout> findByTutor(User tutor);
     
+    boolean existsByTutorAndPeriodStartAndPeriodEnd(User tutor, LocalDateTime periodStart, LocalDateTime periodEnd);
+
     List<Payout> findByStatus(Payout.Status status);
     
     @Query("SELECT p FROM Payout p WHERE p.tutor = :tutor ORDER BY p.createdAt DESC")

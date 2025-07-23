@@ -5,14 +5,17 @@ import com.nerdsoncall.entity.User;
 import com.nerdsoncall.service.PaymentService;
 import com.nerdsoncall.service.SubscriptionService;
 import com.nerdsoncall.service.UserService;
-import com.stripe.exception.StripeException;
-import com.stripe.model.checkout.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
+import com.nerdsoncall.entity.Plan;
+import com.nerdsoncall.service.PlanService;
 import java.util.List;
+import com.razorpay.Order;
+import com.razorpay.RazorpayException;
+import java.util.Map;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/subscriptions")
@@ -27,6 +30,9 @@ public class SubscriptionController {
 
     @Autowired
     private PaymentService paymentService;
+
+    @Autowired
+    private PlanService planService;
 
     @GetMapping("/my-subscription")
     public ResponseEntity<?> getMySubscription(Authentication authentication) {
@@ -59,10 +65,8 @@ public class SubscriptionController {
     }
 
     @PostMapping("/checkout")
-    public ResponseEntity<?> createCheckoutSession(
-            @RequestParam String planType,
-            @RequestParam String successUrl,
-            @RequestParam String cancelUrl,
+    public ResponseEntity<?> createCheckoutOrder(
+            @RequestParam Long planId,
             Authentication authentication) {
         try {
             User user = userService.findByEmail(authentication.getName())
@@ -72,17 +76,33 @@ public class SubscriptionController {
                 return ResponseEntity.badRequest().body("Only students can subscribe");
             }
 
-            Subscription.PlanType plan = Subscription.PlanType.valueOf(planType.toUpperCase());
-            Session session = paymentService.createCheckoutSession(user, plan, successUrl, cancelUrl);
+            Plan plan = planService.getPlanEntity(planId)
+                    .orElseThrow(() -> new RuntimeException("Plan not found"));
 
-            return ResponseEntity.ok(session.getUrl());
-        } catch (StripeException e) {
-            return ResponseEntity.badRequest().body("Failed to create checkout session: " + e.getMessage());
+            // Amount in paise (Razorpay expects INR in paise)
+            long amount = (long) (plan.getPrice() * 100);
+            String currency = "INR";
+            String receipt = "receipt_" + user.getId() + "_" + System.currentTimeMillis();
+            Order order = paymentService.createOrder(amount, currency, receipt);
+
+            // Return order details needed for Razorpay checkout
+            Map<String, Object> response = new HashMap<>();
+            response.put("orderId", order.get("id"));
+            response.put("amount", order.get("amount"));
+            response.put("currency", order.get("currency"));
+            response.put("key", paymentService.getRazorpayKeyId());
+            response.put("name", plan.getName());
+            response.put("description", plan.getDescription());
+            response.put("userEmail", user.getEmail());
+            response.put("planId", plan.getId());
+            return ResponseEntity.ok(response);
+        } catch (RazorpayException e) {
+            return ResponseEntity.badRequest().body("Failed to create Razorpay order: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Failed to create checkout session: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Failed to create checkout order: " + e.getMessage());
         }
     }
-
+    
     @PostMapping("/cancel/{id}")
     public ResponseEntity<?> cancelSubscription(@PathVariable Long id, Authentication authentication) {
         try {

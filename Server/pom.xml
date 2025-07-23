@@ -89,12 +89,19 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Stripe -->
+        <!-- Razorpay -->
         <dependency>
+            <groupId>com.razorpay</groupId>
+            <artifactId>razorpay-java</artifactId>
+            <version>1.4.3</version>
+        </dependency>
+
+        <!-- Stripe -->
+        <!-- <dependency>
             <groupId>com.stripe</groupId>
             <artifactId>stripe-java</artifactId>
             <version>24.16.0</version>
-        </dependency>
+        </dependency> -->
 
         <!-- WebSocket & STOMP -->
         <dependency>

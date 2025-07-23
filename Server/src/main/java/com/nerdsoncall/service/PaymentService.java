@@ -1,87 +1,65 @@
 package com.nerdsoncall.service;
 
-import com.nerdsoncall.entity.Subscription;
-import com.nerdsoncall.entity.User;
-import com.stripe.Stripe;
-import com.stripe.exception.StripeException;
-import com.stripe.model.Customer;
-import com.stripe.model.PaymentIntent;
-import com.stripe.model.checkout.Session;
-import com.stripe.param.CustomerCreateParams;
-import com.stripe.param.PaymentIntentCreateParams;
-import com.stripe.param.checkout.SessionCreateParams;
+import com.razorpay.Order;
+import com.razorpay.RazorpayClient;
+import com.razorpay.RazorpayException;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
-import java.util.HashMap;
-import java.util.Map;
 
 @Service
 public class PaymentService {
 
-    @Value("${stripe.secret-key}")
-    private String stripeSecretKey;
+    @Value("${razorpay.key-id}")
+    private String razorpayKeyId;
+
+    @Value("${razorpay.key-secret}")
+    private String razorpayKeySecret;
+
+    private RazorpayClient razorpayClient;
 
     @PostConstruct
-    public void init() {
-        Stripe.apiKey = stripeSecretKey;
+    public void init() throws RazorpayException {
+        razorpayClient = new RazorpayClient(razorpayKeyId, razorpayKeySecret);
     }
 
-    public Customer createCustomer(User user) throws StripeException {
-        CustomerCreateParams params = CustomerCreateParams.builder()
-                .setEmail(user.getEmail())
-                .setName(user.getFirstName() + " " + user.getLastName())
-                .build();
+    public Order createOrder(long amount, String currency, String receipt) throws RazorpayException {
+        JSONObject orderRequest = new JSONObject();
 
-        return Customer.create(params);
+        System.out.println("\n credentials: " + razorpayClient);
+    
+        orderRequest.put("amount", amount); // amount in paise
+        orderRequest.put("currency", currency);
+        orderRequest.put("receipt", receipt);
+        orderRequest.put("payment_capture", 1);
+        return razorpayClient.orders.create(orderRequest);
     }
 
-    public Session createCheckoutSession(User user, Subscription.PlanType planType, String successUrl, String cancelUrl) throws StripeException {
-        SessionCreateParams.Builder paramsBuilder = SessionCreateParams.builder()
-                .setMode(SessionCreateParams.Mode.SUBSCRIPTION)
-                .setSuccessUrl(successUrl)
-                .setCancelUrl(cancelUrl)
-                .setCustomerEmail(user.getEmail());
-
-        // Add price based on plan type
-        String priceId = getPriceIdForPlan(planType);
-        paramsBuilder.addLineItem(
-                SessionCreateParams.LineItem.builder()
-                        .setPrice(priceId)
-                        .setQuantity(1L)
-                        .build()
-        );
-
-        // Add metadata
-        paramsBuilder.putMetadata("user_id", user.getId().toString());
-        paramsBuilder.putMetadata("plan_type", planType.name());
-
-        return Session.create(paramsBuilder.build());
+    public boolean verifyOrder(String orderId, String paymentId, String razorpaySignature) {
+        try {
+            String payload = orderId + '|' + paymentId;
+            String actualSignature = hmacSHA256(payload, razorpayKeySecret);
+            return actualSignature.equals(razorpaySignature);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
-    public PaymentIntent createPaymentIntent(User user, long amount, String currency) throws StripeException {
-        PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
-                .setAmount(amount)
-                .setCurrency(currency)
-                .putMetadata("user_id", user.getId().toString())
-                .build();
-
-        return PaymentIntent.create(params);
+    private String hmacSHA256(String data, String secret) throws Exception {
+        javax.crypto.Mac mac = javax.crypto.Mac.getInstance("HmacSHA256");
+        javax.crypto.spec.SecretKeySpec secretKeySpec = new javax.crypto.spec.SecretKeySpec(secret.getBytes(), "HmacSHA256");
+        mac.init(secretKeySpec);
+        byte[] hash = mac.doFinal(data.getBytes());
+        StringBuilder sb = new StringBuilder();
+        for (byte b : hash) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString();
     }
 
-    private String getPriceIdForPlan(Subscription.PlanType planType) {
-        // These should be configured in Stripe Dashboard and stored in environment variables
-        Map<Subscription.PlanType, String> priceIds = new HashMap<>();
-        priceIds.put(Subscription.PlanType.BASIC, "price_basic_monthly");
-        priceIds.put(Subscription.PlanType.STANDARD, "price_standard_monthly");
-        priceIds.put(Subscription.PlanType.PREMIUM, "price_premium_monthly");
-        
-        return priceIds.get(planType);
-    }
-
-    public void processWebhook(String payload, String sigHeader) {
-        // Webhook processing logic for Stripe events
-        // This would handle events like subscription created, updated, cancelled, etc.
+    public String getRazorpayKeyId() {
+        return razorpayKeyId;
     }
 } 

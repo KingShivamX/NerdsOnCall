@@ -2,7 +2,7 @@ spring:
     datasource:
         url: jdbc:postgresql://localhost:5432/nerdsoncall_db
         username: postgres
-        password: shiv
+        password: 1234
         driver-class-name: org.postgresql.Driver
         hikari:
             auto-commit: true
@@ -16,9 +16,13 @@ spring:
         database: postgresql
 
 server:
-    port: 8080
+    port: 8081
 
 logging:
     level:
         com.nerdsoncall: DEBUG
         org.springframework.security: DEBUG
+
+razorpay:
+    key-id: ${RAZORPAY_KEY_ID:zp_test_oaCoVv0RNgL6rf}
+    key-secret: ${RAZORPAY_KEY_SECRET:u3MCboeH8t477SIkflHtQLyS}

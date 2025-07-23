@@ -66,7 +66,8 @@ public class User {
     private Double hourlyRate = 0.0;
 
     // Stripe Connect account for tutors
-    private String stripeAccountId;
+    // private String stripeAccountId;
+    private String razorpayContactId; // For RazorpayX payouts
 
     @CreationTimestamp
     private LocalDateTime createdAt;

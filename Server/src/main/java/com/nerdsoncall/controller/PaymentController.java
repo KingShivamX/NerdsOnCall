@@ -4,24 +4,26 @@ import com.nerdsoncall.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
-@RequestMapping("/stripe")
+@RequestMapping("/payment")
 @CrossOrigin(origins = "*")
 public class PaymentController {
 
     @Autowired
     private PaymentService paymentService;
 
-    @PostMapping("/webhook")
-    public ResponseEntity<?> handleStripeWebhook(
-            @RequestBody String payload,
-            @RequestHeader("Stripe-Signature") String sigHeader) {
-        try {
-            paymentService.processWebhook(payload, sigHeader);
-            return ResponseEntity.ok("Webhook processed successfully");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Webhook processing failed: " + e.getMessage());
+    @PostMapping("/verify")
+    public ResponseEntity<?> verifyRazorpayPayment(
+            @RequestParam String orderId,
+            @RequestParam String paymentId,
+            @RequestParam String signature) {
+        boolean isValid = paymentService.verifyOrder(orderId, paymentId, signature);
+        if (isValid) {
+            return ResponseEntity.ok("Payment verified successfully");
+        } else {
+            return ResponseEntity.badRequest().body("Payment verification failed");
         }
     }
 } 
