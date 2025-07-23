@@ -9,7 +9,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableAsync
 @EnableScheduling
 public class NerdsOnCallApplication {
+    
     public static void main(String[] args) {
         SpringApplication.run(NerdsOnCallApplication.class, args);
     }
-} 
+}

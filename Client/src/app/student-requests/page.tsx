@@ -36,7 +36,9 @@ import {
     Users,
     Timer,
     Target,
+    Phone,
 } from "lucide-react"
+import { useVideoCall } from "@/context/VideoCallContext"
 
 // Dummy data based on database schema
 const dummyDoubts = [
@@ -141,15 +143,127 @@ const dummySessions = [
     }
 ]
 
+// Dummy incoming call requests
+const dummyCallRequests = [
+    {
+        id: 1,
+        student: {
+            id: 106,
+            firstName: "Sarah",
+            lastName: "Wilson",
+            email: "sarah@example.com",
+            rating: 4.7
+        },
+        subject: "MATHEMATICS",
+        sessionId: "session_106_1_1642248000000",
+        timestamp: Date.now() - 30000, // 30 seconds ago
+        status: "incoming"
+    },
+    {
+        id: 2,
+        student: {
+            id: 107,
+            firstName: "Mike",
+            lastName: "Johnson",
+            email: "mike@example.com",
+            rating: 4.6
+        },
+        subject: "PHYSICS",
+        sessionId: "session_107_1_1642248060000",
+        timestamp: Date.now() - 60000, // 1 minute ago
+        status: "incoming"
+    }
+]
+
 export default function StudentRequestsPage() {
     const { user } = useAuth()
+    const { callState, acceptCall, rejectCall, websocket, resetCallState } = useVideoCall()
     const [doubts, setDoubts] = useState(dummyDoubts)
     const [sessions, setSessions] = useState(dummySessions)
+    const [callRequests, setCallRequests] = useState<any[]>([])
     const [loading, setLoading] = useState(false)
     const [searchQuery, setSearchQuery] = useState("")
     const [selectedSubject, setSelectedSubject] = useState("all")
     const [selectedPriority, setSelectedPriority] = useState("all")
     const [activeTab, setActiveTab] = useState("new-requests")
+
+    // Listen for incoming call requests
+    useEffect(() => {
+        console.log('=== STUDENT REQUESTS PAGE - CALL STATE CHANGE ===')
+        console.log('isIncomingCall:', callState.isIncomingCall)
+        console.log('callerId:', callState.callerId)
+        console.log('callerName:', callState.callerName)
+        console.log('sessionId:', callState.sessionId)
+        console.log('Current user:', user?.id, user?.role)
+        
+        if (callState.isIncomingCall && callState.callerId && callState.callerName) {
+            console.log('Processing incoming call request...')
+            
+            const newCallRequest = {
+                id: Date.now(),
+                student: {
+                    id: callState.callerId,
+                    firstName: callState.callerName.split(' ')[0] || 'Unknown',
+                    lastName: callState.callerName.split(' ')[1] || 'User',
+                    email: `user${callState.callerId}@example.com`,
+                    rating: 4.5
+                },
+                subject: "GENERAL", // Default subject
+                sessionId: callState.sessionId,
+                timestamp: Date.now(),
+                status: "incoming"
+            }
+            
+            console.log('Created call request:', newCallRequest)
+            
+            setCallRequests(prev => {
+                // Avoid duplicates
+                const exists = prev.some(req => req.sessionId === callState.sessionId)
+                if (!exists) {
+                    console.log('Adding new call request to list')
+                    return [...prev, newCallRequest]
+                } else {
+                    console.log('Call request already exists, skipping')
+                }
+                return prev
+            })
+        }
+    }, [callState.isIncomingCall, callState.callerId, callState.callerName, callState.sessionId, user])
+
+    // Debug WebSocket connection
+    useEffect(() => {
+        if (websocket) {
+            console.log('WebSocket connection status:', websocket.isConnected())
+            console.log('User ID:', user?.id)
+            console.log('Call state:', callState)
+        }
+    }, [websocket, user, callState])
+
+    // Add some dummy call requests for testing
+    useEffect(() => {
+        // Add a test call request after 3 seconds for debugging
+        const timer = setTimeout(() => {
+            if (callRequests.length === 0) {
+                console.log('Adding test call request for debugging...')
+                setCallRequests([{
+                    id: 999,
+                    student: {
+                        id: 999,
+                        firstName: "Test",
+                        lastName: "Student",
+                        email: "test@example.com",
+                        rating: 4.8
+                    },
+                    subject: "MATHEMATICS",
+                    sessionId: "test_session_999",
+                    timestamp: Date.now(),
+                    status: "incoming"
+                }])
+            }
+        }, 3000)
+
+        return () => clearTimeout(timer)
+    }, [])
 
     const handleAcceptDoubt = async (doubtId: number) => {
         // TODO: Implement accept doubt functionality
@@ -224,13 +338,33 @@ export default function StudentRequestsPage() {
             <div className="pt-20 pb-10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     {/* Header */}
-                    <div className="mb-8">
-                        <h1 className="text-3xl font-bold text-slate-800 mb-2">
-                            Student Requests
-                        </h1>
-                        <p className="text-slate-600">
-                            Manage incoming student requests and active sessions
-                        </p>
+                    <div className="mb-8 flex justify-between items-center">
+                        <div>
+                            <h1 className="text-3xl font-bold text-slate-800 mb-2">
+                                Student Requests
+                            </h1>
+                            <p className="text-slate-600">
+                                Manage incoming student requests and active sessions
+                            </p>
+                        </div>
+                        <div className="flex space-x-2">
+                            <Button
+                                onClick={resetCallState}
+                                variant="outline"
+                                size="sm"
+                                className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+                            >
+                                🔄 Reset Call State
+                            </Button>
+                            <Button
+                                onClick={() => setCallRequests([])}
+                                variant="outline"
+                                size="sm"
+                                className="bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100"
+                            >
+                                🗑️ Clear Call Requests
+                            </Button>
+                        </div>
                     </div>
 
                     {/* Stats Cards */}
@@ -299,6 +433,74 @@ export default function StudentRequestsPage() {
                             </CardContent>
                         </Card>
                     </div>
+
+                    {/* Incoming Call Notifications */}
+                    {callRequests.length > 0 && (
+                        <div className="mb-6">
+                            <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center">
+                                <Phone className="h-5 w-5 mr-2 text-green-600" />
+                                Incoming Video Calls ({callRequests.length})
+                            </h2>
+                            <div className="space-y-3">
+                                {callRequests.map((callRequest) => (
+                                    <Card key={callRequest.id} className="border-green-200 bg-green-50">
+                                        <CardContent className="p-4">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center space-x-3">
+                                                    <div className="w-12 h-12 bg-gradient-to-br from-green-600 to-green-800 rounded-full flex items-center justify-center text-white font-bold animate-pulse">
+                                                        {callRequest.student.firstName[0]}{callRequest.student.lastName[0]}
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="font-semibold text-slate-800">
+                                                            {callRequest.student.firstName} {callRequest.student.lastName}
+                                                        </h3>
+                                                        <div className="flex items-center space-x-2">
+                                                            <Badge variant="outline" className="text-xs">
+                                                                {callRequest.subject.replace(/_/g, " ")}
+                                                            </Badge>
+                                                            <Star className="h-3 w-3 text-amber-500 fill-current" />
+                                                            <span className="text-xs text-slate-600">
+                                                                {callRequest.student.rating} rating
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-xs text-slate-500 mt-1">
+                                                            Calling for {Math.floor((Date.now() - callRequest.timestamp) / 1000)}s
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div className="flex space-x-2">
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            setCallRequests(prev => prev.filter(cr => cr.id !== callRequest.id))
+                                                        }}
+                                                        className="bg-red-50 border-red-200 text-red-700 hover:bg-red-100"
+                                                    >
+                                                        <XCircle className="h-4 w-4 mr-1" />
+                                                        Decline
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            // Accept the video call
+                                                            acceptCall()
+                                                            setCallRequests(prev => prev.filter(cr => cr.id !== callRequest.id))
+                                                        }}
+                                                        className="bg-green-600 hover:bg-green-700 animate-pulse"
+                                                    >
+                                                        <Video className="h-4 w-4 mr-1" />
+                                                        Accept Call
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Tabs */}
                     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">

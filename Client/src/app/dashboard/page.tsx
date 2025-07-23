@@ -4,6 +4,8 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useAuth } from "@/context/AuthContext"
 import { api } from "@/lib/api"
+import VideoCallTest from "@/components/video/VideoCallTest"
+import IncomingCalls from "@/components/IncomingCalls"
 import { Navbar } from "@/components/layout/Navbar"
 import { Button } from "@/components/ui/Button"
 import {
@@ -547,6 +549,13 @@ export default function DashboardPage() {
                                     </CardContent>
                                 </Card>
                             )}
+
+                            {/* Incoming Calls for Tutors */}
+                            {isTutor && <IncomingCalls />}
+                            {isTutor && <h1 className="text-3xl"> Hellow world</h1>}
+
+                            {/* Video Call Test Component */}
+                            <VideoCallTest />
 
                             {/* Tutor Manage Profile */}
                             {isTutor && (

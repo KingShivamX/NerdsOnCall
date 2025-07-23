@@ -19,13 +19,11 @@ public class WebSocketController {
 
     @MessageMapping("/canvas/{sessionId}")
     public void handleCanvasUpdate(@DestinationVariable String sessionId, @Payload String canvasData) {
-        // Broadcast canvas update to all participants in the session
         sessionService.broadcastCanvasUpdate(sessionId, canvasData);
     }
 
     @MessageMapping("/screen/{sessionId}")
     public void handleScreenShare(@DestinationVariable String sessionId, @Payload String screenData) {
-        // Broadcast screen share data to all participants in the session
         sessionService.broadcastScreenShare(sessionId, screenData);
     }
 
@@ -34,4 +32,4 @@ public class WebSocketController {
         // Relay WebRTC signaling data
         messagingTemplate.convertAndSend("/topic/session/" + sessionId + "/webrtc", signalData);
     }
-} 
+}

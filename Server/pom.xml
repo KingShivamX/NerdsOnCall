@@ -22,13 +22,7 @@
     </properties>
 
     <dependencies>
-        <!-- Add this Lombok dependency -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.18.30</version>
-            <scope>provided</scope>
-        </dependency>
+
         
         <!-- Spring Boot Starters -->
         <dependency>
@@ -107,6 +101,8 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
+
+
 
         <!-- Lombok for cleaner code -->
         <dependency>

@@ -67,6 +67,9 @@ Thumbs.db
 *.db
 *.sqlite
 
+
+# node
+
 # Application properties (if they contain sensitive data)
 # application-local.properties
 # application-dev.properties 

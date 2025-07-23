@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 @RestController
@@ -25,21 +26,26 @@ public class AuthController {
     private UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<?> register(@RequestBody RegisterRequest request, HttpServletRequest httpRequest) {
+        long startTime = System.currentTimeMillis();
+        
+        
         try {
-            System.out.println("Registration request received: " + request);
-            
             // Basic validation
             if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+                
                 return ResponseEntity.badRequest().body("Email is required");
             }
             if (request.getPassword() == null || request.getPassword().trim().isEmpty()) {
+                
                 return ResponseEntity.badRequest().body("Password is required");
             }
             if (request.getFirstName() == null || request.getFirstName().trim().isEmpty()) {
+               
                 return ResponseEntity.badRequest().body("First name is required");
             }
             if (request.getLastName() == null || request.getLastName().trim().isEmpty()) {
+                
                 return ResponseEntity.badRequest().body("Last name is required");
             }
             if (request.getRole() == null) {

@@ -3,6 +3,8 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import { Toaster } from "react-hot-toast"
 import { ReactQueryProvider } from "../components/providers"
+import { VideoCallProvider } from "../context/VideoCallContext"
+import VideoCallModal from "../components/video/VideoCallModal"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -20,10 +22,13 @@ export default function RootLayout({
         <html lang="en">
             <body className={inter.className} suppressHydrationWarning={true}>
                 <ReactQueryProvider>
-                    <div className="min-h-screen bg-background">
-                        {children}
-                        <Toaster position="top-right" />
-                    </div>
+                    <VideoCallProvider>
+                        <div className="min-h-screen bg-background">
+                            {children}
+                            <Toaster position="top-right" />
+                            <VideoCallModal />
+                        </div>
+                    </VideoCallProvider>
                 </ReactQueryProvider>
             </body>
         </html>

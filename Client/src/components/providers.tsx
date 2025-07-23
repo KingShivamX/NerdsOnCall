@@ -3,6 +3,8 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { AuthProvider } from "../context/AuthContext"
 import { WebSocketProvider } from "../context/WebSocketContext"
+import { VideoCallProvider } from "../context/VideoCallContext"
+import VideoCallModal from "./video/VideoCallModal"
 import { ReactNode, useState } from "react"
 
 interface ProvidersProps {
@@ -25,7 +27,12 @@ export function ReactQueryProvider({ children }: ProvidersProps) {
     return (
         <QueryClientProvider client={queryClient}>
             <AuthProvider>
-                <WebSocketProvider>{children}</WebSocketProvider>
+                <WebSocketProvider>
+                    <VideoCallProvider>
+                        {children}
+                        <VideoCallModal />
+                    </VideoCallProvider>
+                </WebSocketProvider>
             </AuthProvider>
         </QueryClientProvider>
     )

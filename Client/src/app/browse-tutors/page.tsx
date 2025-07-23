@@ -31,6 +31,7 @@ import {
     Award,
 } from "lucide-react"
 import { Subject, User } from "@/types"
+import { useVideoCall } from "@/context/VideoCallContext"
 
 const subjectsList: Subject[] = [
     "MATHEMATICS",
@@ -52,6 +53,7 @@ const subjectsList: Subject[] = [
 
 export default function BrowseTutorsPage() {
     const { user } = useAuth()
+    const { initiateCall } = useVideoCall()
     const [tutors, setTutors] = useState<User[]>([])
     const [filteredTutors, setFilteredTutors] = useState<User[]>([])
     const [loading, setLoading] = useState(true)
@@ -120,15 +122,13 @@ export default function BrowseTutorsPage() {
         setFilteredTutors(filtered)
     }
 
-    const handleConnectTutor = (tutorId: number) => {
-        // TODO: Implement connect functionality
-        console.log("Connect with tutor:", tutorId)
+    const handleConnectTutor = async (tutorId: number) => {
+        const tutor = tutors.find(t => t.id === tutorId)
+        if (tutor) {
+            const tutorName = `${tutor.firstName} ${tutor.lastName}`
+            await initiateCall(tutorId, tutorName)
+        }
     }
-
-    // const handleAskDoubt = (tutorId: number) => {
-    //     // TODO: Implement ask doubt functionality
-    //     console.log("Ask doubt to tutor:", tutorId)
-    // }
 
     if (!user) {
         return (
