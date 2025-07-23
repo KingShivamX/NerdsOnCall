@@ -125,10 +125,6 @@ export default function BrowseTutorsPage() {
         console.log("Connect with tutor:", tutorId)
     }
 
-    // const handleAskDoubt = (tutorId: number) => {
-    //     // TODO: Implement ask doubt functionality
-    //     console.log("Ask doubt to tutor:", tutorId)
-    // }
 
     if (!user) {
         return (
