@@ -44,4 +44,13 @@ public class PlanController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @GetMapping
+    public ResponseEntity<?> getAllPlans() {
+        try {
+            return ResponseEntity.ok(planService.getAllPlans());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 } 

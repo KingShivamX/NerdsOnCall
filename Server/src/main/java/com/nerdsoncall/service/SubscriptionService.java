@@ -16,18 +16,7 @@ public class SubscriptionService {
     @Autowired
     private SubscriptionRepository subscriptionRepository;
 
-    public Subscription createSubscription(User user, Subscription.PlanType planType, String stripeSubscriptionId, String stripeCustomerId) {
-        Subscription subscription = new Subscription();
-        subscription.setUser(user);
-        subscription.setPlanType(planType);
-        subscription.setStatus(Subscription.Status.ACTIVE);
-        subscription.setPrice(Double.valueOf(planType.getPrice()));
-        subscription.setStartDate(LocalDateTime.now());
-        subscription.setEndDate(LocalDateTime.now().plusMonths(1));
-        subscription.setStripeSubscriptionId(stripeSubscriptionId);
-        subscription.setStripeCustomerId(stripeCustomerId);
-        subscription.setSessionsLimit(planType.getSessionsLimit());
-
+    public Subscription saveSubscription(Subscription subscription) {
         return subscriptionRepository.save(subscription);
     }
 

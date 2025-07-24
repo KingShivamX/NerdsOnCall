@@ -26,10 +26,6 @@ public class Subscription {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private PlanType planType;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private Status status;
 
     @Column(nullable = false, precision = 10)
@@ -47,28 +43,14 @@ public class Subscription {
     private Integer sessionsUsed = 0;
     private Integer sessionsLimit;
 
+    @Column(nullable = false)
+    private String planName;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
-
-    public enum PlanType {
-        BASIC(9.99, 5),
-        STANDARD(19.99, 15),
-        PREMIUM(39.99, -1); // -1 means unlimited
-
-        private final double price;
-        private final int sessionsLimit;
-
-        PlanType(double price, int sessionsLimit) {
-            this.price = price;
-            this.sessionsLimit = sessionsLimit;
-        }
-
-        public double getPrice() { return price; }
-        public int getSessionsLimit() { return sessionsLimit; }
-    }
 
     public enum Status {
         ACTIVE, CANCELED, EXPIRED, PAST_DUE

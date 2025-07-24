@@ -8,6 +8,7 @@ import com.nerdsoncall.repository.PlanRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -53,6 +54,10 @@ public class PlanService {
 
     public Optional<Plan> getPlanEntity(Long id) {
         return planRepository.findById(id);
+    }
+
+    public List<PlanResponse> getAllPlans() {
+        return planRepository.findAll().stream().map(this::toResponse).toList();
     }
 
     private PlanResponse toResponse(Plan plan) {
