@@ -36,7 +36,7 @@ spring:
                         enable: true
 
 server:
-    port: ${PORT:8081}
+    port: ${PORT}
 
 jwt:
     secret: ${JWT_SECRET:your_jwt_secret_key_should_be_at_least_256_bits_long_for_security_purposes_in_production}

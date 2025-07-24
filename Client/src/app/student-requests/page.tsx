@@ -126,16 +126,11 @@ export default function StudentRequestsPage() {
     // Get priority color
     const getPriorityColor = (priority: string) => {
         switch (priority) {
-            case "URGENT":
-                return "bg-red-100 text-red-800 border-red-200"
-            case "HIGH":
-                return "bg-orange-100 text-orange-800 border-orange-200"
-            case "MEDIUM":
-                return "bg-yellow-100 text-yellow-800 border-yellow-200"
-            case "LOW":
-                return "bg-green-100 text-green-800 border-green-200"
-            default:
-                return "bg-gray-100 text-gray-800 border-gray-200"
+            case "URGENT": return "bg-red-100 text-red-800 border-red-200"
+            case "HIGH": return "bg-orange-100 text-orange-800 border-orange-200"
+            case "MEDIUM": return "bg-yellow-100 text-yellow-800 border-yellow-200"
+            case "LOW": return "bg-green-100 text-green-800 border-green-200"
+            default: return "bg-gray-100 text-gray-800 border-gray-200"
         }
     }
 
@@ -213,38 +208,9 @@ export default function StudentRequestsPage() {
                                         <MessageCircle className="h-6 w-6 text-blue-600" />
                                     </div>
                                     <div className="ml-4">
-                                        <p className="text-sm font-medium text-slate-600">
-                                            New Requests
-                                        </p>
+                                        <p className="text-sm font-medium text-slate-600">New Requests</p>
                                         <p className="text-2xl font-bold text-slate-900">
-                                            {
-                                                doubts.filter(
-                                                    (d) => d.status === "OPEN"
-                                                ).length
-                                            }
-                                        </p>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardContent className="p-6">
-                                <div className="flex items-center">
-                                    <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                                        <Clock className="h-6 w-6 text-orange-600" />
-                                    </div>
-                                    <div className="ml-4">
-                                        <p className="text-sm font-medium text-slate-600">
-                                            Pending Sessions
-                                        </p>
-                                        <p className="text-2xl font-bold text-slate-900">
-                                            {
-                                                sessions.filter(
-                                                    (s) =>
-                                                        s.status === "PENDING"
-                                                ).length
-                                            }
+                                            {requests.filter(r => r.status === "OPEN").length}
                                         </p>
                                     </div>
                                 </div>
@@ -259,9 +225,6 @@ export default function StudentRequestsPage() {
                                     </div>
                                     <div className="ml-4">
                                         <p className="text-sm font-medium text-slate-600">Accepted</p>
-                                        <p className="text-sm font-medium text-slate-600">
-                                            Active Sessions
-                                        </p>
                                         <p className="text-2xl font-bold text-slate-900">
                                             {requests.filter(r => r.status === "ASSIGNED" || r.status === "IN_PROGRESS").length}
                                         </p>
@@ -278,9 +241,6 @@ export default function StudentRequestsPage() {
                                     </div>
                                     <div className="ml-4">
                                         <p className="text-sm font-medium text-slate-600">Rejected</p>
-                                        <p className="text-sm font-medium text-slate-600">
-                                            Today&apos;s Earnings
-                                        </p>
                                         <p className="text-2xl font-bold text-slate-900">
                                             {requests.filter(r => r.status === "CANCELLED").length}
                                         </p>
@@ -291,11 +251,7 @@ export default function StudentRequestsPage() {
                     </div>
 
                     {/* Tabs */}
-                    <Tabs
-                        value={activeTab}
-                        onValueChange={setActiveTab}
-                        className="space-y-6"
-                    >
+                    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
                         <TabsList className="grid w-full grid-cols-3">
                             <TabsTrigger value="new-request">New Request</TabsTrigger>
                             <TabsTrigger value="accepted">Accepted</TabsTrigger>
@@ -453,53 +409,27 @@ export default function StudentRequestsPage() {
                                                         </div>
                                                     </div>
                                                 </div>
-
-                                                <div className="text-right">
-                                                    <div className="text-sm font-medium text-slate-800">
-                                                        ${session.tutorEarnings}
-                                                    </div>
-                                                    <div className="text-xs text-slate-500">
-                                                        {new Date(
-                                                            session.startTime
-                                                        ).toLocaleString()}
-                                                    </div>
-                                                    {session.status ===
-                                                        "PENDING" && (
-                                                        <Button
-                                                            size="sm"
-                                                            onClick={() =>
-                                                                handleStartSession(
-                                                                    session.id
-                                                                )
-                                                            }
-                                                            className="mt-2 bg-green-600 hover:bg-green-700 text-xs"
-                                                        >
-                                                            <Video className="h-3 w-3 mr-1" />
-                                                            Start Session
-                                                        </Button>
-                                                    )}
-                                                </div>
-                                            </div>
+                                            </CardContent>
+                                        </Card>
+                                    ))
+                                ) : (
+                                    <Card>
+                                        <CardContent className="p-12 text-center">
+                                            <MessageCircle className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                                            <h3 className="text-lg font-medium text-slate-800 mb-2">
+                                                No {tabValue.replace("-", " ")}s
+                                            </h3>
+                                            <p className="text-slate-600">
+                                                {tabValue === "new-request" 
+                                                    ? "New student requests will appear here" 
+                                                    : `${tabValue.charAt(0).toUpperCase() + tabValue.slice(1)} requests will appear here`
+                                                }
+                                            </p>
                                         </CardContent>
                                     </Card>
-                                ))}
-                            </div>
-                        </TabsContent>
-
-                        {/* Completed Tab */}
-                        <TabsContent value="completed" className="space-y-6">
-                            <Card>
-                                <CardContent className="p-12 text-center">
-                                    <CheckCircle className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                                    <h3 className="text-lg font-medium text-slate-800 mb-2">
-                                        No completed sessions yet
-                                    </h3>
-                                    <p className="text-slate-600">
-                                        Completed sessions will appear here
-                                    </p>
-                                </CardContent>
-                            </Card>
-                        </TabsContent>
+                                )}
+                            </TabsContent>
+                        ))}
                     </Tabs>
                 </div>
             </div>

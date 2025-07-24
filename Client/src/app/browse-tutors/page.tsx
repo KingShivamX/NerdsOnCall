@@ -134,7 +134,7 @@ export default function BrowseTutorsPage() {
         })
 
         setFilteredTutors(filtered)
-    }
+    },[tutors, searchQuery, selectedSubject, sortBy]);
 
     const [selectedTutor, setSelectedTutor] = useState<User | null>(null)
     const [isCallModalOpen, setIsCallModalOpen] = useState(false)
