@@ -155,3 +155,14 @@ export interface WebSocketMessage {
     sessionId?: string
     userId?: number
 }
+
+export interface Plan {
+    id: number;
+    name: string;
+    price: number;
+    sessionsLimit: number;
+    description: string;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+}

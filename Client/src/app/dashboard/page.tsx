@@ -61,7 +61,7 @@ export default function DashboardPage() {
 
     const handleOnlineStatusToggle = async () => {
         if (updatingStatus) return
-        
+
         setUpdatingStatus(true)
         try {
             const newStatus = !isOnline
@@ -137,10 +137,11 @@ export default function DashboardPage() {
                                         variant={
                                             isTutor ? "default" : "secondary"
                                         }
-                                        className={`w-fit ${isTutor
-                                            ? "bg-slate-700 text-white border-0"
-                                            : "bg-slate-100 text-slate-700"
-                                            }`}
+                                        className={`w-fit ${
+                                            isTutor
+                                                ? "bg-slate-700 text-white border-0"
+                                                : "bg-slate-100 text-slate-700"
+                                        }`}
                                     >
                                         {isTutor && (
                                             <Crown className="w-4 h-4 mr-1" />
@@ -218,7 +219,9 @@ export default function DashboardPage() {
                                 </CardHeader>
                                 <CardContent className="px-4 sm:px-6">
                                     <div className="text-2xl font-bold text-slate-800">
-                                        {Math.round((user.totalSessions || 0) * 1.5)}
+                                        {Math.round(
+                                            (user.totalSessions || 0) * 1.5
+                                        )}
                                     </div>
                                     <p className="text-xs text-slate-600 mt-1">
                                         Estimated learning time
@@ -264,7 +267,9 @@ export default function DashboardPage() {
                                 </CardHeader>
                                 <CardContent className="px-4 sm:px-6">
                                     <div className="text-2xl font-bold text-slate-800">
-                                        {Math.round((user.totalSessions || 0) * 1.5)}
+                                        {Math.round(
+                                            (user.totalSessions || 0) * 1.5
+                                        )}
                                     </div>
                                     <p className="text-xs text-slate-600 mt-1">
                                         <span className="text-emerald-600">
@@ -400,7 +405,8 @@ export default function DashboardPage() {
                                                             Student Requests
                                                         </span>
                                                         <span className="text-xs opacity-90">
-                                                            View pending requests
+                                                            View pending
+                                                            requests
                                                         </span>
                                                     </Button>
                                                 </Link>
@@ -519,7 +525,9 @@ export default function DashboardPage() {
                                                         Active Sessions
                                                     </span>
                                                 </div>
-                                                <span className="text-sm text-slate-600">0</span>
+                                                <span className="text-sm text-slate-600">
+                                                    0
+                                                </span>
                                             </div>
                                             <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
                                                 <div className="flex items-center space-x-3">
@@ -530,7 +538,9 @@ export default function DashboardPage() {
                                                         Open Questions
                                                     </span>
                                                 </div>
-                                                <span className="text-sm text-slate-600">0</span>
+                                                <span className="text-sm text-slate-600">
+                                                    0
+                                                </span>
                                             </div>
                                             <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
                                                 <div className="flex items-center space-x-3">
@@ -541,7 +551,9 @@ export default function DashboardPage() {
                                                         Favorite Tutors
                                                     </span>
                                                 </div>
-                                                <span className="text-sm text-slate-600">0</span>
+                                                <span className="text-sm text-slate-600">
+                                                    0
+                                                </span>
                                             </div>
                                         </div>
                                     </CardContent>
@@ -562,9 +574,13 @@ export default function DashboardPage() {
                                             {/* Online Status Toggle */}
                                             <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
                                                 <div className="flex items-center space-x-3">
-                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                                                        isOnline ? 'bg-emerald-500' : 'bg-slate-400'
-                                                    }`}>
+                                                    <div
+                                                        className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                                                            isOnline
+                                                                ? "bg-emerald-500"
+                                                                : "bg-slate-400"
+                                                        }`}
+                                                    >
                                                         <Power className="h-4 w-4 text-white" />
                                                     </div>
                                                     <div>
@@ -572,19 +588,27 @@ export default function DashboardPage() {
                                                             Online Status
                                                         </span>
                                                         <p className="text-xs text-slate-500">
-                                                            {isOnline ? 'Available for students' : 'Not accepting requests'}
+                                                            {isOnline
+                                                                ? "Available for students"
+                                                                : "Not accepting requests"}
                                                         </p>
                                                     </div>
                                                 </div>
                                                 <Button
                                                     size="sm"
-                                                    variant={isOnline ? "default" : "outline"}
-                                                    onClick={handleOnlineStatusToggle}
+                                                    variant={
+                                                        isOnline
+                                                            ? "default"
+                                                            : "outline"
+                                                    }
+                                                    onClick={
+                                                        handleOnlineStatusToggle
+                                                    }
                                                     disabled={updatingStatus}
                                                     className={`${
-                                                        isOnline 
-                                                            ? 'bg-emerald-500 hover:bg-emerald-600 text-white' 
-                                                            : 'border-slate-300 text-slate-700 hover:bg-slate-50'
+                                                        isOnline
+                                                            ? "bg-emerald-500 hover:bg-emerald-600 text-white"
+                                                            : "border-slate-300 text-slate-700 hover:bg-slate-50"
                                                     }`}
                                                 >
                                                     {updatingStatus ? (
@@ -596,7 +620,9 @@ export default function DashboardPage() {
                                                             ) : (
                                                                 <XCircle className="h-3 w-3 mr-1" />
                                                             )}
-                                                            {isOnline ? 'Online' : 'Offline'}
+                                                            {isOnline
+                                                                ? "Online"
+                                                                : "Offline"}
                                                         </>
                                                     )}
                                                 </Button>
@@ -606,17 +632,18 @@ export default function DashboardPage() {
                                             <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                                                 <div className="flex items-start space-x-2">
                                                     <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                                        <span className="text-white text-xs font-bold">i</span>
+                                                        <span className="text-white text-xs font-bold">
+                                                            i
+                                                        </span>
                                                     </div>
                                                     <div>
                                                         <p className="text-xs font-medium text-blue-800">
                                                             Visibility Status
                                                         </p>
                                                         <p className="text-xs text-blue-700 mt-1">
-                                                            {isOnline 
-                                                                ? 'You are visible to students and can receive connection requests.'
-                                                                : 'You are hidden from student searches. Toggle online to start receiving requests.'
-                                                            }
+                                                            {isOnline
+                                                                ? "You are visible to students and can receive connection requests."
+                                                                : "You are hidden from student searches. Toggle online to start receiving requests."}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -646,7 +673,9 @@ export default function DashboardPage() {
                                                         Pending Requests
                                                     </span>
                                                 </div>
-                                                <span className="text-sm text-slate-600">0</span>
+                                                <span className="text-sm text-slate-600">
+                                                    0
+                                                </span>
                                             </div>
                                             <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
                                                 <div className="flex items-center space-x-3">
@@ -657,7 +686,9 @@ export default function DashboardPage() {
                                                         Active Sessions
                                                     </span>
                                                 </div>
-                                                <span className="text-sm text-slate-600">0</span>
+                                                <span className="text-sm text-slate-600">
+                                                    0
+                                                </span>
                                             </div>
                                             <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
                                                 <div className="flex items-center space-x-3">
@@ -665,10 +696,12 @@ export default function DashboardPage() {
                                                         <MessageCircle className="h-4 w-4 text-white" />
                                                     </div>
                                                     <span className="text-sm font-medium text-slate-700">
-                                                        Today's Questions
+                                                        Today&apos;s Questions
                                                     </span>
                                                 </div>
-                                                <span className="text-sm text-slate-600">0</span>
+                                                <span className="text-sm text-slate-600">
+                                                    0
+                                                </span>
                                             </div>
                                         </div>
                                     </CardContent>

@@ -117,4 +117,12 @@ public class UserService implements UserDetailsService {
         tutor.setTotalEarnings(tutor.getTotalEarnings() + earnings);
         userRepository.save(tutor);
     }
+
+    public User saveUser(User user) {
+        return userRepository.save(user);
+    }
+
+    public Optional<User> findByResetToken(String resetToken) {
+        return userRepository.findByResetToken(resetToken);
+    }
 } 

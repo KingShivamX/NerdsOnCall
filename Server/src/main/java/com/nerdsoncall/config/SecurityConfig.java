@@ -54,6 +54,7 @@ public class SecurityConfig {
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/stripe/webhook").permitAll()
                         .requestMatchers("/ws/**").permitAll()
@@ -61,6 +62,9 @@ public class SecurityConfig {
                         .requestMatchers("/welcome").permitAll()
                         .requestMatchers("/info").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                .requestMatchers("/plans/**").permitAll()
+                .requestMatchers("/subscriptions/**").permitAll()
+                .requestMatchers("/payment/**").permitAll()
                         .anyRequest().authenticated());
 
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

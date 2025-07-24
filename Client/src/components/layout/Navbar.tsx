@@ -27,7 +27,7 @@ export function Navbar() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-14 sm:h-16">
                     {/* Logo */}
-                    <Link href={user ? "/dashboard" : "/"} className="flex items-center space-x-2">
+                    <Link href="/" className="flex items-center space-x-2">
                         <div className="w-7 h-7 sm:w-8 sm:h-8 bg-slate-800 rounded-lg flex items-center justify-center">
                             <span className="text-white font-bold text-sm sm:text-base">
                                 N
@@ -48,6 +48,14 @@ export function Navbar() {
                                 Home
                             </Link>
                         )}
+                        {user && (
+                            <Link
+                                href="/dashboard"
+                                className="text-slate-700 hover:text-slate-800 focus:text-slate-900 font-medium transition-colors duration-200 text-sm"
+                            >
+                                Dashboard
+                            </Link>
+                        )}
                         <Link
                             href="#features"
                             className="text-slate-700 hover:text-slate-800 focus:text-slate-900 font-medium transition-colors duration-200 text-sm"
@@ -55,7 +63,7 @@ export function Navbar() {
                             Features
                         </Link>
                         <Link
-                            href="#pricing"
+                            href="/pricing"
                             className="text-slate-700 hover:text-slate-800 focus:text-slate-900 font-medium transition-colors duration-200 text-sm"
                         >
                             Pricing
@@ -73,10 +81,10 @@ export function Navbar() {
                         {user ? (
                             // Logged in user - show user info and sign out
                             <>
-                                <div className="flex items-center space-x-2 text-sm text-slate-700">
+                                <Link href="/dashboard" className="flex items-center space-x-2 text-sm text-slate-700">
                                     <User className="h-4 w-4" />
                                     <span>Hi, {user.firstName}</span>
-                                </div>
+                                </Link>
                                 <Button
                                     variant="ghost"
                                     onClick={handleSignOut}
@@ -137,6 +145,24 @@ export function Navbar() {
                                 Home
                             </Link>
                         )}
+                        {user && (
+                            <Link
+                                href="/dashboard"
+                                className="block text-slate-700 hover:text-slate-800 focus:text-slate-900 font-medium py-2 px-3 rounded-md hover:bg-slate-100 focus:bg-slate-200 transition-colors duration-200 text-sm"
+                                onClick={toggleMenu}
+                            >
+                                Dashboard
+                            </Link>
+                        )}
+                        {user && (
+                            <Link
+                                href="/profile"
+                                className="block text-slate-700 hover:text-slate-800 focus:text-slate-900 font-medium py-2 px-3 rounded-md hover:bg-slate-100 focus:bg-slate-200 transition-colors duration-200 text-sm"
+                                onClick={toggleMenu}
+                            >
+                                Profile
+                            </Link>
+                        )}
                         <Link
                             href="#features"
                             className="block text-slate-700 hover:text-slate-800 focus:text-slate-900 font-medium py-2 px-3 rounded-md hover:bg-slate-100 focus:bg-slate-200 transition-colors duration-200 text-sm"
@@ -145,7 +171,7 @@ export function Navbar() {
                             Features
                         </Link>
                         <Link
-                            href="#pricing"
+                            href="/pricing"
                             className="block text-slate-700 hover:text-slate-800 focus:text-slate-900 font-medium py-2 px-3 rounded-md hover:bg-slate-100 focus:bg-slate-200 transition-colors duration-200 text-sm"
                             onClick={toggleMenu}
                         >

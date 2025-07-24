@@ -25,7 +25,7 @@ public class RegisterRequest {
 
     @NotNull(message = "Role is required")
     private User.Role role;
-
+    
     private String phoneNumber;
 
     // Tutor specific fields

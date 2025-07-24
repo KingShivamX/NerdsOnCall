@@ -66,13 +66,18 @@ public class User {
     private Double hourlyRate = 0.0;
 
     // Stripe Connect account for tutors
-    private String stripeAccountId;
+    // private String stripeAccountId;
+    private String razorpayContactId; // For RazorpayX payouts
 
     @CreationTimestamp
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    // Password reset fields
+    private String resetToken;
+    private LocalDateTime resetTokenExpiry;
 
     public enum Role {
         STUDENT, TUTOR, ADMIN

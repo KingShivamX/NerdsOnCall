@@ -35,4 +35,10 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
     
     @Query("SELECT SUM(s.durationMinutes) FROM Session s WHERE s.tutor = :tutor AND s.status = 'COMPLETED'")
     Long sumDurationByTutor(@Param("tutor") User tutor);
+
+    @Query("SELECT s.tutor FROM Session s WHERE s.status = :status AND s.endTime BETWEEN :start AND :end GROUP BY s.tutor")
+    List<User> findTutorsWithCompletedSessionsInPeriod(@Param("status") Session.Status status, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    @Query("SELECT SUM(s.tutorEarnings) FROM Session s WHERE s.tutor = :tutor AND s.status = :status AND s.endTime BETWEEN :start AND :end")
+    Double sumTutorEarningsInPeriod(@Param("tutor") User tutor, @Param("status") Session.Status status, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 } 

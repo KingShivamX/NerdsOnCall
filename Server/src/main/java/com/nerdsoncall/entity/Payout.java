@@ -37,8 +37,7 @@ public class Payout {
     @Column(nullable = false)
     private LocalDateTime periodEnd;
 
-    private String stripeTransferId;
-    private String stripePayoutId;
+    private String transactionId; // Generic field for the payment gateway's ID
 
     @Lob
     private String description;
