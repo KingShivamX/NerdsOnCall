@@ -15,11 +15,13 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    @Value("${jwt.secret}")
-    private String secret;
+    private final String secret;
+    private final Long expiration;
 
-    @Value("${jwt.expiration}")
-    private Long expiration;
+    public JwtUtil(@Value("${JWT_SECRET}") String secret) {
+        this.secret = secret;
+        this.expiration = 86400000L; // 24 hours in milliseconds
+    }
 
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(secret.getBytes());
@@ -93,4 +95,4 @@ public class JwtUtil {
     public String extractRole(String token) {
         return extractClaim(token, claims -> claims.get("role", String.class));
     }
-} 
+}

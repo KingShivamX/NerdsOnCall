@@ -89,6 +89,13 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- Cloudinary-->
+        <dependency>
+            <groupId>com.cloudinary</groupId>
+            <artifactId>cloudinary-http44</artifactId>
+            <version>1.33.0</version>
+        </dependency>
+
         <!-- Stripe -->
         <dependency>
             <groupId>com.stripe</groupId>
@@ -122,6 +129,13 @@
             <scope>runtime</scope>
             <optional>true</optional>
         </dependency>
+        
+        <!-- .env file support -->
+        <dependency>
+            <groupId>me.paulschwarz</groupId>
+            <artifactId>spring-dotenv</artifactId>
+            <version>3.0.0</version>
+        </dependency>
 
         <!-- Test dependencies -->
         <dependency>
@@ -134,6 +148,7 @@
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
+        
     </dependencies>
 
     <build>

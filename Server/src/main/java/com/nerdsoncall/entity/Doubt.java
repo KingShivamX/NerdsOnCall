@@ -31,8 +31,7 @@ public class Doubt {
     @Column(nullable = false)
     private String title;
 
-    @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
     @Enumerated(EnumType.STRING)
@@ -42,6 +41,14 @@ public class Doubt {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status = Status.OPEN;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private State state = State.PENDING;
+
+    @ManyToOne
+    @JoinColumn(name = "accepted_tutor_id")
+    private User acceptedTutor; // Tutor who accepted this doubt
 
     @ElementCollection
     private List<String> attachments; // URLs to uploaded files/images
@@ -61,4 +68,8 @@ public class Doubt {
     public enum Status {
         OPEN, ASSIGNED, IN_PROGRESS, RESOLVED, CANCELLED
     }
-} 
+
+    public enum State {
+        PENDING, ACCEPTED, REJECTED
+    }
+}

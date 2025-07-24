@@ -4,9 +4,10 @@ import { useState, useEffect } from "react"
 import { useAuth } from "@/context/AuthContext"
 import { api } from "@/lib/api"
 import { Navbar } from "@/components/layout/Navbar"
+import { TutorDoubtNotification } from "@/components/Doubt/TutorDoubtNotification"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
@@ -17,168 +18,112 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import {
-    Clock,
-    User,
-    BookOpen,
     MessageCircle,
-    Video,
     CheckCircle,
     XCircle,
-    AlertCircle,
     Search,
     Filter,
     Calendar,
-    DollarSign,
-    Star,
-    FileText,
     Paperclip,
-    ArrowRight,
-    Users,
-    Timer,
-    Target,
+    Star,
 } from "lucide-react"
 
-// Dummy data based on database schema
-const dummyDoubts = [
-    {
-        id: 1,
-        student: {
-            id: 101,
-            firstName: "Alice",
-            lastName: "Johnson",
-            email: "alice@example.com",
-            rating: 4.8
-        },
-        subject: "MATHEMATICS",
-        title: "Help with Calculus Integration",
-        description: "I'm struggling with integration by parts and need help understanding the concept with some practice problems.",
-        priority: "HIGH",
-        status: "OPEN",
-        attachments: ["problem_set.pdf", "my_work.jpg"],
-        preferredTutorId: null,
-        createdAt: "2024-01-15T10:30:00Z",
-        updatedAt: "2024-01-15T10:30:00Z"
-    },
-    {
-        id: 2,
-        student: {
-            id: 102,
-            firstName: "Bob",
-            lastName: "Smith",
-            email: "bob@example.com",
-            rating: 4.5
-        },
-        subject: "PHYSICS",
-        title: "Quantum Mechanics Basics",
-        description: "Need explanation of wave-particle duality and Schrödinger equation fundamentals.",
-        priority: "MEDIUM",
-        status: "OPEN",
-        attachments: [],
-        preferredTutorId: 1, // Current tutor
-        createdAt: "2024-01-15T09:15:00Z",
-        updatedAt: "2024-01-15T09:15:00Z"
-    },
-    {
-        id: 3,
-        student: {
-            id: 103,
-            firstName: "Carol",
-            lastName: "Davis",
-            email: "carol@example.com",
-            rating: 4.9
-        },
-        subject: "CHEMISTRY",
-        title: "Organic Chemistry Reactions",
-        description: "Having trouble with substitution and elimination reactions. Need help with mechanisms.",
-        priority: "URGENT",
-        status: "ASSIGNED",
-        attachments: ["reaction_sheet.pdf"],
-        preferredTutorId: null,
-        createdAt: "2024-01-15T08:45:00Z",
-        updatedAt: "2024-01-15T11:00:00Z"
+interface StudentRequest {
+    id: number
+    student: {
+        id: number
+        firstName: string
+        lastName: string
+        email: string
+        rating?: number
     }
-]
-
-const dummySessions = [
-    {
-        id: 1,
-        student: {
-            id: 104,
-            firstName: "David",
-            lastName: "Wilson",
-            email: "david@example.com"
-        },
-        doubt: {
-            id: 4,
-            title: "Linear Algebra Problems",
-            subject: "MATHEMATICS"
-        },
-        status: "PENDING",
-        startTime: "2024-01-15T14:00:00Z",
-        cost: 25.00,
-        tutorEarnings: 20.00,
-        createdAt: "2024-01-15T12:00:00Z"
-    },
-    {
-        id: 2,
-        student: {
-            id: 105,
-            firstName: "Emma",
-            lastName: "Brown",
-            email: "emma@example.com"
-        },
-        doubt: {
-            id: 5,
-            title: "Thermodynamics Concepts",
-            subject: "PHYSICS"
-        },
-        status: "ACTIVE",
-        startTime: "2024-01-15T13:30:00Z",
-        endTime: null,
-        cost: 30.00,
-        tutorEarnings: 24.00,
-        createdAt: "2024-01-15T13:25:00Z"
-    }
-]
+    subject: string
+    title: string
+    description: string
+    priority: string
+    status: string
+    attachments: string[]
+    preferredTutorId?: number
+    createdAt: string
+    updatedAt: string
+}
 
 export default function StudentRequestsPage() {
     const { user } = useAuth()
-    const [doubts, setDoubts] = useState(dummyDoubts)
-    const [sessions, setSessions] = useState(dummySessions)
-    const [loading, setLoading] = useState(false)
+    const [requests, setRequests] = useState<StudentRequest[]>([])
     const [searchQuery, setSearchQuery] = useState("")
     const [selectedSubject, setSelectedSubject] = useState("all")
     const [selectedPriority, setSelectedPriority] = useState("all")
-    const [activeTab, setActiveTab] = useState("new-requests")
+    const [activeTab, setActiveTab] = useState("new-request")
+    const [selectedAttachments, setSelectedAttachments] = useState<string[]>([])
+    const [isAttachmentModalOpen, setIsAttachmentModalOpen] = useState(false)
+    const [loading, setLoading] = useState(true)
 
-    const handleAcceptDoubt = async (doubtId: number) => {
-        // TODO: Implement accept doubt functionality
-        console.log("Accepting doubt:", doubtId)
-        // Update doubt status to ASSIGNED and create session
-        setDoubts(prev => prev.map(doubt => 
-            doubt.id === doubtId 
-                ? { ...doubt, status: "ASSIGNED" }
-                : doubt
-        ))
+    // Fetch requests from API
+    const fetchRequests = async () => {
+        try {
+            setLoading(true)
+            const response = await api.get('/api/doubts/tutor')
+            setRequests(response.data)
+        } catch (error) {
+            console.error('Error fetching requests:', error)
+        } finally {
+            setLoading(false)
+        }
     }
 
-    const handleRejectDoubt = async (doubtId: number) => {
-        // TODO: Implement reject doubt functionality
-        console.log("Rejecting doubt:", doubtId)
-        // Remove from current tutor's view or mark as not interested
-        setDoubts(prev => prev.filter(doubt => doubt.id !== doubtId))
+    // Handle new doubt notifications from WebSocket
+    const handleNewDoubt = (newDoubt?: any) => {
+        console.log('handleNewDoubt called with:', newDoubt)
+        if (newDoubt) {
+            console.log('Adding new doubt to requests list')
+            setRequests(prev => {
+                console.log('Previous requests:', prev.length)
+                const updated = [newDoubt, ...prev]
+                console.log('Updated requests:', updated.length)
+                return updated
+            })
+        } else {
+            console.log('Refreshing requests list')
+            fetchRequests()
+        }
     }
 
-    const handleStartSession = async (sessionId: number) => {
-        // TODO: Implement start session functionality
-        console.log("Starting session:", sessionId)
-        setSessions(prev => prev.map(session => 
-            session.id === sessionId 
-                ? { ...session, status: "ACTIVE" }
-                : session
-        ))
+    // Handle accept request
+    const handleAcceptRequest = async (requestId: number) => {
+        try {
+            await api.put(`/api/doubts/${requestId}/status?status=ASSIGNED`)
+            setRequests(prev => prev.map(request => 
+                request.id === requestId 
+                    ? { ...request, status: "ASSIGNED" }
+                    : request
+            ))
+        } catch (error) {
+            console.error('Error accepting request:', error)
+        }
     }
 
+    // Handle reject request
+    const handleRejectRequest = async (requestId: number) => {
+        try {
+            await api.put(`/api/doubts/${requestId}/status?status=CANCELLED`)
+            setRequests(prev => prev.map(request => 
+                request.id === requestId 
+                    ? { ...request, status: "CANCELLED" }
+                    : request
+            ))
+        } catch (error) {
+            console.error('Error rejecting request:', error)
+        }
+    }
+
+    // Handle view attachments
+    const handleViewAttachments = (attachments: string[]) => {
+        setSelectedAttachments(attachments)
+        setIsAttachmentModalOpen(true)
+    }
+
+    // Get priority color
     const getPriorityColor = (priority: string) => {
         switch (priority) {
             case "URGENT": return "bg-red-100 text-red-800 border-red-200"
@@ -189,26 +134,45 @@ export default function StudentRequestsPage() {
         }
     }
 
+    // Get status color
     const getStatusColor = (status: string) => {
         switch (status) {
             case "OPEN": return "bg-blue-100 text-blue-800 border-blue-200"
-            case "ASSIGNED": return "bg-purple-100 text-purple-800 border-purple-200"
+            case "ASSIGNED": return "bg-green-100 text-green-800 border-green-200"
             case "IN_PROGRESS": return "bg-yellow-100 text-yellow-800 border-yellow-200"
-            case "PENDING": return "bg-orange-100 text-orange-800 border-orange-200"
-            case "ACTIVE": return "bg-green-100 text-green-800 border-green-200"
-            case "COMPLETED": return "bg-gray-100 text-gray-800 border-gray-200"
+            case "CANCELLED": return "bg-red-100 text-red-800 border-red-200"
+            case "RESOLVED": return "bg-purple-100 text-purple-800 border-purple-200"
             default: return "bg-gray-100 text-gray-800 border-gray-200"
         }
     }
 
-    const filteredDoubts = doubts.filter(doubt => {
-        const matchesSearch = doubt.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            doubt.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            `${doubt.student.firstName} ${doubt.student.lastName}`.toLowerCase().includes(searchQuery.toLowerCase())
-        const matchesSubject = selectedSubject === "all" || doubt.subject === selectedSubject
-        const matchesPriority = selectedPriority === "all" || doubt.priority === selectedPriority
-        return matchesSearch && matchesSubject && matchesPriority
+    // Filter requests
+    const filteredRequests = requests.filter(request => {
+        const matchesSearch = request.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            request.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            `${request.student.firstName} ${request.student.lastName}`.toLowerCase().includes(searchQuery.toLowerCase())
+        const matchesSubject = selectedSubject === "all" || request.subject === selectedSubject
+        const matchesPriority = selectedPriority === "all" || request.priority === selectedPriority
+        
+        // Filter by status based on active tab
+        let matchesStatus = false
+        if (activeTab === "new-request") {
+            matchesStatus = request.status === "OPEN"
+        } else if (activeTab === "accepted") {
+            matchesStatus = request.status === "ASSIGNED" || request.status === "IN_PROGRESS"
+        } else if (activeTab === "rejected") {
+            matchesStatus = request.status === "CANCELLED"
+        }
+        
+        return matchesSearch && matchesSubject && matchesPriority && matchesStatus
     })
+
+    // Fetch requests on component mount
+    useEffect(() => {
+        if (user && user.role === "TUTOR") {
+            fetchRequests()
+        }
+    }, [user])
 
     if (!user || user.role !== "TUTOR") {
         return (
@@ -221,6 +185,8 @@ export default function StudentRequestsPage() {
     return (
         <div className="min-h-screen bg-slate-50">
             <Navbar />
+            <TutorDoubtNotification onNewDoubt={handleNewDoubt} />
+            
             <div className="pt-20 pb-10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     {/* Header */}
@@ -229,12 +195,12 @@ export default function StudentRequestsPage() {
                             Student Requests
                         </h1>
                         <p className="text-slate-600">
-                            Manage incoming student requests and active sessions
+                            Manage incoming student requests
                         </p>
                     </div>
 
                     {/* Stats Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                         <Card>
                             <CardContent className="p-6">
                                 <div className="flex items-center">
@@ -244,23 +210,7 @@ export default function StudentRequestsPage() {
                                     <div className="ml-4">
                                         <p className="text-sm font-medium text-slate-600">New Requests</p>
                                         <p className="text-2xl font-bold text-slate-900">
-                                            {doubts.filter(d => d.status === "OPEN").length}
-                                        </p>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardContent className="p-6">
-                                <div className="flex items-center">
-                                    <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                                        <Clock className="h-6 w-6 text-orange-600" />
-                                    </div>
-                                    <div className="ml-4">
-                                        <p className="text-sm font-medium text-slate-600">Pending Sessions</p>
-                                        <p className="text-2xl font-bold text-slate-900">
-                                            {sessions.filter(s => s.status === "PENDING").length}
+                                            {requests.filter(r => r.status === "OPEN").length}
                                         </p>
                                     </div>
                                 </div>
@@ -271,12 +221,12 @@ export default function StudentRequestsPage() {
                             <CardContent className="p-6">
                                 <div className="flex items-center">
                                     <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                                        <Video className="h-6 w-6 text-green-600" />
+                                        <CheckCircle className="h-6 w-6 text-green-600" />
                                     </div>
                                     <div className="ml-4">
-                                        <p className="text-sm font-medium text-slate-600">Active Sessions</p>
+                                        <p className="text-sm font-medium text-slate-600">Accepted</p>
                                         <p className="text-2xl font-bold text-slate-900">
-                                            {sessions.filter(s => s.status === "ACTIVE").length}
+                                            {requests.filter(r => r.status === "ASSIGNED" || r.status === "IN_PROGRESS").length}
                                         </p>
                                     </div>
                                 </div>
@@ -286,13 +236,13 @@ export default function StudentRequestsPage() {
                         <Card>
                             <CardContent className="p-6">
                                 <div className="flex items-center">
-                                    <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                                        <DollarSign className="h-6 w-6 text-purple-600" />
+                                    <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                                        <XCircle className="h-6 w-6 text-red-600" />
                                     </div>
                                     <div className="ml-4">
-                                        <p className="text-sm font-medium text-slate-600">Today's Earnings</p>
+                                        <p className="text-sm font-medium text-slate-600">Rejected</p>
                                         <p className="text-2xl font-bold text-slate-900">
-                                            ${sessions.reduce((sum, s) => sum + (s.tutorEarnings || 0), 0).toFixed(0)}
+                                            {requests.filter(r => r.status === "CANCELLED").length}
                                         </p>
                                     </div>
                                 </div>
@@ -303,220 +253,231 @@ export default function StudentRequestsPage() {
                     {/* Tabs */}
                     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
                         <TabsList className="grid w-full grid-cols-3">
-                            <TabsTrigger value="new-requests">New Requests</TabsTrigger>
-                            <TabsTrigger value="my-sessions">My Sessions</TabsTrigger>
-                            <TabsTrigger value="completed">Completed</TabsTrigger>
+                            <TabsTrigger value="new-request">New Request</TabsTrigger>
+                            <TabsTrigger value="accepted">Accepted</TabsTrigger>
+                            <TabsTrigger value="rejected">Rejected</TabsTrigger>
                         </TabsList>
 
-                        {/* New Requests Tab */}
-                        <TabsContent value="new-requests" className="space-y-6">
-                            {/* Filters */}
-                            <Card>
-                                <CardContent className="p-6">
-                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                        <div className="relative">
-                                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
-                                            <Input
-                                                placeholder="Search requests..."
-                                                value={searchQuery}
-                                                onChange={(e) => setSearchQuery(e.target.value)}
-                                                className="pl-10"
-                                            />
-                                        </div>
-                                        <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="All Subjects" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="all">All Subjects</SelectItem>
-                                                <SelectItem value="MATHEMATICS">Mathematics</SelectItem>
-                                                <SelectItem value="PHYSICS">Physics</SelectItem>
-                                                <SelectItem value="CHEMISTRY">Chemistry</SelectItem>
-                                                <SelectItem value="BIOLOGY">Biology</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <Select value={selectedPriority} onValueChange={setSelectedPriority}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="All Priorities" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="all">All Priorities</SelectItem>
-                                                <SelectItem value="URGENT">Urgent</SelectItem>
-                                                <SelectItem value="HIGH">High</SelectItem>
-                                                <SelectItem value="MEDIUM">Medium</SelectItem>
-                                                <SelectItem value="LOW">Low</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <div className="flex items-center text-sm text-slate-600">
-                                            <Filter className="h-4 w-4 mr-2" />
-                                            {filteredDoubts.length} requests
-                                        </div>
+                        {/* Filter Section */}
+                        <Card>
+                            <CardContent className="p-6">
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                    <div className="relative">
+                                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                                        <Input
+                                            placeholder="Search requests..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            className="pl-10"
+                                        />
                                     </div>
-                                </CardContent>
-                            </Card>
+                                    <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="All Subjects" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">All Subjects</SelectItem>
+                                            <SelectItem value="MATHEMATICS">Mathematics</SelectItem>
+                                            <SelectItem value="PHYSICS">Physics</SelectItem>
+                                            <SelectItem value="CHEMISTRY">Chemistry</SelectItem>
+                                            <SelectItem value="BIOLOGY">Biology</SelectItem>
+                                            <SelectItem value="COMPUTER_SCIENCE">Computer Science</SelectItem>
+                                            <SelectItem value="ENGLISH">English</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <Select value={selectedPriority} onValueChange={setSelectedPriority}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="All Priorities" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">All Priorities</SelectItem>
+                                            <SelectItem value="URGENT">Urgent</SelectItem>
+                                            <SelectItem value="HIGH">High</SelectItem>
+                                            <SelectItem value="MEDIUM">Medium</SelectItem>
+                                            <SelectItem value="LOW">Low</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <div className="flex items-center text-sm text-slate-600">
+                                        <Filter className="h-4 w-4 mr-2" />
+                                        {filteredRequests.length} requests
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
 
-                            {/* Requests List */}
-                            <div className="space-y-4">
-                                {filteredDoubts.map((doubt) => (
-                                    <Card key={doubt.id} className="hover:shadow-md transition-shadow">
-                                        <CardContent className="p-6">
-                                            <div className="flex items-start justify-between">
-                                                <div className="flex-1">
-                                                    <div className="flex items-center space-x-3 mb-3">
-                                                        <div className="w-10 h-10 bg-gradient-to-br from-slate-600 to-slate-800 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                                                            {doubt.student.firstName[0]}{doubt.student.lastName[0]}
-                                                        </div>
-                                                        <div>
-                                                            <h3 className="font-semibold text-slate-800">
-                                                                {doubt.student.firstName} {doubt.student.lastName}
-                                                            </h3>
-                                                            <div className="flex items-center space-x-2">
-                                                                <Star className="h-3 w-3 text-amber-500 fill-current" />
-                                                                <span className="text-xs text-slate-600">
-                                                                    {doubt.student.rating} rating
-                                                                </span>
+                        {/* Request Cards */}
+                        {["new-request", "accepted", "rejected"].map((tabValue) => (
+                            <TabsContent key={tabValue} value={tabValue} className="space-y-4">
+                                {loading ? (
+                                    <Card>
+                                        <CardContent className="p-12 text-center">
+                                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-600 mx-auto"></div>
+                                            <p className="mt-4 text-slate-600">Loading requests...</p>
+                                        </CardContent>
+                                    </Card>
+                                ) : filteredRequests.length > 0 ? (
+                                    filteredRequests.map((request) => (
+                                        <Card key={request.id} className="hover:shadow-md transition-shadow">
+                                            <CardContent className="p-6">
+                                                <div className="flex items-start justify-between">
+                                                    <div className="flex-1">
+                                                        {/* Student Info */}
+                                                        <div className="flex items-center space-x-3 mb-3">
+                                                            <div className="w-10 h-10 bg-gradient-to-br from-slate-600 to-slate-800 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                                                                {request.student.firstName[0]}{request.student.lastName[0]}
+                                                            </div>
+                                                            <div>
+                                                                <h3 className="font-semibold text-slate-800">
+                                                                    {request.student.firstName} {request.student.lastName}
+                                                                </h3>
+                                                                {request.student.rating && (
+                                                                    <div className="flex items-center space-x-2">
+                                                                        <Star className="h-3 w-3 text-amber-500 fill-current" />
+                                                                        <span className="text-xs text-slate-600">
+                                                                            {request.student.rating} rating
+                                                                        </span>
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                    
-                                                    <div className="mb-3">
-                                                        <div className="flex items-center space-x-2 mb-2">
-                                                            <Badge variant="outline" className="text-xs">
-                                                                {doubt.subject.replace(/_/g, " ")}
-                                                            </Badge>
-                                                            <Badge className={`text-xs border ${getPriorityColor(doubt.priority)}`}>
-                                                                {doubt.priority}
-                                                            </Badge>
-                                                            <Badge className={`text-xs border ${getStatusColor(doubt.status)}`}>
-                                                                {doubt.status}
-                                                            </Badge>
-                                                            {doubt.preferredTutorId && (
-                                                                <Badge variant="secondary" className="text-xs">
-                                                                    Preferred Tutor
+                                                        
+                                                        {/* Request Details */}
+                                                        <div className="mb-3">
+                                                            <div className="flex items-center space-x-2 mb-2">
+                                                                <Badge variant="outline" className="text-xs">
+                                                                    {request.subject.replace(/_/g, " ")}
                                                                 </Badge>
-                                                            )}
-                                                        </div>
-                                                        <h4 className="font-medium text-slate-800 mb-2">
-                                                            {doubt.title}
-                                                        </h4>
-                                                        <p className="text-sm text-slate-600 line-clamp-2">
-                                                            {doubt.description}
-                                                        </p>
-                                                    </div>
-
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="flex items-center space-x-4 text-xs text-slate-500">
-                                                            <div className="flex items-center space-x-1">
-                                                                <Calendar className="h-3 w-3" />
-                                                                <span>{new Date(doubt.createdAt).toLocaleDateString()}</span>
+                                                                <Badge className={`text-xs border ${getPriorityColor(request.priority)}`}>
+                                                                    {request.priority}
+                                                                </Badge>
+                                                                {tabValue !== "new-request" && (
+                                                                    <Badge className={`text-xs border ${getStatusColor(request.status)}`}>
+                                                                        {request.status}
+                                                                    </Badge>
+                                                                )}
                                                             </div>
-                                                            {doubt.attachments.length > 0 && (
+                                                            <h4 className="font-medium text-slate-800 mb-2">
+                                                                {request.title}
+                                                            </h4>
+                                                            <p className="text-sm text-slate-600 line-clamp-2">
+                                                                {request.description}
+                                                            </p>
+                                                        </div>
+
+                                                        {/* Footer */}
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex items-center space-x-4 text-xs text-slate-500">
                                                                 <div className="flex items-center space-x-1">
-                                                                    <Paperclip className="h-3 w-3" />
-                                                                    <span>{doubt.attachments.length} files</span>
+                                                                    <Calendar className="h-3 w-3" />
+                                                                    <span>{new Date(request.createdAt).toLocaleDateString()}</span>
+                                                                </div>
+                                                                {request.attachments.length > 0 && (
+                                                                    <div className="flex items-center space-x-1">
+                                                                        <Paperclip className="h-3 w-3" />
+                                                                        <button 
+                                                                            onClick={() => handleViewAttachments(request.attachments)}
+                                                                            className="text-blue-600 hover:text-blue-800 underline"
+                                                                        >
+                                                                            {request.attachments.length} files
+                                                                        </button>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            
+                                                            {/* Action Buttons (only for new requests) */}
+                                                            {tabValue === "new-request" && (
+                                                                <div className="flex space-x-2">
+                                                                    <Button
+                                                                        variant="outline"
+                                                                        size="sm"
+                                                                        onClick={() => handleRejectRequest(request.id)}
+                                                                        className="text-xs"
+                                                                    >
+                                                                        <XCircle className="h-3 w-3 mr-1" />
+                                                                        Decline
+                                                                    </Button>
+                                                                    <Button
+                                                                        size="sm"
+                                                                        onClick={() => handleAcceptRequest(request.id)}
+                                                                        className="bg-slate-700 hover:bg-slate-800 text-xs"
+                                                                    >
+                                                                        <CheckCircle className="h-3 w-3 mr-1" />
+                                                                        Accept
+                                                                    </Button>
                                                                 </div>
                                                             )}
                                                         </div>
-                                                        
-                                                        <div className="flex space-x-2">
-                                                            <Button
-                                                                variant="outline"
-                                                                size="sm"
-                                                                onClick={() => handleRejectDoubt(doubt.id)}
-                                                                className="text-xs"
-                                                            >
-                                                                <XCircle className="h-3 w-3 mr-1" />
-                                                                Decline
-                                                            </Button>
-                                                            <Button
-                                                                size="sm"
-                                                                onClick={() => handleAcceptDoubt(doubt.id)}
-                                                                className="bg-slate-700 hover:bg-slate-800 text-xs"
-                                                            >
-                                                                <CheckCircle className="h-3 w-3 mr-1" />
-                                                                Accept
-                                                            </Button>
-                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </CardContent>
+                                        </Card>
+                                    ))
+                                ) : (
+                                    <Card>
+                                        <CardContent className="p-12 text-center">
+                                            <MessageCircle className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                                            <h3 className="text-lg font-medium text-slate-800 mb-2">
+                                                No {tabValue.replace("-", " ")}s
+                                            </h3>
+                                            <p className="text-slate-600">
+                                                {tabValue === "new-request" 
+                                                    ? "New student requests will appear here" 
+                                                    : `${tabValue.charAt(0).toUpperCase() + tabValue.slice(1)} requests will appear here`
+                                                }
+                                            </p>
                                         </CardContent>
                                     </Card>
-                                ))}
-                            </div>
-                        </TabsContent>
-
-                        {/* My Sessions Tab */}
-                        <TabsContent value="my-sessions" className="space-y-6">
-                            <div className="space-y-4">
-                                {sessions.map((session) => (
-                                    <Card key={session.id} className="hover:shadow-md transition-shadow">
-                                        <CardContent className="p-6">
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center space-x-4">
-                                                    <div className="w-12 h-12 bg-gradient-to-br from-slate-600 to-slate-800 rounded-full flex items-center justify-center text-white font-bold">
-                                                        {session.student.firstName[0]}{session.student.lastName[0]}
-                                                    </div>
-                                                    <div>
-                                                        <h3 className="font-semibold text-slate-800">
-                                                            {session.doubt.title}
-                                                        </h3>
-                                                        <p className="text-sm text-slate-600">
-                                                            with {session.student.firstName} {session.student.lastName}
-                                                        </p>
-                                                        <div className="flex items-center space-x-2 mt-1">
-                                                            <Badge variant="outline" className="text-xs">
-                                                                {session.doubt.subject.replace(/_/g, " ")}
-                                                            </Badge>
-                                                            <Badge className={`text-xs border ${getStatusColor(session.status)}`}>
-                                                                {session.status}
-                                                            </Badge>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                
-                                                <div className="text-right">
-                                                    <div className="text-sm font-medium text-slate-800">
-                                                        ${session.tutorEarnings}
-                                                    </div>
-                                                    <div className="text-xs text-slate-500">
-                                                        {new Date(session.startTime).toLocaleString()}
-                                                    </div>
-                                                    {session.status === "PENDING" && (
-                                                        <Button
-                                                            size="sm"
-                                                            onClick={() => handleStartSession(session.id)}
-                                                            className="mt-2 bg-green-600 hover:bg-green-700 text-xs"
-                                                        >
-                                                            <Video className="h-3 w-3 mr-1" />
-                                                            Start Session
-                                                        </Button>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </div>
-                        </TabsContent>
-
-                        {/* Completed Tab */}
-                        <TabsContent value="completed" className="space-y-6">
-                            <Card>
-                                <CardContent className="p-12 text-center">
-                                    <CheckCircle className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                                    <h3 className="text-lg font-medium text-slate-800 mb-2">
-                                        No completed sessions yet
-                                    </h3>
-                                    <p className="text-slate-600">
-                                        Completed sessions will appear here
-                                    </p>
-                                </CardContent>
-                            </Card>
-                        </TabsContent>
+                                )}
+                            </TabsContent>
+                        ))}
                     </Tabs>
                 </div>
             </div>
+
+            {/* Attachment Modal */}
+            {isAttachmentModalOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 max-w-4xl max-h-[80vh] overflow-auto">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-semibold">Attachments</h3>
+                            <button
+                                onClick={() => setIsAttachmentModalOpen(false)}
+                                className="text-gray-500 hover:text-gray-700"
+                            >
+                                <XCircle className="h-6 w-6" />
+                            </button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {selectedAttachments.map((attachment, index) => (
+                                <div key={index} className="border rounded-lg p-4">
+                                    {attachment.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                                        <img
+                                            src={attachment}
+                                            alt={`Attachment ${index + 1}`}
+                                            className="w-full h-auto max-h-64 object-contain rounded"
+                                        />
+                                    ) : (
+                                        <div className="flex items-center justify-center h-32 bg-gray-100 rounded">
+                                            <Paperclip className="h-8 w-8 text-gray-400" />
+                                            <span className="ml-2 text-gray-600">File attachment</span>
+                                        </div>
+                                    )}
+                                    <div className="mt-2">
+                                        <a
+                                            href={attachment}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-blue-600 hover:text-blue-800 underline text-sm"
+                                        >
+                                            Open in new tab
+                                        </a>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

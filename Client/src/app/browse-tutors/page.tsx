@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select"
 import { Avatar } from "@/components/ui/Avatar"
 import { VideoCallModal } from "@/components/VideoCall/VideoCallModal"
+import { DoubtForm } from "@/components/Doubt/DoubtForm"
 import {
     Star,
     Search,
@@ -129,10 +130,16 @@ export default function BrowseTutorsPage() {
 
     const [selectedTutor, setSelectedTutor] = useState<User | null>(null)
     const [isCallModalOpen, setIsCallModalOpen] = useState(false)
+    const [isDoubtFormOpen, setIsDoubtFormOpen] = useState(false)
 
     const handleConnectTutor = (tutor: User) => {
         setSelectedTutor(tutor)
         setIsCallModalOpen(true)
+    }
+    
+    const handleAskDoubt = (tutor: User) => {
+        setSelectedTutor(tutor)
+        setIsDoubtFormOpen(true)
     }
 
 
@@ -302,14 +309,14 @@ export default function BrowseTutorsPage() {
                                                 <Video className="h-3 w-3 mr-1" />
                                                 Connect
                                             </Button>
-                                            {/* <Button
+                                            <Button
                                                 size="sm"
-                                                onClick={() => handleAskDoubt(tutor.id)}
+                                                onClick={() => handleAskDoubt(tutor)}
                                                 className="bg-slate-700 hover:bg-slate-800 text-xs h-8"
                                             >
                                                 <MessageCircle className="h-3 w-3 mr-1" />
                                                 Ask Doubt
-                                            </Button> */}
+                                            </Button>
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -349,6 +356,16 @@ export default function BrowseTutorsPage() {
                 <VideoCallModal
                     isOpen={isCallModalOpen}
                     onClose={() => setIsCallModalOpen(false)}
+                    tutorId={selectedTutor.id}
+                    tutorName={`${selectedTutor.firstName} ${selectedTutor.lastName}`}
+                />
+            )}
+            
+            {/* Doubt Form Modal */}
+            {selectedTutor && (
+                <DoubtForm
+                    isOpen={isDoubtFormOpen}
+                    onClose={() => setIsDoubtFormOpen(false)}
                     tutorId={selectedTutor.id}
                     tutorName={`${selectedTutor.firstName} ${selectedTutor.lastName}`}
                 />
