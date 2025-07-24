@@ -5,6 +5,7 @@ import com.nerdsoncall.entity.Doubt;
 import com.nerdsoncall.entity.User;
 import com.nerdsoncall.service.DoubtService;
 import com.nerdsoncall.service.UserService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -14,7 +15,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 
 @RestController
-@RequestMapping("/doubts")
+@RequestMapping("/api/doubts")
 @CrossOrigin(origins = "*")
 public class DoubtController {
 
@@ -25,7 +26,8 @@ public class DoubtController {
     private UserService userService;
 
     @PostMapping
-    public ResponseEntity<?> createDoubt(@Valid @RequestBody CreateDoubtRequest request, Authentication authentication) {
+    public ResponseEntity<?> createDoubt(@Valid @RequestBody CreateDoubtRequest request,
+            Authentication authentication) {
         try {
             User student = userService.findByEmail(authentication.getName())
                     .orElseThrow(() -> new RuntimeException("User not found"));
@@ -39,7 +41,7 @@ public class DoubtController {
             doubt.setSubject(request.getSubject());
             doubt.setTitle(request.getTitle());
             doubt.setDescription(request.getDescription());
-            doubt.setPriority(request.getPriority());
+            doubt.setPriority(request.getPriorityEnum());
             doubt.setAttachments(request.getAttachments());
             doubt.setPreferredTutorId(request.getPreferredTutorId());
 
@@ -50,7 +52,7 @@ public class DoubtController {
         }
     }
 
-    @GetMapping("/my-doubts")
+    @GetMapping("/student")
     public ResponseEntity<?> getMyDoubts(Authentication authentication) {
         try {
             User student = userService.findByEmail(authentication.getName())
@@ -63,8 +65,13 @@ public class DoubtController {
         }
     }
 
-    @GetMapping("/available")
-    public ResponseEntity<?> getAvailableDoubts(@RequestParam(required = false) String subject, Authentication authentication) {
+    @GetMapping("/tutor")
+    public ResponseEntity<?> getAvailableDoubts(
+            @RequestParam(required = false) String subject,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String state,
+            @RequestParam(required = false) String priority,
+            Authentication authentication) {
         try {
             User tutor = userService.findByEmail(authentication.getName())
                     .orElseThrow(() -> new RuntimeException("User not found"));
@@ -73,13 +80,37 @@ public class DoubtController {
                 return ResponseEntity.badRequest().body("Only tutors can view available doubts");
             }
 
-            List<Doubt> doubts;
-            if (subject != null) {
-                User.Subject subjectEnum = User.Subject.valueOf(subject.toUpperCase());
-                doubts = doubtService.getOpenDoubtsBySubject(subjectEnum);
-            } else {
-                doubts = doubtService.getOpenDoubts();
-            }
+            // Get all doubts for this tutor (both preferred and general)
+            List<Doubt> doubts = doubtService.getAllDoubtsForTutor(tutor.getId());
+
+            // // Apply filters if provided
+            // if (subject != null && !subject.isEmpty()) {
+            //     User.Subject subjectEnum = User.Subject.valueOf(subject.toUpperCase());
+            //     doubts = doubts.stream()
+            //             .filter(doubt -> doubt.getSubject() == subjectEnum)
+            //             .toList();
+            // }
+
+            // if (status != null && !status.isEmpty()) {
+            //     Doubt.Status statusEnum = Doubt.Status.valueOf(status.toUpperCase());
+            //     doubts = doubts.stream()
+            //             .filter(doubt -> doubt.getStatus() == statusEnum)
+            //             .toList();
+            // }
+
+            // if (state != null && !state.isEmpty()) {
+            //     Doubt.State stateEnum = Doubt.State.valueOf(state.toUpperCase());
+            //     doubts = doubts.stream()
+            //             .filter(doubt -> doubt.getState() == stateEnum)
+            //             .toList();
+            // }
+
+            // if (priority != null && !priority.isEmpty()) {
+            //     Doubt.Priority priorityEnum = Doubt.Priority.valueOf(priority.toUpperCase());
+            //     doubts = doubts.stream()
+            //             .filter(doubt -> doubt.getPriority() == priorityEnum)
+            //             .toList();
+            // }
 
             return ResponseEntity.ok(doubts);
         } catch (Exception e) {
@@ -96,7 +127,7 @@ public class DoubtController {
             if (tutor.getRole() != User.Role.TUTOR) {
                 return ResponseEntity.badRequest().body("Only tutors can view preferred doubts");
             }
-
+            System.out.println(tutor.getId());
             List<Doubt> doubts = doubtService.getOpenDoubtsByPreferredTutor(tutor.getId());
             return ResponseEntity.ok(doubts);
         } catch (Exception e) {
@@ -118,6 +149,8 @@ public class DoubtController {
     @PutMapping("/{id}/status")
     public ResponseEntity<?> updateDoubtStatus(@PathVariable Long id, @RequestParam String status) {
         try {
+            System.out.println(id);
+            System.out.println(status);
             Doubt.Status statusEnum = Doubt.Status.valueOf(status.toUpperCase());
             Doubt updatedDoubt = doubtService.updateDoubtStatus(id, statusEnum);
             return ResponseEntity.ok(updatedDoubt);
@@ -125,4 +158,4 @@ public class DoubtController {
             return ResponseEntity.badRequest().body("Failed to update doubt status: " + e.getMessage());
         }
     }
-} 
+}

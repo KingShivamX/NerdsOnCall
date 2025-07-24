@@ -16,6 +16,8 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Avatar } from "@/components/ui/Avatar"
+import { VideoCallModal } from "@/components/VideoCall/VideoCallModal"
+import { DoubtForm } from "@/components/Doubt/DoubtForm"
 import {
     Star,
     Search,
@@ -59,11 +61,25 @@ export default function BrowseTutorsPage() {
     const [selectedSubject, setSelectedSubject] = useState<string>("all")
     const [sortBy, setSortBy] = useState<string>("rating")
 
+    useEffect(() => {
+        fetchTutors()
+    }, [selectedSubject, sortBy])
+
+    useEffect(() => {
+        filterAndSortTutors()
+    }, [tutors, searchQuery])
+
     const fetchTutors = async () => {
         try {
             setLoading(true)
-            // Fetch only online tutors
-            const response = await api.get("/users/tutors")
+            // Use the new dedicated tutors API endpoint with query parameters
+            const response = await api.get("/api/tutors", {
+                params: {
+                    subject: selectedSubject !== "all" ? selectedSubject : null,
+                    sortBy: sortBy,
+                    onlineOnly: true
+                }
+            })
             setTutors(response.data)
         } catch (error) {
             console.error("Error fetching tutors:", error)
@@ -118,25 +134,22 @@ export default function BrowseTutorsPage() {
         })
 
         setFilteredTutors(filtered)
-    }, [tutors, searchQuery, selectedSubject, sortBy])
-
-    useEffect(() => {
-        fetchTutors()
-    }, [])
-
-    useEffect(() => {
-        filterAndSortTutors()
-    }, [filterAndSortTutors])
-
-    const handleConnectTutor = (tutorId: number) => {
-        // TODO: Implement connect functionality
-        console.log("Connect with tutor:", tutorId)
     }
 
-    // const handleAskDoubt = (tutorId: number) => {
-    //     // TODO: Implement ask doubt functionality
-    //     console.log("Ask doubt to tutor:", tutorId)
-    // }
+    const [selectedTutor, setSelectedTutor] = useState<User | null>(null)
+    const [isCallModalOpen, setIsCallModalOpen] = useState(false)
+    const [isDoubtFormOpen, setIsDoubtFormOpen] = useState(false)
+
+    const handleConnectTutor = (tutor: User) => {
+        setSelectedTutor(tutor)
+        setIsCallModalOpen(true)
+    }
+    
+    const handleAskDoubt = (tutor: User) => {
+        setSelectedTutor(tutor)
+        setIsDoubtFormOpen(true)
+    }
+
 
     if (!user) {
         return (
@@ -348,22 +361,20 @@ export default function BrowseTutorsPage() {
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                onClick={() =>
-                                                    handleConnectTutor(tutor.id)
-                                                }
+                                                onClick={() => handleConnectTutor(tutor)}
                                                 className="text-xs h-8"
                                             >
                                                 <Video className="h-3 w-3 mr-1" />
                                                 Connect
                                             </Button>
-                                            {/* <Button
+                                            <Button
                                                 size="sm"
-                                                onClick={() => handleAskDoubt(tutor.id)}
+                                                onClick={() => handleAskDoubt(tutor)}
                                                 className="bg-slate-700 hover:bg-slate-800 text-xs h-8"
                                             >
                                                 <MessageCircle className="h-3 w-3 mr-1" />
                                                 Ask Doubt
-                                            </Button> */}
+                                            </Button>
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -398,6 +409,26 @@ export default function BrowseTutorsPage() {
                     )}
                 </div>
             </div>
+
+            {/* Video Call Modal */}
+            {selectedTutor && (
+                <VideoCallModal
+                    isOpen={isCallModalOpen}
+                    onClose={() => setIsCallModalOpen(false)}
+                    tutorId={selectedTutor.id}
+                    tutorName={`${selectedTutor.firstName} ${selectedTutor.lastName}`}
+                />
+            )}
+            
+            {/* Doubt Form Modal */}
+            {selectedTutor && (
+                <DoubtForm
+                    isOpen={isDoubtFormOpen}
+                    onClose={() => setIsDoubtFormOpen(false)}
+                    tutorId={selectedTutor.id}
+                    tutorName={`${selectedTutor.firstName} ${selectedTutor.lastName}`}
+                />
+            )}
         </div>
     )
 }

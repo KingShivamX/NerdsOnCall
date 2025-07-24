@@ -3,8 +3,9 @@ package com.nerdsoncall.service;
 import com.nerdsoncall.entity.Doubt;
 import com.nerdsoncall.entity.User;
 import com.nerdsoncall.repository.DoubtRepository;
+import com.nerdsoncall.websocket.DoubtNotificationHandler;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,17 +18,20 @@ public class DoubtService {
     private DoubtRepository doubtRepository;
 
     @Autowired
-    private UserService userService;
-
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
+    private DoubtNotificationHandler doubtNotificationHandler;
 
     public Doubt createDoubt(Doubt doubt) {
         Doubt savedDoubt = doubtRepository.save(doubt);
-        
-        // Broadcast to online tutors
-        broadcastDoubtToTutors(savedDoubt);
-        
+
+        // Broadcast to online tutors using WebSocket
+        // Using try-catch to prevent any WebSocket errors from affecting the main flow
+        try {
+            doubtNotificationHandler.broadcastDoubtToTutors(savedDoubt);
+        } catch (Exception e) {
+            // Log the error but don't fail the doubt creation
+            System.err.println("Error broadcasting doubt: " + e.getMessage());
+        }
+
         return savedDoubt;
     }
 
@@ -51,37 +55,26 @@ public class DoubtService {
         return doubtRepository.findById(id);
     }
 
+    public List<Doubt> getAllDoubtsForTutor(Long tutorId) {
+        // Get doubts that are either accepted by this tutor or specifically requested
+        // for this tutor
+        return doubtRepository.findDoubtsByTutor(tutorId);
+    }
+
     public Doubt updateDoubtStatus(Long doubtId, Doubt.Status status) {
         Doubt doubt = doubtRepository.findById(doubtId)
                 .orElseThrow(() -> new RuntimeException("Doubt not found"));
+
+        // Update status
         doubt.setStatus(status);
+
+        // Update state based on status
+        if (status == Doubt.Status.ASSIGNED) {
+            doubt.setState(Doubt.State.ACCEPTED);
+        } else if (status == Doubt.Status.CANCELLED) {
+            doubt.setState(Doubt.State.REJECTED);
+        }
+
         return doubtRepository.save(doubt);
     }
-
-    private void broadcastDoubtToTutors(Doubt doubt) {
-        // Get online tutors for the subject
-        List<User> onlineTutors = userService.findOnlineTutorsBySubject(doubt.getSubject());
-        
-        // Send to specific tutor if preferred
-        if (doubt.getPreferredTutorId() != null) {
-            messagingTemplate.convertAndSend("/topic/tutor/" + doubt.getPreferredTutorId(), doubt);
-        } else {
-            // Broadcast to all online tutors for the subject
-            onlineTutors.forEach(tutor -> 
-                messagingTemplate.convertAndSend("/topic/tutor/" + tutor.getId(), doubt)
-            );
-        }
-    }
-
-    public void notifyDoubtAccepted(Long doubtId, Long tutorId) {
-        Optional<Doubt> doubtOpt = findById(doubtId);
-        if (doubtOpt.isPresent()) {
-            Doubt doubt = doubtOpt.get();
-            // Notify student that doubt was accepted
-            messagingTemplate.convertAndSend(
-                "/topic/student/" + doubt.getStudent().getId(), 
-                "Doubt accepted by tutor: " + tutorId
-            );
-        }
-    }
-} 
+}

@@ -19,9 +19,17 @@ public class CreateDoubtRequest {
     @NotBlank(message = "Description is required")
     private String description;
 
-    private Doubt.Priority priority = Doubt.Priority.MEDIUM;
+    private String priority = "MEDIUM";
 
     private List<String> attachments;
 
     private Long preferredTutorId;
+    
+    public Doubt.Priority getPriorityEnum() {
+        try {
+            return Doubt.Priority.valueOf(priority.toUpperCase());
+        } catch (Exception e) {
+            return Doubt.Priority.MEDIUM;
+        }
+    }
 } 

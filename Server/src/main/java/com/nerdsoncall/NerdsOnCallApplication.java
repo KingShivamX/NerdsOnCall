@@ -10,6 +10,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 public class NerdsOnCallApplication {
     public static void main(String[] args) {
-        SpringApplication.run(NerdsOnCallApplication.class, args);
+        // Load environment variables from .env file
+        SpringApplication application = new SpringApplication(NerdsOnCallApplication.class);
+        application.run(args);
     }
-} 
+}
