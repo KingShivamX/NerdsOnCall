@@ -30,6 +30,7 @@ import {
     RefreshCw,
 } from "lucide-react"
 import toast from "react-hot-toast"
+import { useRouter } from "next/navigation"
 
 interface StudentRequest {
     id: number
@@ -64,6 +65,7 @@ export default function StudentRequestsPage() {
     const [loading, setLoading] = useState(true)
     const [acceptingId, setAcceptingId] = useState<number | null>(null)
     const [rejectingId, setRejectingId] = useState<number | null>(null)
+    const router = useRouter()
 
     // Fetch requests from API
     const fetchRequests = async () => {
@@ -199,17 +201,30 @@ export default function StudentRequestsPage() {
         const sessionId = `doubt_${request.id}_${Date.now()}`
         const studentName = `${request.student.firstName} ${request.student.lastName}`
 
-        // Navigate to video call page
-        window.open(
-            `/video-call/${sessionId}?tutorId=${
-                user?.id
-            }&tutorName=${encodeURIComponent(
-                user?.firstName + " " + user?.lastName
-            )}&studentId=${request.student.id}&studentName=${encodeURIComponent(
-                studentName
-            )}&doubtId=${request.id}`,
-            "_blank"
-        )
+        // Send a "tutor_ready" message to the student via WebSocket to indicate tutor is ready to start the call
+        try {
+            // Use the doubt socket to send the message
+            const message = {
+                type: "tutor_ready_for_call",
+                sessionId: sessionId,
+                doubtId: request.id,
+                tutorId: user?.id,
+                tutorName: `${user?.firstName} ${user?.lastName}`,
+                studentId: request.student.id,
+                studentName: studentName
+            }
+            
+            // Send message through WebSocket (assuming we have access to socket)
+            // For now, navigate to video call - but with proper coordination
+            router.push(
+                `/video-call/${sessionId}?role=tutor&studentId=${request.student.id}&studentName=${encodeURIComponent(studentName)}&doubtId=${request.id}`
+            )
+            
+            toast.success(`Starting video call with ${studentName}...`)
+        } catch (error) {
+            console.error("Error starting video call:", error)
+            toast.error("Failed to start video call")
+        }
     }
 
     // Get priority color

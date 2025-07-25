@@ -27,11 +27,14 @@ api.interceptors.request.use(
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        console.error(
-            "API Error:",
-            error.response?.status,
-            error.response?.data
-        )
+        // Only log errors that are not expected business logic errors
+        if (error.response?.status !== 400) {
+            console.error(
+                "API Error:",
+                error.response?.status,
+                error.response?.data
+            )
+        }
 
         // Handle 401 errors by clearing invalid tokens
         if (error.response?.status === 401) {

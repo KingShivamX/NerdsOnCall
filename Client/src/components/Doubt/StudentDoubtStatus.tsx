@@ -3,82 +3,57 @@
 import { useState, useEffect } from "react"
 import { useAuth } from "@/context/AuthContext"
 import { useWebSocket } from "@/context/WebSocketContext"
-import { VideoCallModal } from "@/components/VideoCall/VideoCallModal"
+import { useRouter } from "next/navigation"
 import toast from "react-hot-toast"
 
 interface StudentDoubtStatusProps {
     currentDoubt?: any
-    onDoubtAccepted?: (doubt: any) => void
+    tutorName?: string
+    onDoubtStatusChange?: (status: string, data?: any) => void
 }
 
 export function StudentDoubtStatus({
     currentDoubt,
-    onDoubtAccepted,
+    tutorName,
+    onDoubtStatusChange
 }: StudentDoubtStatusProps) {
     const { user } = useAuth()
     const { doubtSocket } = useWebSocket()
-    const [isCallModalOpen, setIsCallModalOpen] = useState(false)
-    const [acceptedDoubt, setAcceptedDoubt] = useState<any>(null)
-    const [tutorDetails, setTutorDetails] = useState<any>(null)
+    const router = useRouter()
 
     useEffect(() => {
-        if (doubtSocket && user?.role === "STUDENT") {
+        if (currentDoubt && doubtSocket && user?.role === "STUDENT") {
             doubtSocket.onmessage = (event) => {
                 try {
                     const data = JSON.parse(event.data)
                     console.log("Student received WebSocket message:", data)
 
-                    if (data.type === "doubt_accepted") {
-                        handleDoubtAccepted(data)
-                    } else if (data.type === "doubt_rejected") {
-                        handleDoubtRejected(data)
+                    if (data.type === "doubt_accepted" && data.doubtId === currentDoubt.id) {
+                        const resolvedTutorName = data.tutorName || tutorName || "Tutor"
+                        toast.success(`🎉 ${resolvedTutorName} accepted your doubt! You can now start a video call.`)
+                        
+                        if (onDoubtStatusChange) {
+                            onDoubtStatusChange('accepted', {
+                                tutorId: data.tutorId,
+                                tutorName: resolvedTutorName,
+                                doubtId: currentDoubt.id,
+                                doubt: currentDoubt
+                            })
+                        }
+                    } else if (data.type === "doubt_rejected" && data.doubtId === currentDoubt.id) {
+                        const rejectedTutorName = data.tutorName || tutorName || "Tutor"
+                        toast.error(`${rejectedTutorName} declined your doubt request`)
+                        if (onDoubtStatusChange) {
+                            onDoubtStatusChange('rejected')
+                        }
                     }
                 } catch (error) {
                     console.error("Error parsing WebSocket message:", error)
                 }
             }
         }
-    }, [doubtSocket, user])
+    }, [doubtSocket, user, currentDoubt, tutorName, onDoubtStatusChange, router])
 
-    const handleDoubtAccepted = (data: any) => {
-        toast.success(
-            `${data.tutorName} accepted your doubt! Starting video call...`
-        )
-
-        setAcceptedDoubt({
-            id: data.doubtId,
-            tutorId: data.tutorId,
-            tutorName: data.tutorName,
-        })
-
-        // Auto-start video call
-        setIsCallModalOpen(true)
-
-        if (onDoubtAccepted) {
-            onDoubtAccepted(data)
-        }
-    }
-
-    const handleDoubtRejected = (data: any) => {
-        toast.error(`${data.tutorName} declined your doubt request`)
-    }
-
-    if (!user || user.role !== "STUDENT") {
-        return null
-    }
-
-    return (
-        <>
-            {/* Video Call Modal */}
-            {acceptedDoubt && (
-                <VideoCallModal
-                    isOpen={isCallModalOpen}
-                    onClose={() => setIsCallModalOpen(false)}
-                    tutorId={acceptedDoubt.tutorId}
-                    tutorName={acceptedDoubt.tutorName}
-                    sessionId={`doubt_${acceptedDoubt.id}`}
-                />
-            )}
-        </>
-    )
+    // This component now only handles WebSocket messages, no UI rendering
+    return null
 }

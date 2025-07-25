@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { useAuth } from "@/context/AuthContext"
 import { useWebSocket } from "@/context/WebSocketContext"
 import { api } from "@/lib/api"
@@ -22,7 +22,8 @@ import {
     Paperclip,
     Star,
 } from "lucide-react"
-import { VideoCallModal } from "@/components/VideoCall/VideoCallModal"
+
+import { useRouter } from "next/navigation"
 
 interface TutorDoubtNotificationProps {
     onNewDoubt?: (doubt?: any) => void
@@ -33,9 +34,9 @@ export function TutorDoubtNotification({
 }: TutorDoubtNotificationProps) {
     const { user } = useAuth()
     const { doubtSocket } = useWebSocket()
+    const router = useRouter()
     const [isOpen, setIsOpen] = useState(false)
     const [incomingDoubt, setIncomingDoubt] = useState<any>(null)
-    const [isCallModalOpen, setIsCallModalOpen] = useState(false)
     const [studentDetails, setStudentDetails] = useState<any>(null)
 
     useEffect(() => {
@@ -100,15 +101,34 @@ export function TutorDoubtNotification({
 
         try {
             // Update doubt status to ASSIGNED
-            await api.put(`/doubts/${incomingDoubt.id}/status?status=ASSIGNED`)
+            await api.put(`/api/doubts/${incomingDoubt.id}/status?status=ASSIGNED`)
 
             // Close the notification dialog
             setIsOpen(false)
 
-            // Open video call modal immediately (this replaces the "Accept Call" popup)
-            setIsCallModalOpen(true)
+            // Send accept_doubt message to backend WebSocket (this will trigger the backend to notify the student)
+            if (doubtSocket) {
+                const acceptPayload = {
+                    type: "accept_doubt",
+                    doubtId: incomingDoubt.id,
+                    tutorId: user.id,
+                }
+                doubtSocket.send(JSON.stringify(acceptPayload))
+                console.log("Sent accept_doubt message:", acceptPayload)
+            } else {
+                console.error("Doubt socket not available to send acceptance")
+            }
 
-            toast.success("Doubt accepted! Starting video call...")
+            // Generate session ID and redirect to video call page
+            const sessionId = `doubt_${incomingDoubt.id}_${Date.now()}`
+            const studentName = `${incomingDoubt.student.firstName} ${incomingDoubt.student.lastName}`
+
+            toast.success(
+                `Now you can connect to ${studentName}. Initializing call...`
+            )
+
+            // Navigate to the video call page
+            router.push(`/video-call/${sessionId}?role=tutor&studentId=${incomingDoubt.student.id}&studentName=${encodeURIComponent(studentName)}`)
         } catch (error) {
             console.error("Error accepting doubt:", error)
             toast.error("Failed to accept doubt")
@@ -120,7 +140,20 @@ export function TutorDoubtNotification({
 
         try {
             // Update doubt status to CANCELLED
-            await api.put(`/doubts/${incomingDoubt.id}/status?status=CANCELLED`)
+            await api.put(`/api/doubts/${incomingDoubt.id}/status?status=CANCELLED`)
+
+            // Send reject_doubt message to backend WebSocket (this will trigger the backend to notify the student)
+            if (doubtSocket) {
+                const rejectPayload = {
+                    type: "reject_doubt",
+                    doubtId: incomingDoubt.id,
+                    tutorId: user.id,
+                }
+                doubtSocket.send(JSON.stringify(rejectPayload))
+                console.log("Sent reject_doubt message:", rejectPayload)
+            } else {
+                console.error("Doubt socket not available to send rejection")
+            }
 
             // Close the notification dialog
             setIsOpen(false)
@@ -268,16 +301,7 @@ export function TutorDoubtNotification({
                 </DialogContent>
             </Dialog>
 
-            {/* Video Call Modal */}
-            {incomingDoubt && studentDetails && (
-                <VideoCallModal
-                    isOpen={isCallModalOpen}
-                    onClose={() => setIsCallModalOpen(false)}
-                    tutorId={incomingDoubt.student.id}
-                    tutorName={`${incomingDoubt.student.firstName} ${incomingDoubt.student.lastName}`}
-                    sessionId={`doubt_${incomingDoubt.id}`}
-                />
-            )}
+
         </>
     )
 }

@@ -2,23 +2,24 @@
 
 import { useState, useEffect } from "react"
 import { useAuth } from "@/context/AuthContext"
-import { Button } from "@/components/ui/Button"
+import { useRouter } from "next/navigation"
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
-import { Phone, PhoneOff, Video, User } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/Button"
+import { Phone, PhoneOff, User } from "lucide-react"
 
 interface IncomingCallNotificationProps {
     isOpen: boolean
     onAccept: () => void
     onDecline: () => void
     callerName: string
-    callerId: number
+    callerId: number | string
     sessionId: string
+    callerRole?: 'STUDENT' | 'TUTOR'
 }
 
 export function IncomingCallNotification({
@@ -28,6 +29,7 @@ export function IncomingCallNotification({
     callerName,
     callerId,
     sessionId,
+    callerRole,
 }: IncomingCallNotificationProps) {
     const { user } = useAuth()
     const router = useRouter()
@@ -55,14 +57,19 @@ export function IncomingCallNotification({
 
     const handleAccept = () => {
         onAccept()
-        // Navigate to video call page
-        router.push(
-            `/video-call/${sessionId}?tutorId=${
-                user?.id
-            }&tutorName=${encodeURIComponent(
-                user?.firstName + " " + user?.lastName
-            )}`
-        )
+        
+        // Navigate to video call page based on user role
+        if (user?.role === 'TUTOR') {
+            // Tutor accepting call from student
+            router.push(
+                `/video-call/${sessionId}?role=tutor&studentId=${callerId}&studentName=${encodeURIComponent(callerName)}`
+            )
+        } else {
+            // Student accepting call from tutor
+            router.push(
+                `/video-call/${sessionId}?role=student&tutorId=${callerId}&tutorName=${encodeURIComponent(callerName)}`
+            )
+        }
     }
 
     const formatTime = (seconds: number) => {
@@ -73,34 +80,37 @@ export function IncomingCallNotification({
             .padStart(2, "0")}`
     }
 
+    const getCallerTypeLabel = () => {
+        if (user?.role === 'TUTOR') {
+            return 'Student'
+        } else {
+            return 'Tutor'
+        }
+    }
+
     if (!isOpen) return null
 
     return (
         <Dialog open={isOpen} onOpenChange={() => {}}>
-            <DialogContent className="sm:max-w-[400px] bg-white border border-gray-200 shadow-2xl">
+            <DialogContent className="sm:max-w-md bg-white border-2 border-blue-300 shadow-2xl">
                 <DialogHeader className="text-center pb-4">
-                    <div className="mx-auto w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mb-4 animate-pulse">
-                        <Phone className="h-10 w-10 text-white" />
-                    </div>
-                    <DialogTitle className="text-xl font-semibold text-gray-800">
-                        Incoming Video Call
+                    <DialogTitle className="text-xl font-bold text-blue-900">
+                        📞 Incoming Call
                     </DialogTitle>
                 </DialogHeader>
 
-                <div className="text-center space-y-4">
+                <div className="space-y-6 text-center">
                     {/* Caller Info */}
-                    <div className="flex items-center justify-center space-x-3">
-                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
-                            <span className="text-white font-semibold text-lg">
-                                {callerName.charAt(0)}
-                            </span>
+                    <div className="flex flex-col items-center space-y-3">
+                        <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                            <User className="h-10 w-10 text-white" />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-gray-800 text-lg">
+                            <p className="text-lg font-semibold text-gray-800">
                                 {callerName}
-                            </h3>
+                            </p>
                             <p className="text-sm text-gray-600">
-                                Student requesting help
+                                {getCallerTypeLabel()}
                             </p>
                         </div>
                     </div>

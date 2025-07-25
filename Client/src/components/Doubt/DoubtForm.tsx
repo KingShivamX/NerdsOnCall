@@ -153,7 +153,7 @@ export function DoubtForm({
             const response = await api.post("/api/doubts", doubtData)
 
             toast.success(
-                "Your doubt has been sent to the tutor. Starting video call..."
+                "Your doubt has been sent to the tutor successfully!"
             )
 
             // Reset form

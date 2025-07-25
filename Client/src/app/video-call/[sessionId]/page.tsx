@@ -20,9 +20,10 @@ import {
 } from "lucide-react"
 import { Canvas } from "@/components/VideoCall/Canvas"
 import { ChatPanel } from "@/components/VideoCall/ChatPanel"
+import { IncomingCallNotification } from "@/components/VideoCall/IncomingCallNotification"
 import toast from "react-hot-toast"
 
-interface VideoCallPageProps {}
+interface VideoCallPageProps { }
 
 export default function VideoCallPage() {
     const { user } = useAuth()
@@ -40,6 +41,14 @@ export default function VideoCallPage() {
     const [showChat, setShowChat] = useState(false)
     const [isFullscreen, setIsFullscreen] = useState(false)
 
+    // Incoming call states
+    const [incomingCall, setIncomingCall] = useState<{
+        callerId: number | string
+        callerName: string
+        sessionId: string
+    } | null>(null)
+    const [showIncomingCallModal, setShowIncomingCallModal] = useState(false)
+
     // Refs
     const localVideoRef = useRef<HTMLVideoElement>(null)
     const remoteVideoRef = useRef<HTMLVideoElement>(null)
@@ -51,21 +60,48 @@ export default function VideoCallPage() {
     const isInCallRef = useRef<boolean>(false)
     const whiteboardSocketRef = useRef<WebSocket | null>(null)
 
-    // Get tutor info from URL params
-    const [tutorName, setTutorName] = useState("Tutor")
-    const [tutorId, setTutorId] = useState(0)
+    // Get participant info from URL params
+    const [otherUserName, setOtherUserName] = useState("User")
+    const [otherUserId, setOtherUserId] = useState(0)
+    const [userRole, setUserRole] = useState<string>("")
+    const [waitingForTutor, setWaitingForTutor] = useState(false)
+    const [tutorReady, setTutorReady] = useState(false)
 
     useEffect(() => {
-        // Get tutor info from URL search params
+        // Get participant info from URL search params
         const urlParams = new URLSearchParams(window.location.search)
-        const tutorIdParam = urlParams.get("tutorId")
-        const tutorNameParam = urlParams.get("tutorName")
-
-        if (tutorIdParam) {
-            setTutorId(parseInt(tutorIdParam))
+        const role = urlParams.get("role")
+        const waitingParam = urlParams.get("waitingForTutor")
+        
+        if (waitingParam === "true") {
+            setWaitingForTutor(true)
         }
-        if (tutorNameParam) {
-            setTutorName(decodeURIComponent(tutorNameParam))
+        
+        if (role === "tutor") {
+            // Tutor view - get student info
+            const studentIdParam = urlParams.get("studentId")
+            const studentNameParam = urlParams.get("studentName")
+            
+            if (studentIdParam) {
+                setOtherUserId(parseInt(studentIdParam))
+            }
+            if (studentNameParam) {
+                setOtherUserName(decodeURIComponent(studentNameParam))
+            }
+            setUserRole("tutor")
+            setTutorReady(true) // Tutor is ready when they join
+        } else {
+            // Student view - get tutor info
+            const tutorIdParam = urlParams.get("tutorId")
+            const tutorNameParam = urlParams.get("tutorName")
+            
+            if (tutorIdParam) {
+                setOtherUserId(parseInt(tutorIdParam))
+            }
+            if (tutorNameParam) {
+                setOtherUserName(decodeURIComponent(tutorNameParam))
+            }
+            setUserRole("student")
         }
 
         // Initialize video call
@@ -189,13 +225,36 @@ export default function VideoCallPage() {
                         socketRef.current &&
                         socketRef.current.readyState === WebSocket.OPEN
                     ) {
+                        // Join the session and announce presence
                         socketRef.current.send(
                             JSON.stringify({
                                 type: "join",
                                 userId: user?.id.toString(),
                                 sessionId: sessionId,
+                                role: userRole,
+                                userName: `${user?.firstName} ${user?.lastName}`,
+                                timestamp: Date.now()
                             })
                         )
+                        
+                        // If tutor is joining, notify the student that tutor is ready
+                        if (userRole === "tutor") {
+                            // Wait a bit more for the join to be processed
+                            setTimeout(() => {
+                                if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+                                    socketRef.current.send(
+                                        JSON.stringify({
+                                            type: "tutor_joined",
+                                            to: otherUserId.toString(),
+                                            from: user?.id.toString(),
+                                            sessionId: sessionId,
+                                            tutorName: `${user?.firstName} ${user?.lastName}`,
+                                            timestamp: Date.now()
+                                        })
+                                    )
+                                }
+                            }, 1000)
+                        }
                     }
                 }, 100)
             }
@@ -203,6 +262,16 @@ export default function VideoCallPage() {
             socketRef.current.onmessage = handleWebSocketMessage
             socketRef.current.onclose = () => {
                 setStatus("Disconnected")
+                // Notify other user that this user is leaving
+                if (isInCallRef.current && socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+                    socketRef.current.send(
+                        JSON.stringify({
+                            type: "user-disconnect",
+                            userId: user?.id.toString(),
+                            sessionId: sessionId,
+                        })
+                    )
+                }
                 cleanupConnection()
             }
             socketRef.current.onerror = (error) => {
@@ -218,7 +287,7 @@ export default function VideoCallPage() {
     const handleWebSocketMessage = async (event: MessageEvent) => {
         try {
             const message = JSON.parse(event.data)
-            console.log("Received message:", message.type)
+            console.log("Received message:", message.type, message)
 
             switch (message.type) {
                 case "offer":
@@ -233,22 +302,107 @@ export default function VideoCallPage() {
                 case "user-joined":
                     console.log(`User ${message.userId} joined`)
                     break
+                case "tutor_joined":
+                    if (userRole === "student") {
+                        console.log("Tutor has joined the session")
+                        setTutorReady(true)
+                        setWaitingForTutor(false)
+                        toast.success(`${message.tutorName} has joined! You can now start the call.`)
+                    }
+                    break
                 case "user-left":
                     console.log(`User ${message.userId} left`)
                     if (isInCallRef.current) {
                         endCall()
                     }
                     break
+                case "user-disconnect":
+                    console.log(`User ${message.userId} disconnected`)
+                    if (isInCallRef.current) {
+                        toast.error("Other user disconnected")
+                        
+                        // Clean up the call state
+                        setCallStatus("Disconnected")
+                        if (peerConnectionRef.current) {
+                            peerConnectionRef.current.close()
+                            peerConnectionRef.current = null
+                        }
+                        isInCallRef.current = false
+                        
+                        // Reload page after disconnect for students to clear WebSocket errors
+                        if (user?.role === "STUDENT") {
+                            toast.loading("Returning to browse tutors...")
+                            setTimeout(() => {
+                                window.location.href = "/browse-tutors"
+                            }, 2000)
+                        } else {
+                            // For tutors, just go back and reload
+                            setTimeout(() => {
+                                router.back()
+                                setTimeout(() => window.location.reload(), 500)
+                            }, 1500)
+                        }
+                    }
+                    break
+                case "incoming_call":
+                    // Handle incoming call from either party
+                    if (message.to === user?.id.toString()) {
+                        console.log("Received incoming call from:", message.callerName)
+                        
+                        // Show incoming call notification popup
+                        setIncomingCall({
+                            callerId: message.from,
+                            callerName: message.callerName,
+                            sessionId: message.sessionId
+                        })
+                        setShowIncomingCallModal(true)
+                        
+                        toast.success(`📞 Incoming call from ${message.callerName}`)
+                    }
+                    break
+                case "call_accepted":
+                    if (message.to === user?.id.toString()) {
+                        console.log("Call accepted by:", message.accepterName)
+                        toast.success(`${message.accepterName} accepted your call!`)
+                        setCallStatus("Call accepted, connecting...")
+                    }
+                    break
+                case "call_declined":
+                    if (message.to === user?.id.toString()) {
+                        console.log("Call declined by:", message.declinerName)
+                        toast.error(`${message.declinerName} declined your call`)
+                        setCallStatus("Call declined")
+                        // Reset call state
+                        if (peerConnectionRef.current) {
+                            peerConnectionRef.current.close()
+                            peerConnectionRef.current = null
+                        }
+                        isInCallRef.current = false
+                    }
+                    break
+                case "error":
+                    console.error("WebSocket error:", message.message)
+                    if (message.message && message.message.includes("Recipient offline")) {
+                        toast.error("Other user is not connected yet. Please wait...")
+                    } else if (message.message && message.message.includes("Unknown message type")) {
+                        console.warn("Server doesn't recognize this message type:", message)
+                    } else {
+                        toast.error(`Connection error: ${message.message || 'Unknown error'}`)
+                    }
+                    break
+                case "canvas_update":
+                case "subscribe":
+                case "unsubscribe":
+                    // These are handled by the Canvas component, ignore here
+                    break
                 default:
-                    // Ignore unknown message types (e.g., canvas_update)
-                    console.warn(
-                        "Unknown WebSocket message type:",
-                        message.type
-                    )
+                    // Log unknown message types but don't show error to user
+                    console.warn("Unknown WebSocket message type:", message.type, message)
                     break
             }
         } catch (error: any) {
-            console.error("Error parsing message:", error)
+            console.error("Error parsing WebSocket message:", error)
+            toast.error("Failed to process incoming message")
         }
     }
 
@@ -267,7 +421,7 @@ export default function VideoCallPage() {
                 socketRef.current.send(
                     JSON.stringify({
                         type: "ice-candidate",
-                        to: tutorId.toString(),
+                        to: otherUserId.toString(),
                         from: user?.id.toString(),
                         sessionId: sessionId,
                         data: event.candidate,
@@ -340,73 +494,65 @@ export default function VideoCallPage() {
                 })
             }
 
-            // Send incoming call notification to tutor if this is a student, with retry mechanism
-            if (user?.role === "STUDENT" && socketRef.current) {
+            // Send incoming call notification to other user with retry mechanism
+            if (socketRef.current) {
+                console.log("Sending call to user:", otherUserId)
+                
                 let attempts = 0
                 const maxAttempts = 3
-                const sendCallNotification = () => {
-                    if (!socketRef.current) return
+                
+                const sendCallMessage = () => {
+                    if (!socketRef.current || attempts >= maxAttempts) return
+                    
                     attempts++
-                    console.log(
-                        "Sending incoming call notification to tutor:",
-                        tutorId,
-                        "Attempt",
-                        attempts
-                    )
+                    console.log(`Sending call attempt ${attempts}/${maxAttempts} to user:`, otherUserId)
+                    
                     socketRef.current.send(
                         JSON.stringify({
                             type: "incoming_call",
-                            to: tutorId.toString(),
-                            from: user.id.toString(),
-                            callerName: `${user.firstName} ${user.lastName}`,
-                            callerId: user.id,
+                            to: otherUserId.toString(),
+                            from: user?.id.toString(),
+                            callerName: `${user?.firstName} ${user?.lastName}`,
+                            callerId: user?.id,
                             sessionId: sessionId,
                             timestamp: Date.now(),
                         })
                     )
                 }
-
-                // Listen for error response from backend
-                const handleRetryMessage = (event) => {
+                
+                // Send initial call
+                sendCallMessage()
+                
+                // Set up retry logic for recipient offline errors
+                const handleCallResponse = (event: MessageEvent) => {
                     try {
-                        const msg = JSON.parse(event.data)
-                        if (
-                            msg.type === "error" &&
-                            msg.message &&
-                            msg.message.includes("Recipient offline")
-                        ) {
+                        const response = JSON.parse(event.data)
+                        if (response.type === "error" && response.message && response.message.includes("Recipient offline")) {
                             if (attempts < maxAttempts) {
-                                toast(
-                                    "Tutor is not online. Retrying call... (" +
-                                        (attempts + 1) +
-                                        "/" +
-                                        maxAttempts +
-                                        ")"
-                                )
-                                setTimeout(sendCallNotification, 1500)
+                                toast(`Other user not ready, retrying... (${attempts}/${maxAttempts})`)
+                                setTimeout(sendCallMessage, 2000)
                             } else {
-                                toast.error(
-                                    "Tutor is still offline. Please try again later."
-                                )
-                                socketRef.current?.removeEventListener(
-                                    "message",
-                                    handleRetryMessage
-                                )
+                                toast.error("Other user is not available. Please try again later.")
+                                socketRef.current?.removeEventListener("message", handleCallResponse)
+                                setCallStatus("Failed to connect")
                             }
-                        } else if (msg.type === "incoming_call_ack") {
-                            // Tutor acknowledged, stop retrying
-                            socketRef.current?.removeEventListener(
-                                "message",
-                                handleRetryMessage
-                            )
+                        } else if (response.type === "call_accepted" || response.type === "call_declined") {
+                            // Call was responded to, stop retrying
+                            socketRef.current?.removeEventListener("message", handleCallResponse)
                         }
-                    } catch (e) {}
+                    } catch (e) {
+                        // Ignore parsing errors for this handler
+                    }
                 }
-                socketRef.current.addEventListener(
-                    "message",
-                    handleRetryMessage
-                )
-                sendCallNotification()
+                
+                socketRef.current.addEventListener("message", handleCallResponse)
+                
+                // Clean up event listener after 30 seconds
+                setTimeout(() => {
+                    socketRef.current?.removeEventListener("message", handleCallResponse)
+                }, 30000)
+                
+                toast.success(`Calling ${otherUserName}...`)
             }
 
             if (peerConnectionRef.current) {
@@ -417,7 +563,7 @@ export default function VideoCallPage() {
                     socketRef.current.send(
                         JSON.stringify({
                             type: "offer",
-                            to: tutorId.toString(),
+                            to: otherUserId.toString(),
                             from: user?.id.toString(),
                             sessionId: sessionId,
                             data: offer,
@@ -434,6 +580,17 @@ export default function VideoCallPage() {
     }
 
     const endCall = () => {
+        // Send disconnect message to other user before ending call
+        if (isInCallRef.current && socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+            socketRef.current.send(
+                JSON.stringify({
+                    type: "user-disconnect",
+                    userId: user?.id.toString(),
+                    sessionId: sessionId,
+                })
+            )
+        }
+
         if (isInCallRef.current) {
             setCallStatus("Idle")
 
@@ -451,8 +608,21 @@ export default function VideoCallPage() {
             isInCallRef.current = false
         }
 
-        // Navigate back to previous page
-        router.back()
+        // Show end call message and reload page for students to clear WebSocket errors
+        if (user?.role === "STUDENT") {
+            toast.success("Call ended. Returning to browse tutors...")
+            setTimeout(() => {
+                window.location.href = "/browse-tutors"
+            }, 1500)
+        } else {
+            // For tutors, navigate back to previous page
+            router.back()
+            
+            // Refresh page for tutors after call ends
+            setTimeout(() => {
+                window.location.reload()
+            }, 500)
+        }
     }
 
     const cleanupConnection = () => {
@@ -652,6 +822,93 @@ export default function VideoCallPage() {
         }
     }
 
+    const handleIncomingCall = async (message: any) => {
+        try {
+            console.log("Handling incoming call from:", message.callerName)
+            // Since both parties are already in the video call interface, auto-accept
+            setCallStatus("Incoming call...")
+            
+            // Create peer connection if not exists
+            if (!peerConnectionRef.current) {
+                createPeerConnection()
+                
+                if (localStreamRef.current && peerConnectionRef.current) {
+                    localStreamRef.current.getTracks().forEach((track) => {
+                        if (peerConnectionRef.current && localStreamRef.current) {
+                            peerConnectionRef.current.addTrack(
+                                track,
+                                localStreamRef.current
+                            )
+                        }
+                    })
+                }
+            }
+            
+            isInCallRef.current = true
+            setCallStatus("Connected")
+            toast.success(`Call connected with ${message.callerName}`)
+        } catch (error: any) {
+            console.error("Error handling incoming call:", error)
+            setCallStatus(`Error: ${error.message}`)
+        }
+    }
+
+    const handleAcceptCall = async () => {
+        if (!incomingCall) return
+        
+        try {
+            console.log("Accepting call from:", incomingCall.callerName)
+            setShowIncomingCallModal(false)
+            
+            // Send acceptance message back to caller
+            if (socketRef.current) {
+                socketRef.current.send(
+                    JSON.stringify({
+                        type: "call_accepted",
+                        to: incomingCall.callerId.toString(),
+                        from: user?.id.toString(),
+                        sessionId: incomingCall.sessionId,
+                        accepterName: `${user?.firstName} ${user?.lastName}`
+                    })
+                )
+            }
+            
+            // Set up the call
+            await handleIncomingCall({
+                callerName: incomingCall.callerName,
+                from: incomingCall.callerId
+            })
+            
+            setIncomingCall(null)
+        } catch (error: any) {
+            console.error("Error accepting call:", error)
+            toast.error("Failed to accept call")
+        }
+    }
+
+    const handleDeclineCall = () => {
+        if (!incomingCall) return
+        
+        console.log("Declining call from:", incomingCall.callerName)
+        setShowIncomingCallModal(false)
+        
+        // Send decline message back to caller
+        if (socketRef.current) {
+            socketRef.current.send(
+                JSON.stringify({
+                    type: "call_declined",
+                    to: incomingCall.callerId.toString(),
+                    from: user?.id.toString(),
+                    sessionId: incomingCall.sessionId,
+                    declinerName: `${user?.firstName} ${user?.lastName}`
+                })
+            )
+        }
+        
+        toast.error(`Call declined from ${incomingCall.callerName}`)
+        setIncomingCall(null)
+    }
+
     if (!user) {
         return (
             <div className="min-h-screen bg-gray-900 flex items-center justify-center">
@@ -683,7 +940,7 @@ export default function VideoCallPage() {
                                     <div className="text-center">
                                         <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                                             <span className="text-3xl font-semibold text-white">
-                                                {tutorName.charAt(0)}
+                                                {otherUserName.charAt(0)}
                                             </span>
                                         </div>
                                         <p className="text-lg text-gray-700 font-medium">
@@ -695,7 +952,7 @@ export default function VideoCallPage() {
                                 </div>
                             )}
                             <div className="absolute bottom-4 left-4 bg-black/60 text-white px-3 py-1 rounded backdrop-blur-sm">
-                                {tutorName}
+                                {otherUserName}
                             </div>
                         </div>
                     )}
@@ -764,7 +1021,7 @@ export default function VideoCallPage() {
                                         <div className="text-center">
                                             <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-2 shadow-lg">
                                                 <span className="text-lg font-semibold text-white">
-                                                    {tutorName.charAt(0)}
+                                                    {otherUserName.charAt(0)}
                                                 </span>
                                             </div>
                                             <p className="text-sm text-gray-700 font-medium">
@@ -776,7 +1033,7 @@ export default function VideoCallPage() {
                                     </div>
                                 )}
                                 <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
-                                    {tutorName}
+                                    {otherUserName}
                                 </div>
                             </div>
                         </div>
@@ -784,9 +1041,8 @@ export default function VideoCallPage() {
 
                     {/* Local Video (Student) - Small overlay */}
                     <div
-                        className={`absolute w-64 h-48 bg-white rounded-xl overflow-hidden shadow-xl border-2 border-gray-200 z-20 ${
-                            showWhiteboard ? "top-4 right-4" : "top-6 right-6"
-                        }`}
+                        className={`absolute w-64 h-48 bg-white rounded-xl overflow-hidden shadow-xl border-2 border-gray-200 z-20 ${showWhiteboard ? "top-4 right-4" : "top-6 right-6"
+                            }`}
                     >
                         <video
                             ref={localVideoRef}
@@ -835,11 +1091,10 @@ export default function VideoCallPage() {
                             }
                             size="lg"
                             onClick={toggleAudio}
-                            className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full transition-all shadow-lg hover:shadow-xl transform hover:scale-105 ${
-                                isAudioEnabled
-                                    ? "bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 hover:border-gray-400"
-                                    : "bg-red-500 hover:bg-red-600 text-white shadow-red-300 animate-pulse"
-                            }`}
+                            className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full transition-all shadow-lg hover:shadow-xl transform hover:scale-105 ${isAudioEnabled
+                                ? "bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 hover:border-gray-400"
+                                : "bg-red-500 hover:bg-red-600 text-white shadow-red-300 animate-pulse"
+                                }`}
                         >
                             {isAudioEnabled ? (
                                 <Mic className="h-5 w-5 sm:h-6 sm:w-6" />
@@ -855,11 +1110,10 @@ export default function VideoCallPage() {
                             }
                             size="lg"
                             onClick={toggleVideo}
-                            className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full transition-all shadow-lg hover:shadow-xl transform hover:scale-105 ${
-                                isVideoEnabled
-                                    ? "bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 hover:border-gray-400"
-                                    : "bg-red-500 hover:bg-red-600 text-white shadow-red-300 animate-pulse"
-                            }`}
+                            className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full transition-all shadow-lg hover:shadow-xl transform hover:scale-105 ${isVideoEnabled
+                                ? "bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 hover:border-gray-400"
+                                : "bg-red-500 hover:bg-red-600 text-white shadow-red-300 animate-pulse"
+                                }`}
                         >
                             {isVideoEnabled ? (
                                 <Video className="h-5 w-5 sm:h-6 sm:w-6" />
@@ -873,11 +1127,10 @@ export default function VideoCallPage() {
                             variant={isScreenSharing ? "default" : "secondary"}
                             size="lg"
                             onClick={toggleScreenShare}
-                            className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full transition-all shadow-lg hover:shadow-xl transform hover:scale-105 ${
-                                isScreenSharing
-                                    ? "bg-blue-500 hover:bg-blue-600 text-white shadow-blue-300 animate-pulse"
-                                    : "bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 hover:border-blue-400"
-                            }`}
+                            className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full transition-all shadow-lg hover:shadow-xl transform hover:scale-105 ${isScreenSharing
+                                ? "bg-blue-500 hover:bg-blue-600 text-white shadow-blue-300 animate-pulse"
+                                : "bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 hover:border-blue-400"
+                                }`}
                         >
                             {isScreenSharing ? (
                                 <MonitorOff className="h-5 w-5 sm:h-6 sm:w-6" />
@@ -912,11 +1165,10 @@ export default function VideoCallPage() {
                                     )
                                 }
                             }}
-                            className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full transition-all shadow-lg hover:shadow-xl transform hover:scale-105 ${
-                                showWhiteboard
-                                    ? "bg-green-500 hover:bg-green-600 text-white shadow-green-300 animate-pulse"
-                                    : "bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 hover:border-green-400"
-                            }`}
+                            className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full transition-all shadow-lg hover:shadow-xl transform hover:scale-105 ${showWhiteboard
+                                ? "bg-green-500 hover:bg-green-600 text-white shadow-green-300 animate-pulse"
+                                : "bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 hover:border-green-400"
+                                }`}
                         >
                             <PenTool className="h-5 w-5 sm:h-6 sm:w-6" />
                         </Button>
@@ -924,39 +1176,43 @@ export default function VideoCallPage() {
 
                     {/* Center - Call Controls */}
                     <div className="flex flex-col items-center justify-center flex-1">
-                        {callStatus === "Idle" &&
-                            !isConnectedRef.current &&
-                            user?.role === "TUTOR" && (
-                                <div className="mb-4 text-blue-700 bg-blue-100 border border-blue-300 rounded px-4 py-2 text-center animate-pulse">
-                                    Waiting for student to connect...
-                                    <br />
-                                    Please wait for the student to join the
-                                    call.
-                                </div>
-                            )}
-                        {callStatus === "Idle" && !isConnectedRef.current && (
-                            <div className="mb-4 text-yellow-700 bg-yellow-100 border border-yellow-300 rounded px-4 py-2 text-center animate-pulse">
-                                Waiting for tutor to connect...
+                        {/* Status Messages */}
+                        {waitingForTutor && userRole === "student" && !tutorReady && (
+                            <div className="mb-4 text-blue-700 bg-blue-100 border border-blue-300 rounded px-4 py-2 text-center animate-pulse">
+                                🎓 Waiting for {otherUserName} to join...
                                 <br />
-                                Please ask the tutor to open the call page.
+                                Your tutor will start the call when ready.
                             </div>
                         )}
+                        {userRole === "tutor" && callStatus === "Idle" && (
+                            <div className="mb-4 text-green-700 bg-green-100 border border-green-300 rounded px-4 py-2 text-center">
+                                👨‍🏫 Ready to help {otherUserName}
+                                <br />
+                                Click "Start Call" when you're ready to begin.
+                            </div>
+                        )}
+                        
                         {callStatus === "Idle" ? (
                             <Button
                                 onClick={startCall}
                                 disabled={
                                     !isConnectedRef.current ||
-                                    (status !== "Ready to call" &&
-                                        status !== "Connected")
+                                    (status !== "Ready to call" && status !== "Connected") ||
+                                    (userRole === "student" && waitingForTutor && !tutorReady)
                                 }
-                                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-4 rounded-full font-bold shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:transform-none animate-pulse"
+                                className={`px-8 py-4 rounded-full font-bold shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:transform-none ${
+                                    userRole === "student" && waitingForTutor && !tutorReady
+                                        ? "bg-gray-400 cursor-not-allowed"
+                                        : "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white animate-pulse"
+                                }`}
                                 size="lg"
                             >
                                 <Phone className="h-6 w-6 mr-3" />
-                                {!isConnectedRef.current
-                                    ? "⏳ Waiting for connection..."
-                                    : status === "Ready to call" ||
-                                      status === "Connected"
+                                {userRole === "student" && waitingForTutor && !tutorReady
+                                    ? "⏳ Waiting for tutor..."
+                                    : !isConnectedRef.current
+                                    ? "⏳ Connecting..."
+                                    : status === "Ready to call" || status === "Connected"
                                     ? "🚀 Start Call"
                                     : "⏳ Connecting..."}
                             </Button>
@@ -986,11 +1242,10 @@ export default function VideoCallPage() {
                                     toast("💬 Chat closed")
                                 }
                             }}
-                            className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full transition-all shadow-lg hover:shadow-xl transform hover:scale-105 ${
-                                showChat
-                                    ? "bg-blue-500 hover:bg-blue-600 text-white shadow-blue-300 animate-pulse"
-                                    : "bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 hover:border-blue-400"
-                            }`}
+                            className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full transition-all shadow-lg hover:shadow-xl transform hover:scale-105 ${showChat
+                                ? "bg-blue-500 hover:bg-blue-600 text-white shadow-blue-300 animate-pulse"
+                                : "bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 hover:border-blue-400"
+                                }`}
                         >
                             <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6" />
                         </Button>
@@ -1002,13 +1257,12 @@ export default function VideoCallPage() {
                     <div className="flex items-center justify-center space-x-4 text-sm text-gray-600">
                         <div className="flex items-center space-x-2">
                             <div
-                                className={`w-2 h-2 rounded-full ${
-                                    callStatus === "Connected"
-                                        ? "bg-green-500 animate-pulse"
-                                        : callStatus === "Calling..."
+                                className={`w-2 h-2 rounded-full ${callStatus === "Connected"
+                                    ? "bg-green-500 animate-pulse"
+                                    : callStatus === "Calling..."
                                         ? "bg-yellow-500 animate-pulse"
                                         : "bg-gray-400"
-                                }`}
+                                    }`}
                             />
                             <span className="font-medium">{callStatus}</span>
                         </div>
@@ -1017,6 +1271,19 @@ export default function VideoCallPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Incoming Call Notification */}
+            {incomingCall && (
+                <IncomingCallNotification
+                    isOpen={showIncomingCallModal}
+                    onAccept={handleAcceptCall}
+                    onDecline={handleDeclineCall}
+                    callerName={incomingCall.callerName}
+                    callerId={incomingCall.callerId}
+                    sessionId={incomingCall.sessionId}
+                    callerRole={userRole === "student" ? "TUTOR" : "STUDENT"}
+                />
+            )}
         </div>
     )
 }

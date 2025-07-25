@@ -34,6 +34,8 @@ import {
     Award,
 } from "lucide-react"
 import { Subject, User } from "@/types"
+import toast from "react-hot-toast"
+import { useRouter } from "next/navigation"
 
 const subjectsList: Subject[] = [
     "MATHEMATICS",
@@ -55,6 +57,7 @@ const subjectsList: Subject[] = [
 
 export default function BrowseTutorsPage() {
     const { user } = useAuth()
+    const router = useRouter()
     const [tutors, setTutors] = useState<User[]>([])
     const [filteredTutors, setFilteredTutors] = useState<User[]>([])
     const [loading, setLoading] = useState(true)
@@ -141,6 +144,11 @@ export default function BrowseTutorsPage() {
     const [isCallModalOpen, setIsCallModalOpen] = useState(false)
     const [isDoubtFormOpen, setIsDoubtFormOpen] = useState(false)
     const [currentDoubt, setCurrentDoubt] = useState<any>(null)
+    const [acceptedTutor, setAcceptedTutor] = useState<{
+        tutor: User;
+        doubtId: number;
+        doubt: any;
+    } | null>(null)
 
     const handleConnectTutor = (tutor: User) => {
         setSelectedTutor(tutor)
@@ -153,10 +161,42 @@ export default function BrowseTutorsPage() {
     }
 
     const handleDoubtSubmitSuccess = (doubt: any) => {
-        setCurrentDoubt(doubt)
+        // Add tutor ID to the doubt object for proper routing
+        const doubtWithTutor = {
+            ...doubt,
+            tutorId: selectedTutor?.id,
+            preferredTutorId: selectedTutor?.id
+        }
+        setCurrentDoubt(doubtWithTutor)
         setIsDoubtFormOpen(false)
-        // Auto-start video call after doubt submission
-        setIsCallModalOpen(true)
+        // Don't auto-start call - wait for tutor to accept
+        toast.success("Doubt sent! Waiting for tutor to accept...")
+    }
+
+    const handleDoubtStatusChange = (status: string, data?: any) => {
+        if (status === 'accepted' && data) {
+            // Find the tutor who accepted the doubt
+            const tutor = tutors.find(t => t.id === data.tutorId) || selectedTutor
+            if (tutor) {
+                setAcceptedTutor({
+                    tutor: tutor,
+                    doubtId: data.doubtId,
+                    doubt: data.doubt
+                })
+                setCurrentDoubt(null) // Clear the waiting doubt
+                toast.success(`🎉 ${data.tutorName} is ready for your video call!`)
+            }
+        } else if (status === 'rejected') {
+            setCurrentDoubt(null)
+            toast.error("Doubt was declined. You can try with another tutor.")
+        }
+    }
+
+    const handleStartCallWithAcceptedTutor = () => {
+        if (acceptedTutor) {
+            setSelectedTutor(acceptedTutor.tutor)
+            setIsCallModalOpen(true)
+        }
     }
 
     if (!user) {
@@ -224,7 +264,7 @@ export default function BrowseTutorsPage() {
                                 </Select>
 
                                 {/* Sort By */}
-                                <Select
+                               { /*<Select
                                     value={sortBy}
                                     onValueChange={setSortBy}
                                 >
@@ -246,6 +286,7 @@ export default function BrowseTutorsPage() {
                                         </SelectItem>
                                     </SelectContent>
                                 </Select>
+                                */}
 
                                 {/* Results Count */}
                                 <div className="flex items-center text-sm text-slate-600">
@@ -274,6 +315,63 @@ export default function BrowseTutorsPage() {
                     {/* Tutors Grid */}
                     {!loading && (
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                            {/* Accepted Tutor Card - Show First */}
+                            {acceptedTutor && (
+                                <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white border-2 border-green-400 shadow-xl">
+                                    <CardContent className="p-6">
+                                        {/* Header with Avatar and Name */}
+                                        <div className="flex items-center space-x-3 mb-4">
+                                            <div className="relative">
+                                                <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                                                    {acceptedTutor.tutor.firstName?.[0]}
+                                                    {acceptedTutor.tutor.lastName?.[0]}
+                                                </div>
+                                                <div className="absolute -top-1 -right-1 w-6 h-6 bg-yellow-400 border-2 border-white rounded-full flex items-center justify-center">
+                                                    <span className="text-xs">✓</span>
+                                                </div>
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center space-x-2">
+                                                    <h3 className="font-semibold text-white truncate">
+                                                        {acceptedTutor.tutor.firstName}{" "}
+                                                        {acceptedTutor.tutor.lastName}
+                                                    </h3>
+                                                </div>
+                                                <p className="text-green-100 text-sm">
+                                                    Ready to help with your doubt!
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Doubt Info */}
+                                        <div className="bg-white/10 rounded-lg p-3 mb-4">
+                                            <h4 className="font-medium text-white mb-1">
+                                                "{acceptedTutor.doubt.title}"
+                                            </h4>
+                                            <div className="flex items-center space-x-2">
+                                                <Badge className="bg-white/20 text-white border-white/30">
+                                                    {acceptedTutor.doubt.subject?.replace(/_/g, " ")}
+                                                </Badge>
+                                                <Badge className="bg-white/20 text-white border-white/30">
+                                                    {acceptedTutor.doubt.priority}
+                                                </Badge>
+                                            </div>
+                                        </div>
+
+                                        {/* Call Button */}
+                                        <Button
+                                            onClick={handleStartCallWithAcceptedTutor}
+                                            className="w-full bg-white text-green-600 hover:bg-green-50 font-semibold shadow-md hover:shadow-lg transition-all transform hover:scale-105"
+                                            size="sm"
+                                        >
+                                            <Video className="h-4 w-4 mr-2" />
+                                            📹 Connect
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+                            )}
+
+                            {/* Regular Tutor Cards */}
                             {filteredTutors.map((tutor) => (
                                 <Card
                                     key={tutor.id}
@@ -361,12 +459,12 @@ export default function BrowseTutorsPage() {
                                                 <Clock className="h-3 w-3" />
                                                 <span>Online</span>
                                             </div>
-                                            <div className="flex items-center space-x-1">
+                                            {/* <div className="flex items-center space-x-1">
                                                 <DollarSign className="h-3 w-3" />
                                                 <span className="font-medium">
                                                     ${tutor.hourlyRate || 0}/hr
                                                 </span>
-                                            </div>
+                                            </div> */}
                                         </div>
 
                                         {/* Action Buttons */}
@@ -453,14 +551,14 @@ export default function BrowseTutorsPage() {
                 />
             )}
 
-            {/* Student Doubt Status - handles auto-init call */}
+            {/* Student Doubt Status - handles doubt acceptance flow */}
             <StudentDoubtStatus
                 currentDoubt={currentDoubt}
-                onDoubtAccepted={(doubt) => {
-                    // Override the auto-call from doubt submission
-                    setIsCallModalOpen(false)
-                }}
+                tutorName={selectedTutor ? `${selectedTutor.firstName} ${selectedTutor.lastName}` : undefined}
+                onDoubtStatusChange={handleDoubtStatusChange}
             />
+
+
         </div>
     )
 }
