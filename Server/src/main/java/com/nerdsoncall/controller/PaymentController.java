@@ -11,6 +11,7 @@ import com.nerdsoncall.entity.Subscription;
 import com.nerdsoncall.service.UserService;
 import com.nerdsoncall.service.PlanService;
 import com.nerdsoncall.service.SubscriptionService;
+import com.nerdsoncall.service.EmailService;
 
 @RestController
 @RequestMapping("/payment")
@@ -25,6 +26,8 @@ public class PaymentController {
     private PlanService planService;
     @Autowired
     private SubscriptionService subscriptionService;
+    @Autowired
+    private EmailService emailService;
 
     @PostMapping("/verify")
     public ResponseEntity<?> verifyRazorpayPayment(
@@ -33,25 +36,53 @@ public class PaymentController {
             @RequestParam String signature,
             @RequestParam Long planId,
             @RequestParam String userEmail) {
+
+                System.out.println("hieee");
+                System.out.println(orderId);
+                System.out.println(paymentId);
+                System.out.println(signature);
+                System.out.println(planId);
+                System.out.println(userEmail);
         boolean isValid = paymentService.verifyOrder(orderId, paymentId, signature);
+        // boolean isValid = true;
         if (isValid) {
-            // Find user and plan
-            User user = userService.findByEmail(userEmail).orElse(null);
-            Plan plan = planService.getPlanEntity(planId).orElse(null);
-            if (user == null || plan == null) {
-                return ResponseEntity.badRequest().body("User or plan not found");
+            // Find subscription by orderId
+            Subscription subscription = subscriptionService.findByRazorpayOrderId(orderId).orElse(null);
+            if (subscription == null) {
+                return ResponseEntity.badRequest().body("Subscription not found for this order");
             }
-            // Create subscription with plan details
-            Subscription subscription = new Subscription();
-            subscription.setUser(user);
+            
+            // Activate subscription
             subscription.setStatus(Subscription.Status.ACTIVE);
-            subscription.setPrice(plan.getPrice());
             subscription.setStartDate(java.time.LocalDateTime.now());
-            subscription.setEndDate(java.time.LocalDateTime.now().plusMonths(1));
-            subscription.setSessionsLimit(plan.getSessionsLimit());
-            subscription.setSessionsUsed(0);
-            subscription.setPlanName(plan.getName());
+            // Set endDate based on planType
+            java.time.LocalDateTime newEndDate;
+            switch (subscription.getPlanType()) {
+                case "BASIC":
+                    newEndDate = subscription.getStartDate().plusMonths(1);
+                    break;
+                case "STANDARD":
+                    newEndDate = subscription.getStartDate().plusMonths(3);
+                    break;
+                case "PREMIUM":
+                    newEndDate = subscription.getStartDate().plusYears(1);
+                    break;
+                default:
+                    newEndDate = subscription.getStartDate().plusMonths(1);
+            }
+            subscription.setEndDate(newEndDate);
             subscriptionService.saveSubscription(subscription);
+            // Send HTML subscription receipt email
+            String userName = userService.findByEmail(userEmail).map(u -> u.getFirstName() + (u.getLastName() != null ? (" " + u.getLastName()) : "")).orElse(userEmail);
+            try {
+                emailService.sendHtmlReceiptMailOfSubscription(
+                    userEmail,
+                    userName,
+                    subscription
+                );
+            } catch (jakarta.mail.MessagingException e) {
+                System.err.println("Failed to send subscription receipt email: " + e.getMessage());
+            }
             return ResponseEntity.ok(subscription);
         } else {
             return ResponseEntity.badRequest().body("Payment verification failed");

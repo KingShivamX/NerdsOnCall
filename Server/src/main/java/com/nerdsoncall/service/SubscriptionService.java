@@ -64,13 +64,6 @@ public class SubscriptionService {
         }
     }
 
-    public Subscription updateSubscriptionStatus(String stripeSubscriptionId, Subscription.Status status) {
-        Subscription subscription = subscriptionRepository.findByStripeSubscriptionId(stripeSubscriptionId)
-                .orElseThrow(() -> new RuntimeException("Subscription not found"));
-        subscription.setStatus(status);
-        return subscriptionRepository.save(subscription);
-    }
-
     public List<Subscription> getExpiredSubscriptions() {
         return subscriptionRepository.findExpiredSubscriptions(LocalDateTime.now());
     }
@@ -88,5 +81,9 @@ public class SubscriptionService {
                 .orElseThrow(() -> new RuntimeException("Subscription not found"));
         subscription.setStatus(Subscription.Status.CANCELED);
         return subscriptionRepository.save(subscription);
+    }
+
+    public Optional<Subscription> findByRazorpayOrderId(String razorpayOrderId) {
+        return subscriptionRepository.findByRazorpayOrderId(razorpayOrderId);
     }
 } 

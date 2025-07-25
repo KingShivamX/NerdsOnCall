@@ -17,7 +17,7 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Long
     
     List<Subscription> findByUser(User user);
     
-    Optional<Subscription> findByStripeSubscriptionId(String stripeSubscriptionId);
+    Optional<Subscription> findByRazorpayOrderId(String razorpayOrderId);
     
     @Query("SELECT s FROM Subscription s WHERE s.status = 'ACTIVE' AND s.endDate < :now")
     List<Subscription> findExpiredSubscriptions(LocalDateTime now);

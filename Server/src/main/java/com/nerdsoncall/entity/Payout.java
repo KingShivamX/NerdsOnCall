@@ -39,6 +39,9 @@ public class Payout {
 
     private String transactionId; // Generic field for the payment gateway's ID
 
+    // Option 1: Comma-separated session IDs (simple, not normalized)
+    private String sessionIds;
+
     @Lob
     private String description;
 

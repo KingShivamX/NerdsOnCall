@@ -9,4 +9,5 @@ public class UpdatePlanRequest {
     private Integer sessionsLimit;
     private String description;
     private Boolean isActive;
+    private String duration;
 } 

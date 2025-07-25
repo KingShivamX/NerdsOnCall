@@ -31,6 +31,14 @@ public class Plan {
     @Column(length = 512)
     private String description;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private DurationType duration;
+
+    public enum DurationType {
+        MONTHLY, YEARLY, QUARTERLY
+    }
+
     @Column(nullable = false)
     private Boolean isActive = true;
 

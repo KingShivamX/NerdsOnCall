@@ -1,5 +1,7 @@
 package com.nerdsoncall.scheduler;
 
+import java.time.LocalDate;
+
 import com.nerdsoncall.service.PayoutService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -12,8 +14,13 @@ public class PayoutScheduler {
     private PayoutService payoutService;
 
     // Runs at 2 AM on the 1st day of every month
-    @Scheduled(cron = "0 0 2 1 * ?")
+    // @Scheduled(cron = "0 0 2 1 * ?")
+    // @Scheduled(cron = "0 0 2 1 * ?")
+    @Scheduled(cron = "0 27 20 * * ?")
     public void processMonthlyPayouts() {
+        System.out.println("---------------------------------------");
+        System.out.println("Processing monthly payouts");
+        System.out.println(LocalDate.now());
         payoutService.createMonthlyPayouts();
         payoutService.executePendingPayouts();
     }
