@@ -37,14 +37,17 @@ public class Subscription {
     @Column(nullable = false)
     private LocalDateTime endDate;
 
-    private String stripeSubscriptionId;
-    private String stripeCustomerId;
+    @Column(nullable = true)
+    private String razorpayOrderId;
 
     private Integer sessionsUsed = 0;
     private Integer sessionsLimit;
 
-    @Column(nullable = false)
+    @Column(name = "plan_name", nullable = false)
     private String planName;
+
+    @Column(name = "plan_type", nullable = false)
+    private String planType;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -53,6 +56,6 @@ public class Subscription {
     private LocalDateTime updatedAt;
 
     public enum Status {
-        ACTIVE, CANCELED, EXPIRED, PAST_DUE
+        PENDING, ACTIVE, CANCELED, EXPIRED, PAST_DUE
     }
 } 

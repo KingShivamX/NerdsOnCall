@@ -85,6 +85,52 @@ public class SubscriptionController {
             String receipt = "receipt_" + user.getId() + "_" + System.currentTimeMillis();
             Order order = paymentService.createOrder(amount, currency, receipt);
 
+            // Create a pending subscription linked to this order
+            Subscription subscription = new Subscription();
+            subscription.setUser(user);
+            subscription.setStatus(Subscription.Status.PENDING);
+            subscription.setPrice(plan.getPrice());
+            // Set start and end dates based on plan duration
+            java.time.LocalDateTime startDate = java.time.LocalDateTime.now();
+            java.time.LocalDateTime endDate;
+            switch (plan.getDuration()) {
+                case MONTHLY:
+                    endDate = startDate.plusMonths(1);
+                    break;
+                case YEARLY:
+                    endDate = startDate.plusYears(1);
+                    break;
+                case QUARTERLY:
+                    endDate = startDate.plusMonths(3);
+                    break;
+                default:
+                    endDate = startDate.plusMonths(1); // fallback
+            }
+            subscription.setStartDate(startDate);
+            subscription.setEndDate(endDate);
+            subscription.setSessionsLimit(plan.getSessionsLimit());
+            subscription.setSessionsUsed(0);
+            subscription.setPlanName(plan.getName());
+            subscription.setStatus(Subscription.Status.ACTIVE);
+            // Set planType based on duration
+            String planType;
+            switch (plan.getDuration()) {
+                case MONTHLY:
+                    planType = "BASIC";
+                    break;
+                case QUARTERLY:
+                    planType = "STANDARD";
+                    break;
+                case YEARLY:
+                    planType = "PREMIUM";
+                    break;
+                default:
+                    planType = "BASIC";
+            }
+            subscription.setPlanType(planType);
+            subscription.setRazorpayOrderId((String) order.get("id"));
+            subscriptionService.saveSubscription(subscription);
+
             // Return order details needed for Razorpay checkout
             Map<String, Object> response = new HashMap<>();
             response.put("orderId", order.get("id"));

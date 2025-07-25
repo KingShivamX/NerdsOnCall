@@ -36,6 +36,10 @@ public class Session {
     @Column(nullable = false)
     private Status status = Status.PENDING;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_status", nullable = false)
+    private PaymentStatus paymentStatus = PaymentStatus.PENDING;
+
     @Column(nullable = false)
     private LocalDateTime startTime;
 
@@ -75,5 +79,9 @@ public class Session {
 
     public enum Status {
         PENDING, ACTIVE, COMPLETED, CANCELLED, TIMEOUT
+    }
+
+    public enum PaymentStatus {
+        PAID, PENDING, PROCESSING, FAILED
     }
 } 

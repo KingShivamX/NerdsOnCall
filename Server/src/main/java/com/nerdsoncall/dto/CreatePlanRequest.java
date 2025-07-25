@@ -18,4 +18,6 @@ public class CreatePlanRequest {
     private String description;
 
     private Boolean isActive = true;
+
+    private String duration;
 } 

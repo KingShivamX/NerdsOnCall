@@ -50,4 +50,12 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
     
     @Query("SELECT s FROM Session s WHERE s.doubt.id = :doubtId")
     Optional<Session> findByDoubtId(@Param("doubtId") Long doubtId);
+
+    @Query("SELECT s FROM Session s WHERE s.tutor = :tutor AND s.status = 'COMPLETED' AND s.paymentStatus = 'PENDING' AND s.startTime >= :startDate AND s.startTime <= :endDate")
+    List<Session> findCompletedUnpaidSessionsByTutorAndDateRange(@Param("tutor") User tutor, 
+                                                                @Param("startDate") LocalDateTime startDate, 
+                                                                @Param("endDate") LocalDateTime endDate);
+
+    @Query("SELECT SUM(s.tutorEarnings) FROM Session s WHERE s.tutor = :tutor AND s.status = 'COMPLETED' AND s.paymentStatus = 'PENDING' AND s.endTime BETWEEN :start AND :end")
+    Double sumTutorEarningsOfUnpaidSessionsInPeriod(@Param("tutor") User tutor, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 } 

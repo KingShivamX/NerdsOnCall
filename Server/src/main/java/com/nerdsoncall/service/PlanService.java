@@ -26,6 +26,12 @@ public class PlanService {
         plan.setSessionsLimit(request.getSessionsLimit());
         plan.setDescription(request.getDescription());
         plan.setIsActive(request.getIsActive() != null ? request.getIsActive() : true);
+        // Set duration from request (convert string to enum)
+        if (request.getDuration() != null) {
+            plan.setDuration(Plan.DurationType.valueOf(request.getDuration().toUpperCase()));
+        } else {
+            plan.setDuration(Plan.DurationType.MONTHLY); // default
+        }
         Plan saved = planRepository.save(plan);
         return toResponse(saved);
     }
@@ -37,6 +43,10 @@ public class PlanService {
         if (request.getSessionsLimit() != null) plan.setSessionsLimit(request.getSessionsLimit());
         if (request.getDescription() != null) plan.setDescription(request.getDescription());
         if (request.getIsActive() != null) plan.setIsActive(request.getIsActive());
+        // Set duration from request (convert string to enum)
+        if (request.getDuration() != null) {
+            plan.setDuration(Plan.DurationType.valueOf(request.getDuration().toUpperCase()));
+        }
         Plan saved = planRepository.save(plan);
         return toResponse(saved);
     }
@@ -70,6 +80,7 @@ public class PlanService {
         resp.setIsActive(plan.getIsActive());
         resp.setCreatedAt(plan.getCreatedAt());
         resp.setUpdatedAt(plan.getUpdatedAt());
+        resp.setDuration(plan.getDuration().name());
         return resp;
     }
 } 

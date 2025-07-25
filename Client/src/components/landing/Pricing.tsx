@@ -148,6 +148,8 @@ export function Pricing() {
                         }
                     } catch (err: any) {
                         toast.error("Payment verification failed. Please contact support.");
+                        // Redirect to dashboard on payment failure
+                        window.location.href = "/dashboard";
                     }
                 },
                 prefill: {
