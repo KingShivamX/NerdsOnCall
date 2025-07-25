@@ -6,14 +6,16 @@ import com.nerdsoncall.entity.User;
 import com.nerdsoncall.repository.PayoutRepository;
 import com.nerdsoncall.repository.SessionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.util.List;
-import org.springframework.mail.SimpleMailMessage;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.Arrays;
 
 @Service
 public class PayoutService {
@@ -35,30 +37,35 @@ public class PayoutService {
         System.out.println("---------------------------------------");
         System.out.println("Creating monthly payouts");
         System.out.println(LocalDate.now());
-        LocalDate lastMonth = LocalDate.now().minusMonths(1);
-        LocalDateTime periodStart = lastMonth.withDayOfMonth(1).atStartOfDay();
-        LocalDateTime periodEnd = lastMonth.withDayOfMonth(lastMonth.lengthOfMonth()).atTime(23, 59, 59);
+        // Payouts for the current month
+        YearMonth currentMonth = YearMonth.now();
+        LocalDateTime periodStart = currentMonth.atDay(1).atStartOfDay();
+        LocalDateTime periodEnd = currentMonth.atEndOfMonth().atTime(23, 59, 59);
 
-        List<User> tutors = sessionRepository.findTutorsWithCompletedSessionsInPeriod(Session.Status.COMPLETED, periodStart, periodEnd);
+        // 1. Fetch all completed sessions with pending payments for the current month in one query
+        List<Session> allUnpaidSessions = sessionRepository.findAllCompletedUnpaidSessionsInPeriod(Session.Status.COMPLETED, Session.PaymentStatus.PENDING, periodStart, periodEnd);
 
-        for (User tutor : tutors) {
+        // 2. Group sessions by tutor in memory
+        Map<User, List<Session>> sessionsByTutor = allUnpaidSessions.stream()
+                .collect(Collectors.groupingBy(Session::getTutor));
+
+        // 3. Create a payout for each tutor
+        for (Map.Entry<User, List<Session>> entry : sessionsByTutor.entrySet()) {
+            User tutor = entry.getKey();
+            List<Session> unpaidSessions = entry.getValue();
+
             boolean payoutExists = payoutRepository.existsByTutorAndPeriodStartAndPeriodEnd(tutor, periodStart, periodEnd);
             if (payoutExists) {
-                continue; 
-            }
-
-            // Only consider sessions with payment_status = PENDING
-            List<Session> unpaidSessions = sessionRepository.findCompletedUnpaidSessionsByTutorAndDateRange(tutor, periodStart, periodEnd);
-            if (unpaidSessions.isEmpty()) {
                 continue;
             }
+
             Double totalEarnings = unpaidSessions.stream().mapToDouble(s -> s.getTutorEarnings() != null ? s.getTutorEarnings().doubleValue() : 0.0).sum();
             if (totalEarnings <= 0) {
                 continue;
             }
 
             // Track session IDs in payout
-            String sessionIds = unpaidSessions.stream().map(s -> s.getId().toString()).reduce((a, b) -> a + "," + b).orElse("");
+            String sessionIds = unpaidSessions.stream().map(s -> s.getId().toString()).collect(Collectors.joining(","));
 
             Payout payout = new Payout();
             payout.setTutor(tutor);
@@ -66,7 +73,7 @@ public class PayoutService {
             payout.setPeriodStart(periodStart);
             payout.setPeriodEnd(periodEnd);
             payout.setStatus(Payout.Status.PENDING);
-            payout.setDescription("Monthly payout for " + lastMonth.getMonth().name() + " " + lastMonth.getYear());
+            payout.setDescription("Monthly payout for " + currentMonth.getMonth().name() + " " + currentMonth.getYear());
             payout.setSessionIds(sessionIds);
             payoutRepository.save(payout);
         }
@@ -100,17 +107,12 @@ public class PayoutService {
 
                 // Mark all sessions in this payout as PAID
                 if (payout.getSessionIds() != null && !payout.getSessionIds().isEmpty()) {
-                    String[] sessionIdArr = payout.getSessionIds().split(",");
-                    for (String sessionIdStr : sessionIdArr) {
-                        try {
-                            Long sessionId = Long.parseLong(sessionIdStr);
-                            Session session = sessionRepository.findById(sessionId).orElse(null);
-                            if (session != null) {
-                                session.setPaymentStatus(Session.PaymentStatus.PAID);
-                                sessionRepository.save(session);
-                            }
-                        } catch (Exception ignored) {}
-                    }
+                    List<Long> sessionIds = Arrays.stream(payout.getSessionIds().split(","))
+                            .map(Long::parseLong)
+                            .collect(Collectors.toList());
+
+                    // Batch update session statuses
+                    sessionRepository.updatePaymentStatusForSessions(sessionIds, Session.PaymentStatus.PAID);
                 }
 
                 // Send payout completion email to tutor

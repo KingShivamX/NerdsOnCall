@@ -2,7 +2,7 @@ spring:
     datasource:
         url: jdbc:postgresql://localhost:5432/nerdsoncall_db
         username: postgres
-        password: shiv
+        password: 1234
         driver-class-name: org.postgresql.Driver
         hikari:
             auto-commit: true
@@ -16,7 +16,7 @@ spring:
         database: postgresql
 
 server:
-    port: 8080
+    port: 8081
 
 logging:
     level:

@@ -59,7 +59,7 @@ public class EmailService {
                 <hr>
                 <p><strong>Receipt ID:</strong> %d</p>
                 <p><strong>Plan Name:</strong> %s</p>
-                <p><strong>Price:</strong> $%.2f</p>
+                <p><strong>Price:</strong> ₹%.2f</p>
                 <p><strong>Status:</strong> %s</p>
                 <p><strong>Start Date:</strong> %s</p>
                 <p><strong>End Date:</strong> %s</p>
@@ -100,7 +100,7 @@ public class EmailService {
                     <p>Hi %s,</p>
                     <p>We're pleased to inform you that your monthly payout for <strong>%s</strong> has been successfully processed.</p>
                     <hr>
-                    <p><strong>Amount:</strong> $%.2f</p>
+                    <p><strong>Amount:</strong> ₹%.2f</p>
                     <p><strong>Billing Date:</strong> %s</p>
                     <p><strong>Transaction ID:</strong> %s</p>
                     <hr>

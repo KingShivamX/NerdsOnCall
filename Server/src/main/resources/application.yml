@@ -5,7 +5,7 @@ spring:
         url: jdbc:postgresql://localhost:5432/nerdsoncall_db
         driver-class-name: org.postgresql.Driver
         username: postgres
-        password: shiv
+        password: 1234
         hikari:
             auto-commit: true
             maximum-pool-size: 5
