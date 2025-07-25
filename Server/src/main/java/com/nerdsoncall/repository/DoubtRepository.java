@@ -31,4 +31,7 @@ public interface DoubtRepository extends JpaRepository<Doubt, Long> {
 
     @Query("SELECT d FROM Doubt d WHERE d.acceptedTutor.id = :tutorId OR d.preferredTutorId = :tutorId")
     List<Doubt> findDoubtsByTutor(@Param("tutorId") Long tutorId);
+
+    @Query("SELECT d FROM Doubt d WHERE d.status = 'OPEN' OR d.preferredTutorId = :tutorId")
+    List<Doubt> findAllOpenOrPreferredForTutor(@Param("tutorId") Long tutorId);
 }

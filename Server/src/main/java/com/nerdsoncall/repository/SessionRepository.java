@@ -41,4 +41,13 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
 
     @Query("SELECT SUM(s.tutorEarnings) FROM Session s WHERE s.tutor = :tutor AND s.status = :status AND s.endTime BETWEEN :start AND :end")
     Double sumTutorEarningsInPeriod(@Param("tutor") User tutor, @Param("status") Session.Status status, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+    
+    @Query("SELECT s FROM Session s WHERE s.student.id = :studentId ORDER BY s.createdAt DESC")
+    List<Session> findByStudentIdOrderByCreatedAtDesc(@Param("studentId") Long studentId);
+    
+    @Query("SELECT s FROM Session s WHERE s.tutor.id = :tutorId ORDER BY s.createdAt DESC")
+    List<Session> findByTutorIdOrderByCreatedAtDesc(@Param("tutorId") Long tutorId);
+    
+    @Query("SELECT s FROM Session s WHERE s.doubt.id = :doubtId")
+    Optional<Session> findByDoubtId(@Param("doubtId") Long doubtId);
 } 

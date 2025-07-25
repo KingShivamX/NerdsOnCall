@@ -1,21 +1,19 @@
 package com.nerdsoncall.controller;
 
-import com.nerdsoncall.dto.CreateSessionRequest;
 import com.nerdsoncall.entity.Session;
 import com.nerdsoncall.entity.User;
 import com.nerdsoncall.service.SessionService;
-import com.nerdsoncall.service.SubscriptionService;
 import com.nerdsoncall.service.UserService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
 import java.util.List;
 
 @RestController
-@RequestMapping("/sessions")
+@RequestMapping("/api/sessions")
 @CrossOrigin(origins = "*")
 public class SessionController {
 
@@ -25,35 +23,41 @@ public class SessionController {
     @Autowired
     private UserService userService;
 
-    @Autowired
-    private SubscriptionService subscriptionService;
-
     @PostMapping
-    public ResponseEntity<?> createSession(@Valid @RequestBody CreateSessionRequest request, Authentication authentication) {
+    public ResponseEntity<?> createSession(@RequestParam Long tutorId, @RequestParam Long doubtId,
+            Authentication authentication) {
         try {
-            User tutor = userService.findByEmail(authentication.getName())
+            User student = userService.findByEmail(authentication.getName())
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
-            if (tutor.getRole() != User.Role.TUTOR) {
-                return ResponseEntity.badRequest().body("Only tutors can create sessions");
+            if (student.getRole() != User.Role.STUDENT) {
+                return ResponseEntity.badRequest().body("Only students can create sessions");
             }
 
-            // Check if student has active subscription
-            User student = userService.findById(request.getStudentId())
-                    .orElseThrow(() -> new RuntimeException("Student not found"));
-
-            if (!subscriptionService.canUserCreateSession(student)) {
-                return ResponseEntity.badRequest().body("Student doesn't have an active subscription or has exceeded session limits");
-            }
-
-            Session session = sessionService.createSession(request.getDoubtId(), tutor.getId());
-            
-            // Increment session usage for student
-            subscriptionService.incrementSessionUsage(student);
-
+            Session session = sessionService.createSession(student.getId(), tutorId, doubtId);
             return ResponseEntity.ok(session);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Failed to create session: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/{id}/start")
+    public ResponseEntity<?> startSession(@PathVariable Long id) {
+        try {
+            Session session = sessionService.startSession(id);
+            return ResponseEntity.ok(session);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Failed to start session: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/{id}/end")
+    public ResponseEntity<?> endSession(@PathVariable Long id) {
+        try {
+            Session session = sessionService.endSession(id);
+            return ResponseEntity.ok(session);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Failed to end session: " + e.getMessage());
         }
     }
 
@@ -63,7 +67,15 @@ public class SessionController {
             User user = userService.findByEmail(authentication.getName())
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
-            List<Session> sessions = sessionService.getSessionsByUser(user);
+            List<Session> sessions;
+            if (user.getRole() == User.Role.STUDENT) {
+                sessions = sessionService.getSessionsByStudent(user.getId());
+            } else if (user.getRole() == User.Role.TUTOR) {
+                sessions = sessionService.getSessionsByTutor(user.getId());
+            } else {
+                return ResponseEntity.badRequest().body("Invalid user role");
+            }
+
             return ResponseEntity.ok(sessions);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Failed to get sessions: " + e.getMessage());
@@ -73,7 +85,7 @@ public class SessionController {
     @GetMapping("/{id}")
     public ResponseEntity<?> getSessionById(@PathVariable Long id) {
         try {
-            Session session = sessionService.findBySessionId(id.toString())
+            Session session = sessionService.findById(id)
                     .orElseThrow(() -> new RuntimeException("Session not found"));
             return ResponseEntity.ok(session);
         } catch (Exception e) {
@@ -81,44 +93,14 @@ public class SessionController {
         }
     }
 
-    @GetMapping("/session/{sessionId}")
-    public ResponseEntity<?> getSessionBySessionId(@PathVariable String sessionId) {
+    @GetMapping("/doubt/{doubtId}")
+    public ResponseEntity<?> getSessionByDoubtId(@PathVariable Long doubtId) {
         try {
-            Session session = sessionService.findBySessionId(sessionId)
-                    .orElseThrow(() -> new RuntimeException("Session not found"));
+            Session session = sessionService.findByDoubtId(doubtId)
+                    .orElse(null);
             return ResponseEntity.ok(session);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Failed to get session: " + e.getMessage());
         }
     }
-
-    @PutMapping("/{id}/end")
-    public ResponseEntity<?> endSession(@PathVariable Long id, Authentication authentication) {
-        try {
-            Session session = sessionService.endSession(id);
-            return ResponseEntity.ok(session);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Failed to end session: " + e.getMessage());
-        }
-    }
-
-    @PutMapping("/{id}/notes")
-    public ResponseEntity<?> updateSessionNotes(@PathVariable Long id, @RequestBody String notes) {
-        try {
-            Session session = sessionService.updateSessionNotes(id, notes);
-            return ResponseEntity.ok(session);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Failed to update session notes: " + e.getMessage());
-        }
-    }
-
-    @PutMapping("/{id}/canvas")
-    public ResponseEntity<?> updateCanvasData(@PathVariable Long id, @RequestBody String canvasData) {
-        try {
-            Session session = sessionService.updateCanvasData(id, canvasData);
-            return ResponseEntity.ok(session);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Failed to update canvas data: " + e.getMessage());
-        }
-    }
-} 
+}

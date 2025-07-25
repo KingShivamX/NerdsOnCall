@@ -2,6 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { AuthProvider } from "../context/AuthContext"
+import { WebSocketProvider } from "../context/WebSocketContext"
 import { TutorCallProvider } from "./layout/TutorCallProvider"
 import { ReactNode, useState } from "react"
 
@@ -25,9 +26,9 @@ export function ReactQueryProvider({ children }: ProvidersProps) {
     return (
         <QueryClientProvider client={queryClient}>
             <AuthProvider>
-                <TutorCallProvider>
-                    {children}
-                </TutorCallProvider>
+                <WebSocketProvider>
+                    <TutorCallProvider>{children}</TutorCallProvider>
+                </WebSocketProvider>
             </AuthProvider>
         </QueryClientProvider>
     )

@@ -42,10 +42,6 @@ public class Doubt {
     @Column(nullable = false)
     private Status status = Status.OPEN;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private State state = State.PENDING;
-
     @ManyToOne
     @JoinColumn(name = "accepted_tutor_id")
     private User acceptedTutor; // Tutor who accepted this doubt
@@ -69,7 +65,5 @@ public class Doubt {
         OPEN, ASSIGNED, IN_PROGRESS, RESOLVED, CANCELLED
     }
 
-    public enum State {
-        PENDING, ACCEPTED, REJECTED
-    }
+
 }

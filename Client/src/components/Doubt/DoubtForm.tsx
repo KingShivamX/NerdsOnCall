@@ -54,10 +54,16 @@ interface DoubtFormProps {
     onClose: () => void
     tutorId: number
     tutorName: string
-    onSubmitSuccess?: () => void
+    onSubmitSuccess?: (doubt: any) => void
 }
 
-export function DoubtForm({ isOpen, onClose, tutorId, tutorName, onSubmitSuccess }: DoubtFormProps) {
+export function DoubtForm({
+    isOpen,
+    onClose,
+    tutorId,
+    tutorName,
+    onSubmitSuccess,
+}: DoubtFormProps) {
     const [title, setTitle] = useState("")
     const [subject, setSubject] = useState<Subject | "">("")
     const [description, setDescription] = useState("")
@@ -70,12 +76,12 @@ export function DoubtForm({ isOpen, onClose, tutorId, tutorName, onSubmitSuccess
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             const newFiles = Array.from(e.target.files)
-            setFiles(prev => [...prev, ...newFiles])
+            setFiles((prev) => [...prev, ...newFiles])
         }
     }
 
     const removeFile = (index: number) => {
-        setFiles(prev => prev.filter((_, i) => i !== index))
+        setFiles((prev) => prev.filter((_, i) => i !== index))
     }
 
     const uploadFiles = async () => {
@@ -91,7 +97,7 @@ export function DoubtForm({ isOpen, onClose, tutorId, tutorName, onSubmitSuccess
 
                 const response = await api.post("/api/upload", formData, {
                     headers: {
-                        'Content-Type': 'multipart/form-data',
+                        "Content-Type": "multipart/form-data",
                     },
                 })
 
@@ -146,7 +152,9 @@ export function DoubtForm({ isOpen, onClose, tutorId, tutorName, onSubmitSuccess
             console.log("Submitting doubt data:", doubtData)
             const response = await api.post("/api/doubts", doubtData)
 
-            toast.success("Your doubt has been sent to the tutor.")
+            toast.success(
+                "Your doubt has been sent to the tutor. Starting video call..."
+            )
 
             // Reset form
             setTitle("")
@@ -157,7 +165,7 @@ export function DoubtForm({ isOpen, onClose, tutorId, tutorName, onSubmitSuccess
             setAttachments([])
 
             if (onSubmitSuccess) {
-                onSubmitSuccess()
+                onSubmitSuccess(response.data) // Pass the created doubt data
             }
 
             onClose()
@@ -173,19 +181,35 @@ export function DoubtForm({ isOpen, onClose, tutorId, tutorName, onSubmitSuccess
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[600px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
                 <DialogHeader>
-                    <DialogTitle className="text-gray-900 dark:text-gray-100">Ask a Doubt to {tutorName}</DialogTitle>
+                    <DialogTitle className="text-gray-900 dark:text-gray-100">
+                        Ask a Doubt to {tutorName}
+                    </DialogTitle>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-6 p-1">
                     <div className="space-y-2">
-                        <Label htmlFor="subject" className="text-sm font-medium text-gray-700 dark:text-gray-300">Subject *</Label>
-                        <Select value={subject} onValueChange={(value) => setSubject(value as Subject)}>
+                        <Label
+                            htmlFor="subject"
+                            className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                        >
+                            Subject *
+                        </Label>
+                        <Select
+                            value={subject}
+                            onValueChange={(value) =>
+                                setSubject(value as Subject)
+                            }
+                        >
                             <SelectTrigger className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600">
                                 <SelectValue placeholder="Select a subject" />
                             </SelectTrigger>
                             <SelectContent className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600">
                                 {subjectsList.map((subject) => (
-                                    <SelectItem key={subject} value={subject} className="hover:bg-gray-100 dark:hover:bg-gray-600">
+                                    <SelectItem
+                                        key={subject}
+                                        value={subject}
+                                        className="hover:bg-gray-100 dark:hover:bg-gray-600"
+                                    >
                                         {subject.replace(/_/g, " ")}
                                     </SelectItem>
                                 ))}
@@ -194,7 +218,12 @@ export function DoubtForm({ isOpen, onClose, tutorId, tutorName, onSubmitSuccess
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="title" className="text-sm font-medium text-gray-700 dark:text-gray-300">Title *</Label>
+                        <Label
+                            htmlFor="title"
+                            className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                        >
+                            Title *
+                        </Label>
                         <Input
                             id="title"
                             value={title}
@@ -206,7 +235,12 @@ export function DoubtForm({ isOpen, onClose, tutorId, tutorName, onSubmitSuccess
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="description" className="text-sm font-medium text-gray-700 dark:text-gray-300">Description *</Label>
+                        <Label
+                            htmlFor="description"
+                            className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                        >
+                            Description *
+                        </Label>
                         <Textarea
                             id="description"
                             value={description}
@@ -219,14 +253,23 @@ export function DoubtForm({ isOpen, onClose, tutorId, tutorName, onSubmitSuccess
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="priority" className="text-sm font-medium text-gray-700 dark:text-gray-300">Priority</Label>
+                        <Label
+                            htmlFor="priority"
+                            className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                        >
+                            Priority
+                        </Label>
                         <Select value={priority} onValueChange={setPriority}>
                             <SelectTrigger className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600">
                                 <SelectValue placeholder="Select priority" />
                             </SelectTrigger>
                             <SelectContent className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600">
                                 {priorityList.map((item) => (
-                                    <SelectItem key={item.value} value={item.value} className="hover:bg-gray-100 dark:hover:bg-gray-600">
+                                    <SelectItem
+                                        key={item.value}
+                                        value={item.value}
+                                        className="hover:bg-gray-100 dark:hover:bg-gray-600"
+                                    >
                                         {item.label}
                                     </SelectItem>
                                 ))}
@@ -235,7 +278,9 @@ export function DoubtForm({ isOpen, onClose, tutorId, tutorName, onSubmitSuccess
                     </div>
 
                     <div className="space-y-2">
-                        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Attachments</Label>
+                        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Attachments
+                        </Label>
                         <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 bg-gray-50 dark:bg-gray-700/50">
                             <div className="flex items-center justify-center">
                                 <label
@@ -269,7 +314,9 @@ export function DoubtForm({ isOpen, onClose, tutorId, tutorName, onSubmitSuccess
                                                 type="button"
                                                 variant="ghost"
                                                 size="sm"
-                                                onClick={() => removeFile(index)}
+                                                onClick={() =>
+                                                    removeFile(index)
+                                                }
                                                 className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                                             >
                                                 <X className="h-4 w-4" />
@@ -293,7 +340,13 @@ export function DoubtForm({ isOpen, onClose, tutorId, tutorName, onSubmitSuccess
                         </Button>
                         <Button
                             type="submit"
-                            disabled={isSubmitting || isUploading || !subject || !title || !description}
+                            disabled={
+                                isSubmitting ||
+                                isUploading ||
+                                !subject ||
+                                !title ||
+                                !description
+                            }
                             className="bg-blue-600 hover:bg-blue-700 text-white"
                         >
                             {(isSubmitting || isUploading) && (

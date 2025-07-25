@@ -27,8 +27,29 @@ api.interceptors.request.use(
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        // Temporarily disable automatic logout to debug doubt submission
-        console.error("API Error:", error.response?.status, error.response?.data)
+        console.error(
+            "API Error:",
+            error.response?.status,
+            error.response?.data
+        )
+
+        // Handle 401 errors by clearing invalid tokens
+        if (error.response?.status === 401) {
+            console.log("401 error detected, clearing token...")
+            localStorage.removeItem("token")
+            document.cookie =
+                "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+
+            // Only redirect to login if not already on auth pages
+            if (
+                typeof window !== "undefined" &&
+                !window.location.pathname.includes("/auth/") &&
+                !window.location.pathname.includes("/login")
+            ) {
+                window.location.href = "/auth/login"
+            }
+        }
+
         return Promise.reject(error)
     }
 )

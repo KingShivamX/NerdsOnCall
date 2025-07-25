@@ -16,6 +16,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { StudentDoubtNotification } from "@/components/Doubt/StudentDoubtNotification"
 import {
     BookOpen,
     Users,
@@ -343,55 +344,67 @@ export default function DashboardPage() {
                                         {isStudent ? (
                                             <>
                                                 <Link href="/ask-question">
-                                                    <Button className="bg-gradient-to-r from-slate-700 to-slate-900 hover:from-slate-800 hover:to-slate-950 text-white border-0 h-auto p-4 flex-col w-full group">
-                                                        <PlusCircle className="h-6 w-6 mb-2 group-hover:rotate-90 transition-transform" />
-                                                        <span className="font-semibold">
+                                                    <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white border-0 h-auto p-6 flex-col w-full group shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                                                        <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                                            <PlusCircle className="h-6 w-6 group-hover:rotate-90 transition-transform" />
+                                                        </div>
+                                                        <span className="font-bold text-lg">
                                                             Ask a Question
                                                         </span>
-                                                        <span className="text-xs opacity-90">
+                                                        <span className="text-sm opacity-90">
                                                             Get instant help
+                                                            from expert tutors
                                                         </span>
                                                     </Button>
                                                 </Link>
                                                 <Link href="/browse-tutors">
                                                     <Button
                                                         variant="outline"
-                                                        className="bg-white border-2 border-slate-300 text-slate-700 hover:bg-slate-50 h-auto p-4 flex-col w-full group"
+                                                        className="bg-white border-2 border-slate-300 text-slate-700 hover:bg-gradient-to-r hover:from-slate-50 hover:to-slate-100 h-auto p-6 flex-col w-full group shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
                                                     >
-                                                        <Users className="h-6 w-6 mb-2 text-slate-600 group-hover:scale-110 transition-transform" />
-                                                        <span className="font-semibold text-slate-700">
+                                                        <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mb-3 group-hover:bg-slate-200 transition-colors">
+                                                            <Users className="h-6 w-6 text-slate-600 group-hover:scale-110 transition-transform" />
+                                                        </div>
+                                                        <span className="font-bold text-slate-700">
                                                             Browse Tutors
                                                         </span>
-                                                        <span className="text-xs text-slate-600">
-                                                            Find experts
+                                                        <span className="text-sm text-slate-600">
+                                                            Find expert tutors
+                                                            in your subject
                                                         </span>
                                                     </Button>
                                                 </Link>
                                                 <Link href="/my-sessions">
                                                     <Button
                                                         variant="outline"
-                                                        className="bg-white border-2 border-slate-300 text-slate-700 hover:bg-slate-50 h-auto p-4 flex-col w-full group"
+                                                        className="bg-white border-2 border-slate-300 text-slate-700 hover:bg-gradient-to-r hover:from-slate-50 hover:to-slate-100 h-auto p-6 flex-col w-full group shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
                                                     >
-                                                        <Video className="h-6 w-6 mb-2 text-slate-600 group-hover:scale-110 transition-transform" />
-                                                        <span className="font-semibold text-slate-700">
+                                                        <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mb-3 group-hover:bg-slate-200 transition-colors">
+                                                            <Video className="h-6 w-6 text-slate-600 group-hover:scale-110 transition-transform" />
+                                                        </div>
+                                                        <span className="font-bold text-slate-700">
                                                             My Sessions
                                                         </span>
-                                                        <span className="text-xs text-slate-600">
-                                                            View history
+                                                        <span className="text-sm text-slate-600">
+                                                            View your learning
+                                                            sessions
                                                         </span>
                                                     </Button>
                                                 </Link>
-                                                <Link href="/my-doubts">
+                                                <Link href="/my-questions">
                                                     <Button
                                                         variant="outline"
-                                                        className="bg-white border-2 border-slate-300 text-slate-700 hover:bg-slate-50 h-auto p-4 flex-col w-full group"
+                                                        className="bg-white border-2 border-slate-300 text-slate-700 hover:bg-gradient-to-r hover:from-slate-50 hover:to-slate-100 h-auto p-6 flex-col w-full group shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
                                                     >
-                                                        <MessageCircle className="h-6 w-6 mb-2 text-slate-600 group-hover:scale-110 transition-transform" />
-                                                        <span className="font-semibold text-slate-700">
+                                                        <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mb-3 group-hover:bg-slate-200 transition-colors">
+                                                            <MessageCircle className="h-6 w-6 text-slate-600 group-hover:scale-110 transition-transform" />
+                                                        </div>
+                                                        <span className="font-bold text-slate-700">
                                                             My Questions
                                                         </span>
-                                                        <span className="text-xs text-slate-600">
-                                                            Track progress
+                                                        <span className="text-sm text-slate-600">
+                                                            Track your question
+                                                            progress
                                                         </span>
                                                     </Button>
                                                 </Link>
@@ -711,6 +724,9 @@ export default function DashboardPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Student Doubt Notifications */}
+            {isStudent && <StudentDoubtNotification />}
         </div>
     )
 }

@@ -20,6 +20,9 @@ public class DoubtService {
     @Autowired
     private DoubtNotificationHandler doubtNotificationHandler;
 
+    @Autowired
+    private SessionService sessionService;
+
     public Doubt createDoubt(Doubt doubt) {
         Doubt savedDoubt = doubtRepository.save(doubt);
 
@@ -56,25 +59,24 @@ public class DoubtService {
     }
 
     public List<Doubt> getAllDoubtsForTutor(Long tutorId) {
-        // Get doubts that are either accepted by this tutor or specifically requested
-        // for this tutor
-        return doubtRepository.findDoubtsByTutor(tutorId);
+        // Return all open doubts and those with preferredTutorId matching this tutor
+        return doubtRepository.findAllOpenOrPreferredForTutor(tutorId);
     }
 
-    public Doubt updateDoubtStatus(Long doubtId, Doubt.Status status) {
+    public Doubt updateDoubtStatus(Long doubtId, Doubt.Status status, User tutor) {
         Doubt doubt = doubtRepository.findById(doubtId)
                 .orElseThrow(() -> new RuntimeException("Doubt not found"));
 
-        // Update status
+        // Update status and assign tutor
         doubt.setStatus(status);
-
-        // Update state based on status
-        if (status == Doubt.Status.ASSIGNED) {
-            doubt.setState(Doubt.State.ACCEPTED);
-        } else if (status == Doubt.Status.CANCELLED) {
-            doubt.setState(Doubt.State.REJECTED);
+        if (status == Doubt.Status.ASSIGNED && tutor != null) {
+            doubt.setAcceptedTutor(tutor);
+            try {
+                sessionService.createSession(doubt.getStudent().getId(), tutor.getId(), doubtId);
+            } catch (Exception e) {
+                System.err.println("Error creating session for doubt: " + e.getMessage());
+            }
         }
-
         return doubtRepository.save(doubt);
     }
 }

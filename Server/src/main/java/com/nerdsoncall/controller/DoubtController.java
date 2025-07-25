@@ -147,13 +147,23 @@ public class DoubtController {
     }
 
     @PutMapping("/{id}/status")
-    public ResponseEntity<?> updateDoubtStatus(@PathVariable Long id, @RequestParam String status) {
+    public ResponseEntity<?> updateDoubtStatus(@PathVariable Long id, @RequestParam String status, Authentication authentication) {
         try {
             System.out.println(id);
             System.out.println(status);
             Doubt.Status statusEnum = Doubt.Status.valueOf(status.toUpperCase());
-            Doubt updatedDoubt = doubtService.updateDoubtStatus(id, statusEnum);
-            return ResponseEntity.ok(updatedDoubt);
+            User user = userService.findByEmail(authentication.getName())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            if (statusEnum == Doubt.Status.ASSIGNED) {
+                if (user.getRole() != User.Role.TUTOR) {
+                    return ResponseEntity.badRequest().body("Only tutors can accept doubts");
+                }
+                Doubt updatedDoubt = doubtService.updateDoubtStatus(id, statusEnum, user);
+                return ResponseEntity.ok(updatedDoubt);
+            } else {
+                Doubt updatedDoubt = doubtService.updateDoubtStatus(id, statusEnum, null);
+                return ResponseEntity.ok(updatedDoubt);
+            }
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Failed to update doubt status: " + e.getMessage());
         }

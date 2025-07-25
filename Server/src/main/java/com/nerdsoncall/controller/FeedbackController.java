@@ -30,7 +30,8 @@ public class FeedbackController {
     private SessionService sessionService;
 
     @PostMapping
-    public ResponseEntity<?> createFeedback(@Valid @RequestBody CreateFeedbackRequest request, Authentication authentication) {
+    public ResponseEntity<?> createFeedback(@Valid @RequestBody CreateFeedbackRequest request,
+            Authentication authentication) {
         try {
             User reviewer = userService.findByEmail(authentication.getName())
                     .orElseThrow(() -> new RuntimeException("User not found"));
@@ -54,8 +55,7 @@ public class FeedbackController {
             }
 
             Feedback feedback = feedbackService.createFeedback(
-                    session, reviewer, reviewee, request.getRating(), request.getComment(), type
-            );
+                    session, reviewer, reviewee, request.getRating(), request.getComment(), type);
 
             return ResponseEntity.ok(feedback);
         } catch (Exception e) {
@@ -88,4 +88,4 @@ public class FeedbackController {
             return ResponseEntity.badRequest().body("Failed to get feedback: " + e.getMessage());
         }
     }
-} 
+}

@@ -1,153 +1,131 @@
-// "use client"
+"use client"
 
-// import { createContext, useContext, useEffect, useRef, useState } from "react"
-// import { io, Socket } from "socket.io-client"
-// import { useAuth } from "./AuthContext"
-// import { WebSocketMessage } from "@/types"
+import { createContext, useContext, useEffect, useRef, useState } from "react"
+import { useAuth } from "./AuthContext"
 
-// interface WebSocketContextType {
-//     socket: Socket | null
-//     connected: boolean
-//     subscribeToTutorUpdates: (tutorId: number) => void
-//     subscribeToStudentUpdates: (studentId: number) => void
-//     subscribeToSessionUpdates: (sessionId: string) => void
-//     sendCanvasUpdate: (sessionId: string, canvasData: string) => void
-//     sendScreenShare: (sessionId: string, screenData: string) => void
-//     sendWebRTCSignal: (sessionId: string, signalData: any) => void
-//     unsubscribe: (channel: string) => void
-// }
+interface WebSocketContextType {
+    doubtSocket: WebSocket | null
+    webrtcSocket: WebSocket | null
+    connected: boolean
+    connectDoubtSocket: () => void
+    connectWebRTCSocket: (sessionId: string) => WebSocket | null
+    sendDoubtMessage: (message: any) => void
+    sendWebRTCMessage: (message: any) => void
+}
 
-// const WebSocketContext = createContext<WebSocketContextType | undefined>(
-//     undefined
-// )
+const WebSocketContext = createContext<WebSocketContextType | undefined>(
+    undefined
+)
 
-// export function WebSocketProvider({ children }: { children: React.ReactNode }) {
-//     const { user } = useAuth()
-//     const [socket, setSocket] = useState<Socket | null>(null)
-//     const [connected, setConnected] = useState(false)
-//     const socketRef = useRef<Socket | null>(null)
+export function WebSocketProvider({ children }: { children: React.ReactNode }) {
+    const { user } = useAuth()
+    const [doubtSocket, setDoubtSocket] = useState<WebSocket | null>(null)
+    const [webrtcSocket, setWebrtcSocket] = useState<WebSocket | null>(null)
+    const [connected, setConnected] = useState(false)
+    const doubtSocketRef = useRef<WebSocket | null>(null)
+    const webrtcSocketRef = useRef<WebSocket | null>(null)
 
-//     useEffect(() => {
-//         if (user) {
-//             // Connect to WebSocket server
-//             const newSocket = io(
-//                 process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") ||
-//                     "http://localhost:8080",
-//                 {
-//                     auth: {
-//                         token: localStorage.getItem("token"),
-//                         userId: user.id,
-//                     },
-//                     transports: ["websocket"],
-//                 }
-//             )
+    const connectDoubtSocket = () => {
+        if (!user || doubtSocketRef.current?.readyState === WebSocket.OPEN)
+            return
 
-//             newSocket.on("connect", () => {
-//                 console.log("WebSocket connected")
-//                 setConnected(true)
-//             })
+        try {
+            const serverUrl =
+                process.env.NEXT_PUBLIC_API_URL?.replace("http", "ws") ||
+                "ws://localhost:8080"
+            const wsUrl = `${serverUrl}/ws/doubts?userId=${user.id}`
 
-//             newSocket.on("disconnect", () => {
-//                 console.log("WebSocket disconnected")
-//                 setConnected(false)
-//             })
+            const socket = new WebSocket(wsUrl)
 
-//             newSocket.on("error", (error) => {
-//                 console.error("WebSocket error:", error)
-//             })
+            socket.onopen = () => {
+                console.log("Doubt WebSocket connected")
+                setConnected(true)
+            }
 
-//             socketRef.current = newSocket
-//             setSocket(newSocket)
+            socket.onclose = () => {
+                console.log("Doubt WebSocket disconnected")
+                setConnected(false)
+                // Auto-reconnect after 5 seconds
+                setTimeout(connectDoubtSocket, 5000)
+            }
 
-//             return () => {
-//                 newSocket.disconnect()
-//                 socketRef.current = null
-//                 setSocket(null)
-//                 setConnected(false)
-//             }
-//         }
-//     }, [user])
+            socket.onerror = (error) => {
+                console.error("Doubt WebSocket error:", error)
+            }
 
-//     const subscribeToTutorUpdates = (tutorId: number) => {
-//         if (socket) {
-//             socket.emit("subscribe", `tutor_${tutorId}`)
-//         }
-//     }
+            doubtSocketRef.current = socket
+            setDoubtSocket(socket)
+        } catch (error) {
+            console.error("Error connecting to doubt WebSocket:", error)
+        }
+    }
 
-//     const subscribeToStudentUpdates = (studentId: number) => {
-//         if (socket) {
-//             socket.emit("subscribe", `student_${studentId}`)
-//         }
-//     }
+    const connectWebRTCSocket = (sessionId: string): WebSocket | null => {
+        try {
+            const serverUrl =
+                process.env.NEXT_PUBLIC_API_URL?.replace("http", "ws") ||
+                "ws://localhost:8080"
+            const wsUrl = `${serverUrl}/ws/webrtc?userId=${user?.id}&sessionId=${sessionId}`
 
-//     const subscribeToSessionUpdates = (sessionId: string) => {
-//         if (socket) {
-//             socket.emit("subscribe", `session_${sessionId}`)
-//             socket.emit("subscribe", `session_${sessionId}_canvas`)
-//             socket.emit("subscribe", `session_${sessionId}_screen`)
-//             socket.emit("subscribe", `session_${sessionId}_webrtc`)
-//         }
-//     }
+            const socket = new WebSocket(wsUrl)
+            webrtcSocketRef.current = socket
+            setWebrtcSocket(socket)
 
-//     const sendCanvasUpdate = (sessionId: string, canvasData: string) => {
-//         if (socket) {
-//             socket.emit("canvas_update", {
-//                 sessionId,
-//                 data: canvasData,
-//                 userId: user?.id,
-//             })
-//         }
-//     }
+            return socket
+        } catch (error) {
+            console.error("Error connecting to WebRTC WebSocket:", error)
+            return null
+        }
+    }
 
-//     const sendScreenShare = (sessionId: string, screenData: string) => {
-//         if (socket) {
-//             socket.emit("screen_share", {
-//                 sessionId,
-//                 data: screenData,
-//                 userId: user?.id,
-//             })
-//         }
-//     }
+    const sendDoubtMessage = (message: any) => {
+        if (doubtSocketRef.current?.readyState === WebSocket.OPEN) {
+            doubtSocketRef.current.send(JSON.stringify(message))
+        }
+    }
 
-//     const sendWebRTCSignal = (sessionId: string, signalData: any) => {
-//         if (socket) {
-//             socket.emit("webrtc_signal", {
-//                 sessionId,
-//                 signal: signalData,
-//                 userId: user?.id,
-//             })
-//         }
-//     }
+    const sendWebRTCMessage = (message: any) => {
+        if (webrtcSocketRef.current?.readyState === WebSocket.OPEN) {
+            webrtcSocketRef.current.send(JSON.stringify(message))
+        }
+    }
 
-//     const unsubscribe = (channel: string) => {
-//         if (socket) {
-//             socket.emit("unsubscribe", channel)
-//         }
-//     }
+    useEffect(() => {
+        if (user) {
+            connectDoubtSocket()
+        }
 
-//     return (
-//         <WebSocketContext.Provider
-//             value={{
-//                 socket,
-//                 connected,
-//                 subscribeToTutorUpdates,
-//                 subscribeToStudentUpdates,
-//                 subscribeToSessionUpdates,
-//                 sendCanvasUpdate,
-//                 sendScreenShare,
-//                 sendWebRTCSignal,
-//                 unsubscribe,
-//             }}
-//         >
-//             {children}
-//         </WebSocketContext.Provider>
-//     )
-// }
+        return () => {
+            if (doubtSocketRef.current) {
+                doubtSocketRef.current.close()
+            }
+            if (webrtcSocketRef.current) {
+                webrtcSocketRef.current.close()
+            }
+        }
+    }, [user])
 
-// export function useWebSocket() {
-//     const context = useContext(WebSocketContext)
-//     if (context === undefined) {
-//         throw new Error("useWebSocket must be used within a WebSocketProvider")
-//     }
-//     return context
-// }
+    return (
+        <WebSocketContext.Provider
+            value={{
+                doubtSocket,
+                webrtcSocket,
+                connected,
+                connectDoubtSocket,
+                connectWebRTCSocket,
+                sendDoubtMessage,
+                sendWebRTCMessage,
+            }}
+        >
+            {children}
+        </WebSocketContext.Provider>
+    )
+}
+
+export function useWebSocket() {
+    const context = useContext(WebSocketContext)
+    if (context === undefined) {
+        throw new Error("useWebSocket must be used within a WebSocketProvider")
+    }
+    return context
+}

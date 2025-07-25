@@ -18,6 +18,7 @@ import {
 import { Avatar } from "@/components/ui/Avatar"
 import { VideoCallModal } from "@/components/VideoCall/VideoCallModal"
 import { DoubtForm } from "@/components/Doubt/DoubtForm"
+import { StudentDoubtStatus } from "@/components/Doubt/StudentDoubtStatus"
 import {
     Star,
     Search,
@@ -77,8 +78,8 @@ export default function BrowseTutorsPage() {
                 params: {
                     subject: selectedSubject !== "all" ? selectedSubject : null,
                     sortBy: sortBy,
-                    onlineOnly: true
-                }
+                    onlineOnly: true,
+                },
             })
             setTutors(response.data)
         } catch (error) {
@@ -134,22 +135,29 @@ export default function BrowseTutorsPage() {
         })
 
         setFilteredTutors(filtered)
-    },[tutors, searchQuery, selectedSubject, sortBy]);
+    }, [tutors, searchQuery, selectedSubject, sortBy])
 
     const [selectedTutor, setSelectedTutor] = useState<User | null>(null)
     const [isCallModalOpen, setIsCallModalOpen] = useState(false)
     const [isDoubtFormOpen, setIsDoubtFormOpen] = useState(false)
+    const [currentDoubt, setCurrentDoubt] = useState<any>(null)
 
     const handleConnectTutor = (tutor: User) => {
         setSelectedTutor(tutor)
         setIsCallModalOpen(true)
     }
-    
+
     const handleAskDoubt = (tutor: User) => {
         setSelectedTutor(tutor)
         setIsDoubtFormOpen(true)
     }
 
+    const handleDoubtSubmitSuccess = (doubt: any) => {
+        setCurrentDoubt(doubt)
+        setIsDoubtFormOpen(false)
+        // Auto-start video call after doubt submission
+        setIsCallModalOpen(true)
+    }
 
     if (!user) {
         return (
@@ -269,14 +277,19 @@ export default function BrowseTutorsPage() {
                             {filteredTutors.map((tutor) => (
                                 <Card
                                     key={tutor.id}
-                                    className="bg-white border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-1"
+                                    className="bg-white border border-slate-200 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 hover:border-blue-300 group"
                                 >
                                     <CardContent className="p-6">
                                         {/* Header with Avatar and Name */}
                                         <div className="flex items-center space-x-3 mb-4">
-                                            <div className="w-12 h-12 bg-gradient-to-br from-slate-600 to-slate-800 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                                                {tutor.firstName?.[0]}
-                                                {tutor.lastName?.[0]}
+                                            <div className="relative">
+                                                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:scale-110 transition-transform">
+                                                    {tutor.firstName?.[0]}
+                                                    {tutor.lastName?.[0]}
+                                                </div>
+                                                {tutor.isOnline && (
+                                                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full animate-pulse"></div>
+                                                )}
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center space-x-2">
@@ -357,23 +370,27 @@ export default function BrowseTutorsPage() {
                                         </div>
 
                                         {/* Action Buttons */}
-                                        <div className="grid grid-cols-2 gap-2">
+                                        <div className="grid grid-cols-2 gap-3">
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                onClick={() => handleConnectTutor(tutor)}
-                                                className="text-xs h-8"
+                                                onClick={() =>
+                                                    handleConnectTutor(tutor)
+                                                }
+                                                className="text-xs h-9 border-green-200 text-green-700 hover:bg-green-50 hover:border-green-300 font-medium transition-all transform hover:scale-105"
                                             >
                                                 <Video className="h-3 w-3 mr-1" />
-                                                Connect
+                                                📹 Connect
                                             </Button>
                                             <Button
                                                 size="sm"
-                                                onClick={() => handleAskDoubt(tutor)}
-                                                className="bg-slate-700 hover:bg-slate-800 text-xs h-8"
+                                                onClick={() =>
+                                                    handleAskDoubt(tutor)
+                                                }
+                                                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-xs h-9 font-medium shadow-md hover:shadow-lg transition-all transform hover:scale-105"
                                             >
                                                 <MessageCircle className="h-3 w-3 mr-1" />
-                                                Ask Doubt
+                                                💬 Ask Question
                                             </Button>
                                         </div>
                                     </CardContent>
@@ -417,9 +434,14 @@ export default function BrowseTutorsPage() {
                     onClose={() => setIsCallModalOpen(false)}
                     tutorId={selectedTutor.id}
                     tutorName={`${selectedTutor.firstName} ${selectedTutor.lastName}`}
+                    sessionId={
+                        currentDoubt
+                            ? `doubt_${currentDoubt.id}`
+                            : `tutor_${selectedTutor.id}_student_${user.id}`
+                    }
                 />
             )}
-            
+
             {/* Doubt Form Modal */}
             {selectedTutor && (
                 <DoubtForm
@@ -427,8 +449,18 @@ export default function BrowseTutorsPage() {
                     onClose={() => setIsDoubtFormOpen(false)}
                     tutorId={selectedTutor.id}
                     tutorName={`${selectedTutor.firstName} ${selectedTutor.lastName}`}
+                    onSubmitSuccess={handleDoubtSubmitSuccess}
                 />
             )}
+
+            {/* Student Doubt Status - handles auto-init call */}
+            <StudentDoubtStatus
+                currentDoubt={currentDoubt}
+                onDoubtAccepted={(doubt) => {
+                    // Override the auto-call from doubt submission
+                    setIsCallModalOpen(false)
+                }}
+            />
         </div>
     )
 }
