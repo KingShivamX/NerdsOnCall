@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext"
 import { api } from "@/lib/api"
 import { Navbar } from "@/components/layout/Navbar"
 import { TutorDoubtNotification } from "@/components/Doubt/TutorDoubtNotification"
+import { VideoCallModal } from "@/components/VideoCall/VideoCallModal"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { Card, CardContent } from "@/components/ui/card"
@@ -66,6 +67,17 @@ export default function StudentRequestsPage() {
     const [acceptingId, setAcceptingId] = useState<number | null>(null)
     const [rejectingId, setRejectingId] = useState<number | null>(null)
     const router = useRouter()
+    
+    // State for VideoCallModal - exactly like browse-tutors
+    const [selectedStudent, setSelectedStudent] = useState<{
+        id: number;
+        firstName: string;
+        lastName: string;
+        email: string;
+        rating?: number;
+    } | null>(null)
+    const [isCallModalOpen, setIsCallModalOpen] = useState(false)
+    const [currentDoubtId, setCurrentDoubtId] = useState<number | null>(null)
 
     // Fetch requests from API
     const fetchRequests = async () => {
@@ -195,36 +207,18 @@ export default function StudentRequestsPage() {
         setIsAttachmentModalOpen(true)
     }
 
-    // Handle start video call
+    // Handle start video call - exactly like Connect button in browse-tutors
     const handleStartVideoCall = (request: StudentRequest) => {
         // Generate session ID
         const sessionId = `doubt_${request.id}_${Date.now()}`
         const studentName = `${request.student.firstName} ${request.student.lastName}`
-
-        // Send a "tutor_ready" message to the student via WebSocket to indicate tutor is ready to start the call
-        try {
-            // Use the doubt socket to send the message
-            const message = {
-                type: "tutor_ready_for_call",
-                sessionId: sessionId,
-                doubtId: request.id,
-                tutorId: user?.id,
-                tutorName: `${user?.firstName} ${user?.lastName}`,
-                studentId: request.student.id,
-                studentName: studentName
-            }
-            
-            // Send message through WebSocket (assuming we have access to socket)
-            // For now, navigate to video call - but with proper coordination
-            router.push(
-                `/video-call/${sessionId}?role=tutor&studentId=${request.student.id}&studentName=${encodeURIComponent(studentName)}&doubtId=${request.id}`
-            )
-            
-            toast.success(`Starting video call with ${studentName}...`)
-        } catch (error) {
-            console.error("Error starting video call:", error)
-            toast.error("Failed to start video call")
-        }
+        
+        // Navigate directly to video call page with correct parameters for tutor calling student
+        router.push(
+            `/video-call/${sessionId}?role=tutor&studentId=${request.student.id}&studentName=${encodeURIComponent(studentName)}&doubtId=${request.id}`
+        )
+        
+        toast.success(`Starting video call with ${studentName}...`)
     }
 
     // Get priority color
@@ -888,6 +882,17 @@ export default function StudentRequestsPage() {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Video Call Modal - for tutor calling student */}
+            {selectedStudent && currentDoubtId && (
+                <VideoCallModal
+                    isOpen={isCallModalOpen}
+                    onClose={() => setIsCallModalOpen(false)}
+                    tutorId={selectedStudent.id}
+                    tutorName={`${selectedStudent.firstName} ${selectedStudent.lastName}`}
+                    sessionId={`doubt_${currentDoubtId}_${Date.now()}`}
+                />
             )}
         </div>
     )

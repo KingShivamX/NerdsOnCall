@@ -8,7 +8,7 @@ import { Navbar } from "@/components/layout/Navbar"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import {
     Select,
@@ -25,6 +25,7 @@ import {
     CheckCircle,
     ArrowLeft,
     Paperclip,
+    Loader2,
 } from "lucide-react"
 import toast from "react-hot-toast"
 
@@ -48,11 +49,7 @@ const SUBJECTS = [
 
 const PRIORITIES = [
     { value: "LOW", label: "Low", color: "bg-green-100 text-green-800" },
-    {
-        value: "MEDIUM",
-        label: "Medium",
-        color: "bg-yellow-100 text-yellow-800",
-    },
+    { value: "MEDIUM", label: "Medium", color: "bg-yellow-100 text-yellow-800" },
     { value: "HIGH", label: "High", color: "bg-orange-100 text-orange-800" },
     { value: "URGENT", label: "Urgent", color: "bg-red-100 text-red-800" },
 ]
@@ -89,47 +86,28 @@ export default function AskQuestionPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
 
-        if (
-            !formData.title.trim() ||
-            !formData.description.trim() ||
-            !formData.subject
-        ) {
+        if (!formData.title.trim() || !formData.description.trim() || !formData.subject) {
             toast.error("Please fill in all required fields")
             return
         }
 
         setIsSubmitting(true)
-
         try {
             // First upload attachments if any
             let attachmentUrls: string[] = []
-
             if (attachments.length > 0) {
                 try {
                     const uploadPromises = attachments.map(async (file) => {
                         const formData = new FormData()
                         formData.append("file", file)
-
-                        const uploadResponse = await api.post(
-                            "/api/upload",
-                            formData,
-                            {
-                                headers: {
-                                    "Content-Type": "multipart/form-data",
-                                },
-                            }
-                        )
-
+                        const uploadResponse = await api.post("/api/upload", formData, {
+                            headers: { "Content-Type": "multipart/form-data" },
+                        })
                         return uploadResponse.data.url || uploadResponse.data
                     })
-
                     attachmentUrls = await Promise.all(uploadPromises)
                 } catch (uploadError) {
-                    console.warn(
-                        "File upload failed, proceeding without attachments:",
-                        uploadError
-                    )
-                    // Continue without attachments if upload fails
+                    console.warn("File upload failed, proceeding without attachments:", uploadError)
                     attachmentUrls = []
                 }
             }
@@ -144,19 +122,12 @@ export default function AskQuestionPage() {
                 preferredTutorId: null,
             }
 
-            const response = await api.post("/api/doubts", doubtData)
-
+            await api.post("/api/doubts", doubtData)
             toast.success("Question submitted successfully!")
-
-            // Redirect to my questions page
             router.push("/my-questions")
         } catch (error: any) {
             console.error("Error submitting question:", error)
-            toast.error(
-                error.response?.data ||
-                    error.response?.data?.message ||
-                    "Failed to submit question"
-            )
+            toast.error(error.response?.data || error.response?.data?.message || "Failed to submit question")
         } finally {
             setIsSubmitting(false)
         }
@@ -168,15 +139,9 @@ export default function AskQuestionPage() {
                 <Card className="max-w-md mx-auto">
                     <CardContent className="p-6 text-center">
                         <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-                        <h2 className="text-xl font-semibold text-slate-800 mb-2">
-                            Access Denied
-                        </h2>
-                        <p className="text-slate-600 mb-4">
-                            This page is only available to students.
-                        </p>
-                        <Button onClick={() => router.push("/dashboard")}>
-                            Go to Dashboard
-                        </Button>
+                        <h2 className="text-xl font-semibold text-slate-800 mb-2">Access Denied</h2>
+                        <p className="text-slate-600 mb-4">This page is only available to students.</p>
+                        <Button onClick={() => router.push("/dashboard")}>Go to Dashboard</Button>
                     </CardContent>
                 </Card>
             </div>
@@ -184,340 +149,232 @@ export default function AskQuestionPage() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100">
             <Navbar />
-
             <div className="pt-20 pb-10">
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                    {/* Header */}
-                    <div className="mb-8">
-                        <Button
-                            variant="ghost"
-                            onClick={() => router.back()}
-                            className="mb-4 text-slate-600 hover:text-slate-800"
-                        >
-                            <ArrowLeft className="h-4 w-4 mr-2" />
-                            Back
-                        </Button>
+                <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+                    {/* Back Button */}
+                    <Button
+                        variant="ghost"
+                        onClick={() => router.back()}
+                        className="mb-6 text-slate-600 hover:text-slate-800 hover:bg-white/50"
+                    >
+                        <ArrowLeft className="h-4 w-4 mr-2" />
+                        Back
+                    </Button>
 
-                        <div className="flex items-center space-x-3 mb-4">
-                            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-                                <MessageCircle className="h-6 w-6 text-white" />
-                            </div>
-                            <div>
-                                <h1 className="text-3xl font-bold text-slate-800">
-                                    Ask a Question
-                                </h1>
-                                <p className="text-slate-600">
-                                    Get help from our expert tutors
-                                </p>
+                    {/* Main Form Card */}
+                    <Card className="bg-white shadow-2xl border-0 rounded-3xl overflow-hidden">
+                        {/* Header */}
+                        <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 px-8 py-6">
+                            <div className="flex items-center space-x-4">
+                                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                                    <MessageCircle className="h-6 w-6 text-white" />
+                                </div>
+                                <div>
+                                    <h1 className="text-2xl font-bold text-white">Ask Your Question</h1>
+                                    <p className="text-blue-100 text-sm">Get expert help with your studies</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center">
-                                    <MessageCircle className="h-5 w-5 mr-2 text-blue-600" />
-                                    Question Details
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                {/* Title */}
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        Question Title *
-                                    </label>
-                                    <Input
-                                        placeholder="Enter a clear, concise title for your question"
-                                        value={formData.title}
-                                        onChange={(e) =>
-                                            handleInputChange(
-                                                "title",
-                                                e.target.value
-                                            )
-                                        }
-                                        className={`w-full transition-colors ${
-                                            formData.title.length > 180
-                                                ? "border-yellow-300 focus:border-yellow-500"
-                                                : formData.title.length > 0
-                                                ? "border-green-300 focus:border-green-500"
-                                                : ""
-                                        }`}
-                                        maxLength={200}
-                                    />
-                                    <div className="flex justify-between items-center mt-1">
-                                        <p
-                                            className={`text-xs ${
-                                                formData.title.length > 180
-                                                    ? "text-yellow-600"
-                                                    : "text-slate-500"
-                                            }`}
-                                        >
-                                            {formData.title.length}/200
-                                            characters
-                                        </p>
-                                        {formData.title.length > 0 && (
-                                            <span className="text-xs text-green-600">
-                                                ✓ Good
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Subject and Priority */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">
-                                            Subject *
-                                        </label>
-                                        <Select
-                                            value={formData.subject}
-                                            onValueChange={(value) =>
-                                                handleInputChange(
-                                                    "subject",
-                                                    value
-                                                )
-                                            }
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select a subject" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {SUBJECTS.map((subject) => (
-                                                    <SelectItem
-                                                        key={subject.value}
-                                                        value={subject.value}
-                                                    >
-                                                        {subject.label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">
-                                            Priority
-                                        </label>
-                                        <Select
-                                            value={formData.priority}
-                                            onValueChange={(value) =>
-                                                handleInputChange(
-                                                    "priority",
-                                                    value
-                                                )
-                                            }
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {PRIORITIES.map((priority) => (
-                                                    <SelectItem
-                                                        key={priority.value}
-                                                        value={priority.value}
-                                                    >
-                                                        <div className="flex items-center space-x-2">
-                                                            <Badge
-                                                                className={`text-xs ${priority.color}`}
-                                                            >
-                                                                {priority.label}
-                                                            </Badge>
-                                                        </div>
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-
-                                {/* Description */}
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        Question Description *
-                                    </label>
-                                    <Textarea
-                                        placeholder="Describe your question in detail. Include any specific concepts you're struggling with, what you've tried, and what kind of help you need."
-                                        value={formData.description}
-                                        onChange={(e) =>
-                                            handleInputChange(
-                                                "description",
-                                                e.target.value
-                                            )
-                                        }
-                                        className={`w-full min-h-[120px] transition-colors ${
-                                            formData.description.length > 1800
-                                                ? "border-yellow-300 focus:border-yellow-500"
-                                                : formData.description.length >
-                                                  50
-                                                ? "border-green-300 focus:border-green-500"
-                                                : ""
-                                        }`}
-                                        maxLength={2000}
-                                    />
-                                    <div className="flex justify-between items-center mt-1">
-                                        <p
-                                            className={`text-xs ${
-                                                formData.description.length >
-                                                1800
-                                                    ? "text-yellow-600"
-                                                    : "text-slate-500"
-                                            }`}
-                                        >
-                                            {formData.description.length}/2000
-                                            characters
-                                        </p>
-                                        {formData.description.length > 50 && (
-                                            <span className="text-xs text-green-600">
-                                                ✓ Detailed
-                                            </span>
-                                        )}
-                                        {formData.description.length < 20 &&
-                                            formData.description.length > 0 && (
-                                                <span className="text-xs text-orange-600">
-                                                    ⚠ Add more details
-                                                </span>
-                                            )}
-                                    </div>
-                                </div>
-
-                                {/* File Upload */}
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        Attachments (Optional)
-                                    </label>
-                                    <div
-                                        className={`border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 ${
-                                            attachments.length > 0
-                                                ? "border-green-300 bg-green-50"
-                                                : "border-slate-300 hover:border-blue-400 hover:bg-blue-50"
-                                        }`}
-                                    >
-                                        <input
-                                            type="file"
-                                            multiple
-                                            accept="image/*,.pdf,.doc,.docx,.txt"
-                                            onChange={handleFileUpload}
-                                            className="hidden"
-                                            id="file-upload"
-                                        />
-                                        <label
-                                            htmlFor="file-upload"
-                                            className="cursor-pointer flex flex-col items-center"
-                                        >
-                                            <div
-                                                className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 ${
-                                                    attachments.length > 0
-                                                        ? "bg-green-100"
-                                                        : "bg-slate-100"
-                                                }`}
+                        {/* Form Content */}
+                        <form onSubmit={handleSubmit} className="p-8 space-y-6">
+                            {/* Subject */}
+                            <div className="relative z-50">
+                                <label className="block text-sm font-medium text-slate-700 mb-3">
+                                    Subject <span className="text-red-500">*</span>
+                                </label>
+                                <Select value={formData.subject} onValueChange={(value) => handleInputChange("subject", value)}>
+                                    <SelectTrigger className="h-12 bg-slate-50 border-slate-200 rounded-xl text-slate-700 font-medium hover:border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+                                        <SelectValue placeholder="Select a subject" />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-white border border-slate-200 rounded-xl shadow-xl z-50 max-h-60 overflow-y-auto">
+                                        {SUBJECTS.map((subject) => (
+                                            <SelectItem 
+                                                key={subject.value} 
+                                                value={subject.value} 
+                                                className="rounded-lg hover:bg-blue-50 focus:bg-blue-50 cursor-pointer px-3 py-2 text-slate-700"
                                             >
-                                                <Upload
-                                                    className={`h-6 w-6 ${
-                                                        attachments.length > 0
-                                                            ? "text-green-600"
-                                                            : "text-slate-400"
-                                                    }`}
-                                                />
-                                            </div>
-                                            <p className="text-sm text-slate-600 mb-1 font-medium">
-                                                {attachments.length > 0
-                                                    ? `${
-                                                          attachments.length
-                                                      } file${
-                                                          attachments.length > 1
-                                                              ? "s"
-                                                              : ""
-                                                      } selected`
-                                                    : "Click to upload files"}
-                                            </p>
-                                            <p className="text-xs text-slate-500">
-                                                Images, PDFs, Word docs (Max 5
-                                                files, 10MB each)
-                                            </p>
-                                        </label>
-                                    </div>
+                                                {subject.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
 
-                                    {/* Attachment List */}
-                                    {attachments.length > 0 && (
-                                        <div className="mt-4 space-y-2">
-                                            {attachments.map((file, index) => (
-                                                <div
-                                                    key={index}
-                                                    className="flex items-center justify-between bg-slate-50 p-3 rounded-lg"
-                                                >
-                                                    <div className="flex items-center space-x-3">
-                                                        <Paperclip className="h-4 w-4 text-slate-500" />
-                                                        <span className="text-sm text-slate-700">
-                                                            {file.name}
-                                                        </span>
-                                                        <span className="text-xs text-slate-500">
-                                                            (
-                                                            {(
-                                                                file.size /
-                                                                1024 /
-                                                                1024
-                                                            ).toFixed(2)}{" "}
-                                                            MB)
-                                                        </span>
-                                                    </div>
-                                                    <Button
-                                                        type="button"
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={() =>
-                                                            removeAttachment(
-                                                                index
-                                                            )
-                                                        }
-                                                        className="text-red-500 hover:text-red-700"
-                                                    >
-                                                        <X className="h-4 w-4" />
-                                                    </Button>
-                                                </div>
-                                            ))}
-                                        </div>
+                            {/* Title */}
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-3">
+                                    Title <span className="text-red-500">*</span>
+                                </label>
+                                <Input
+                                    placeholder="Brief title of your doubt"
+                                    value={formData.title}
+                                    onChange={(e) => handleInputChange("title", e.target.value)}
+                                    className="h-12 bg-slate-50 border-slate-200 rounded-xl text-slate-700 placeholder:text-slate-400"
+                                    maxLength={200}
+                                />
+                                <div className="flex justify-between items-center mt-2">
+                                    <p className="text-xs text-slate-500">{formData.title.length}/200 characters</p>
+                                    {formData.title.length > 0 && (
+                                        <span className="text-xs text-green-600 flex items-center">
+                                            <CheckCircle className="h-3 w-3 mr-1" />
+                                            Good
+                                        </span>
                                     )}
                                 </div>
-                            </CardContent>
-                        </Card>
+                            </div>
 
-                        {/* Submit Button */}
-                        <div className="flex justify-end space-x-4">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => router.back()}
-                                disabled={isSubmitting}
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                type="submit"
-                                disabled={
-                                    isSubmitting ||
-                                    !formData.title.trim() ||
-                                    !formData.description.trim() ||
-                                    !formData.subject
-                                }
-                                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
-                            >
-                                {isSubmitting ? (
-                                    <>
-                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                                        Submitting...
-                                    </>
-                                ) : (
-                                    <>
-                                        <CheckCircle className="h-4 w-4 mr-2" />
-                                        Submit Question
-                                    </>
+                            {/* Description */}
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-3">
+                                    Description <span className="text-red-500">*</span>
+                                </label>
+                                <Textarea
+                                    placeholder="Explain your doubt in detail"
+                                    value={formData.description}
+                                    onChange={(e) => handleInputChange("description", e.target.value)}
+                                    className="min-h-[120px] bg-slate-50 border-slate-200 rounded-xl text-slate-700 placeholder:text-slate-400 resize-none"
+                                    maxLength={2000}
+                                />
+                                <div className="flex justify-between items-center mt-2">
+                                    <p className="text-xs text-slate-500">{formData.description.length}/2000 characters</p>
+                                    {formData.description.length > 50 && (
+                                        <span className="text-xs text-green-600 flex items-center">
+                                            <CheckCircle className="h-3 w-3 mr-1" />
+                                            Detailed
+                                        </span>
+                                    )}
+                                    {formData.description.length < 20 && formData.description.length > 0 && (
+                                        <span className="text-xs text-orange-600 flex items-center">
+                                            <AlertCircle className="h-3 w-3 mr-1" />
+                                            Add more details
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Priority */}
+                            <div className="relative z-40">
+                                <label className="block text-sm font-medium text-slate-700 mb-3">Priority</label>
+                                <Select value={formData.priority} onValueChange={(value) => handleInputChange("priority", value)}>
+                                    <SelectTrigger className="h-12 bg-slate-50 border-slate-200 rounded-xl text-slate-700 font-medium hover:border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-white border border-slate-200 rounded-xl shadow-xl z-40 max-h-48 overflow-y-auto">
+                                        {PRIORITIES.map((priority) => (
+                                            <SelectItem 
+                                                key={priority.value} 
+                                                value={priority.value} 
+                                                className="rounded-lg hover:bg-blue-50 focus:bg-blue-50 cursor-pointer px-3 py-2"
+                                            >
+                                                <div className="flex items-center space-x-2">
+                                                    <Badge className={`text-xs ${priority.color} border-0`}>
+                                                        {priority.label}
+                                                    </Badge>
+                                                </div>
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            {/* Attachments */}
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-3">Attachments</label>
+                                <div className="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center bg-slate-50/50 hover:bg-slate-50 transition-colors">
+                                    <input
+                                        type="file"
+                                        multiple
+                                        accept="image/*,.pdf,.doc,.docx,.txt"
+                                        onChange={handleFileUpload}
+                                        className="hidden"
+                                        id="file-upload"
+                                    />
+                                    <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center">
+                                        <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-3">
+                                            <Upload className="h-6 w-6 text-blue-600" />
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-6 py-2"
+                                            onClick={() => document.getElementById('file-upload')?.click()}
+                                        >
+                                            Upload Files
+                                        </Button>
+                                        <p className="text-xs text-slate-500 mt-2">
+                                            Images, PDFs, Word docs (Max 5 files, 10MB each)
+                                        </p>
+                                    </label>
+                                </div>
+
+                                {/* Attachment List */}
+                                {attachments.length > 0 && (
+                                    <div className="mt-4 space-y-2">
+                                        {attachments.map((file, index) => (
+                                            <div
+                                                key={index}
+                                                className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200"
+                                            >
+                                                <div className="flex items-center space-x-3">
+                                                    <Paperclip className="h-4 w-4 text-slate-500" />
+                                                    <span className="text-sm text-slate-700 font-medium">{file.name}</span>
+                                                    <span className="text-xs text-slate-500">
+                                                        ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                                                    </span>
+                                                </div>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => removeAttachment(index)}
+                                                    className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg"
+                                                >
+                                                    <X className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
                                 )}
-                            </Button>
-                        </div>
-                    </form>
+                            </div>
+
+                            {/* Submit Buttons */}
+                            <div className="flex justify-end space-x-4 pt-6">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => router.back()}
+                                    disabled={isSubmitting}
+                                    className="px-6 py-2 rounded-xl border-slate-300 text-slate-600 hover:bg-slate-50"
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    disabled={
+                                        isSubmitting ||
+                                        !formData.title.trim() ||
+                                        !formData.description.trim() ||
+                                        !formData.subject
+                                    }
+                                    className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-2 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all"
+                                >
+                                    {isSubmitting ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                            Submitting...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <CheckCircle className="h-4 w-4 mr-2" />
+                                            Submit Doubt
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
+                        </form>
+                    </Card>
                 </div>
             </div>
         </div>

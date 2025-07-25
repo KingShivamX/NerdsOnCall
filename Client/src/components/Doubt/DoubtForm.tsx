@@ -52,9 +52,10 @@ const priorityList = [
 interface DoubtFormProps {
     isOpen: boolean
     onClose: () => void
-    tutorId: number
+    tutorId?: number  // Optional for dashboard flow
     tutorName: string
     onSubmitSuccess?: (doubt: any) => void
+    flowType?: 'dashboard' | 'browse-tutors'  // New prop to distinguish flows
 }
 
 export function DoubtForm({
@@ -63,13 +64,14 @@ export function DoubtForm({
     tutorId,
     tutorName,
     onSubmitSuccess,
+    flowType = 'browse-tutors',
 }: DoubtFormProps) {
     const [title, setTitle] = useState("")
     const [subject, setSubject] = useState<Subject | "">("")
     const [description, setDescription] = useState("")
     const [priority, setPriority] = useState("MEDIUM")
     const [files, setFiles] = useState<File[]>([])
-    const [attachments, setAttachments] = useState<string[]>([])
+
     const [isUploading, setIsUploading] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -139,14 +141,16 @@ export function DoubtForm({
                 }
             }
 
-            // Create doubt
+            // Create doubt with different logic based on flow type
             const doubtData = {
                 subject,
                 title,
                 description,
                 priority,
                 attachments: fileUrls,
-                preferredTutorId: tutorId,
+                // For browse-tutors flow: set preferredTutorId to specific tutor
+                // For dashboard flow: set preferredTutorId to null (broadcast to all tutors of subject)
+                preferredTutorId: flowType === 'browse-tutors' ? tutorId : null,
             }
 
             console.log("Submitting doubt data:", doubtData)
@@ -162,7 +166,6 @@ export function DoubtForm({
             setDescription("")
             setPriority("MEDIUM")
             setFiles([])
-            setAttachments([])
 
             if (onSubmitSuccess) {
                 onSubmitSuccess(response.data) // Pass the created doubt data
@@ -179,11 +182,24 @@ export function DoubtForm({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[600px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
-                <DialogHeader>
-                    <DialogTitle className="text-gray-900 dark:text-gray-100">
-                        Ask a Doubt to {tutorName}
-                    </DialogTitle>
+            <DialogContent className="sm:max-w-[650px] bg-gradient-to-br from-white to-blue-50 border-2 border-blue-200 shadow-2xl rounded-2xl">
+                <DialogHeader className="bg-gradient-to-r from-blue-600 to-blue-700 -m-6 mb-6 p-6 rounded-t-2xl">
+                    <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                            <span className="text-2xl">💭</span>
+                        </div>
+                        <div>
+                            <DialogTitle className="text-white text-xl font-bold">
+                                {flowType === 'dashboard' 
+                                    ? '🎯 Ask Your Question' 
+                                    : `💬 Ask ${tutorName}`
+                                }
+                            </DialogTitle>
+                            <p className="text-blue-100 text-sm">
+                                Get expert help with your studies
+                            </p>
+                        </div>
+                    </div>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-6 p-1">

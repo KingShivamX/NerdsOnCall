@@ -6,7 +6,7 @@ import { api } from "@/lib/api"
 import { Navbar } from "@/components/layout/Navbar"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import {
     Select,
@@ -15,27 +15,16 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { Avatar } from "@/components/ui/Avatar"
 import { VideoCallModal } from "@/components/VideoCall/VideoCallModal"
-import { DoubtForm } from "@/components/Doubt/DoubtForm"
-import { StudentDoubtStatus } from "@/components/Doubt/StudentDoubtStatus"
 import {
     Star,
     Search,
     Filter,
-    MessageCircle,
     Video,
     Clock,
-    DollarSign,
     Users,
-    BookOpen,
-    Crown,
-    MapPin,
-    Award,
 } from "lucide-react"
 import { Subject, User } from "@/types"
-import toast from "react-hot-toast"
-import { useRouter } from "next/navigation"
 
 const subjectsList: Subject[] = [
     "MATHEMATICS",
@@ -57,7 +46,6 @@ const subjectsList: Subject[] = [
 
 export default function BrowseTutorsPage() {
     const { user } = useAuth()
-    const router = useRouter()
     const [tutors, setTutors] = useState<User[]>([])
     const [filteredTutors, setFilteredTutors] = useState<User[]>([])
     const [loading, setLoading] = useState(true)
@@ -142,61 +130,10 @@ export default function BrowseTutorsPage() {
 
     const [selectedTutor, setSelectedTutor] = useState<User | null>(null)
     const [isCallModalOpen, setIsCallModalOpen] = useState(false)
-    const [isDoubtFormOpen, setIsDoubtFormOpen] = useState(false)
-    const [currentDoubt, setCurrentDoubt] = useState<any>(null)
-    const [acceptedTutor, setAcceptedTutor] = useState<{
-        tutor: User;
-        doubtId: number;
-        doubt: any;
-    } | null>(null)
 
     const handleConnectTutor = (tutor: User) => {
         setSelectedTutor(tutor)
         setIsCallModalOpen(true)
-    }
-
-    const handleAskDoubt = (tutor: User) => {
-        setSelectedTutor(tutor)
-        setIsDoubtFormOpen(true)
-    }
-
-    const handleDoubtSubmitSuccess = (doubt: any) => {
-        // Add tutor ID to the doubt object for proper routing
-        const doubtWithTutor = {
-            ...doubt,
-            tutorId: selectedTutor?.id,
-            preferredTutorId: selectedTutor?.id
-        }
-        setCurrentDoubt(doubtWithTutor)
-        setIsDoubtFormOpen(false)
-        // Don't auto-start call - wait for tutor to accept
-        toast.success("Doubt sent! Waiting for tutor to accept...")
-    }
-
-    const handleDoubtStatusChange = (status: string, data?: any) => {
-        if (status === 'accepted' && data) {
-            // Find the tutor who accepted the doubt
-            const tutor = tutors.find(t => t.id === data.tutorId) || selectedTutor
-            if (tutor) {
-                setAcceptedTutor({
-                    tutor: tutor,
-                    doubtId: data.doubtId,
-                    doubt: data.doubt
-                })
-                setCurrentDoubt(null) // Clear the waiting doubt
-                toast.success(`🎉 ${data.tutorName} is ready for your video call!`)
-            }
-        } else if (status === 'rejected') {
-            setCurrentDoubt(null)
-            toast.error("Doubt was declined. You can try with another tutor.")
-        }
-    }
-
-    const handleStartCallWithAcceptedTutor = () => {
-        if (acceptedTutor) {
-            setSelectedTutor(acceptedTutor.tutor)
-            setIsCallModalOpen(true)
-        }
     }
 
     if (!user) {
@@ -264,7 +201,7 @@ export default function BrowseTutorsPage() {
                                 </Select>
 
                                 {/* Sort By */}
-                               { /*<Select
+                                { /*<Select
                                     value={sortBy}
                                     onValueChange={setSortBy}
                                 >
@@ -315,63 +252,7 @@ export default function BrowseTutorsPage() {
                     {/* Tutors Grid */}
                     {!loading && (
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                            {/* Accepted Tutor Card - Show First */}
-                            {acceptedTutor && (
-                                <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white border-2 border-green-400 shadow-xl">
-                                    <CardContent className="p-6">
-                                        {/* Header with Avatar and Name */}
-                                        <div className="flex items-center space-x-3 mb-4">
-                                            <div className="relative">
-                                                <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                                                    {acceptedTutor.tutor.firstName?.[0]}
-                                                    {acceptedTutor.tutor.lastName?.[0]}
-                                                </div>
-                                                <div className="absolute -top-1 -right-1 w-6 h-6 bg-yellow-400 border-2 border-white rounded-full flex items-center justify-center">
-                                                    <span className="text-xs">✓</span>
-                                                </div>
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center space-x-2">
-                                                    <h3 className="font-semibold text-white truncate">
-                                                        {acceptedTutor.tutor.firstName}{" "}
-                                                        {acceptedTutor.tutor.lastName}
-                                                    </h3>
-                                                </div>
-                                                <p className="text-green-100 text-sm">
-                                                    Ready to help with your doubt!
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        {/* Doubt Info */}
-                                        <div className="bg-white/10 rounded-lg p-3 mb-4">
-                                            <h4 className="font-medium text-white mb-1">
-                                                "{acceptedTutor.doubt.title}"
-                                            </h4>
-                                            <div className="flex items-center space-x-2">
-                                                <Badge className="bg-white/20 text-white border-white/30">
-                                                    {acceptedTutor.doubt.subject?.replace(/_/g, " ")}
-                                                </Badge>
-                                                <Badge className="bg-white/20 text-white border-white/30">
-                                                    {acceptedTutor.doubt.priority}
-                                                </Badge>
-                                            </div>
-                                        </div>
-
-                                        {/* Call Button */}
-                                        <Button
-                                            onClick={handleStartCallWithAcceptedTutor}
-                                            className="w-full bg-white text-green-600 hover:bg-green-50 font-semibold shadow-md hover:shadow-lg transition-all transform hover:scale-105"
-                                            size="sm"
-                                        >
-                                            <Video className="h-4 w-4 mr-2" />
-                                            📹 Connect
-                                        </Button>
-                                    </CardContent>
-                                </Card>
-                            )}
-
-                            {/* Regular Tutor Cards */}
+                            {/* Tutor Cards */}
                             {filteredTutors.map((tutor) => (
                                 <Card
                                     key={tutor.id}
@@ -441,15 +322,15 @@ export default function BrowseTutorsPage() {
                                                     ))}
                                                 {(tutor.subjects?.length || 0) >
                                                     2 && (
-                                                    <Badge
-                                                        variant="secondary"
-                                                        className="text-xs px-2 py-1"
-                                                    >
-                                                        +
-                                                        {(tutor.subjects
-                                                            ?.length || 0) - 2}
-                                                    </Badge>
-                                                )}
+                                                        <Badge
+                                                            variant="secondary"
+                                                            className="text-xs px-2 py-1"
+                                                        >
+                                                            +
+                                                            {(tutor.subjects
+                                                                ?.length || 0) - 2}
+                                                        </Badge>
+                                                    )}
                                             </div>
                                         </div>
 
@@ -467,30 +348,17 @@ export default function BrowseTutorsPage() {
                                             </div> */}
                                         </div>
 
-                                        {/* Action Buttons */}
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() =>
-                                                    handleConnectTutor(tutor)
-                                                }
-                                                className="text-xs h-9 border-green-200 text-green-700 hover:bg-green-50 hover:border-green-300 font-medium transition-all transform hover:scale-105"
-                                            >
-                                                <Video className="h-3 w-3 mr-1" />
-                                                📹 Connect
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                onClick={() =>
-                                                    handleAskDoubt(tutor)
-                                                }
-                                                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-xs h-9 font-medium shadow-md hover:shadow-lg transition-all transform hover:scale-105"
-                                            >
-                                                <MessageCircle className="h-3 w-3 mr-1" />
-                                                💬 Ask Question
-                                            </Button>
-                                        </div>
+                                        {/* Action Button */}
+                                        <Button
+                                            onClick={() =>
+                                                handleConnectTutor(tutor)
+                                            }
+                                            className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+                                            size="sm"
+                                        >
+                                            <Video className="h-4 w-4 mr-2" />
+                                            🚀 Start Video Call
+                                        </Button>
                                     </CardContent>
                                 </Card>
                             ))}
@@ -532,31 +400,9 @@ export default function BrowseTutorsPage() {
                     onClose={() => setIsCallModalOpen(false)}
                     tutorId={selectedTutor.id}
                     tutorName={`${selectedTutor.firstName} ${selectedTutor.lastName}`}
-                    sessionId={
-                        currentDoubt
-                            ? `doubt_${currentDoubt.id}`
-                            : `tutor_${selectedTutor.id}_student_${user.id}`
-                    }
+                    sessionId={`tutor_${selectedTutor.id}_student_${user.id}_${Date.now()}`}
                 />
             )}
-
-            {/* Doubt Form Modal */}
-            {selectedTutor && (
-                <DoubtForm
-                    isOpen={isDoubtFormOpen}
-                    onClose={() => setIsDoubtFormOpen(false)}
-                    tutorId={selectedTutor.id}
-                    tutorName={`${selectedTutor.firstName} ${selectedTutor.lastName}`}
-                    onSubmitSuccess={handleDoubtSubmitSuccess}
-                />
-            )}
-
-            {/* Student Doubt Status - handles doubt acceptance flow */}
-            <StudentDoubtStatus
-                currentDoubt={currentDoubt}
-                tutorName={selectedTutor ? `${selectedTutor.firstName} ${selectedTutor.lastName}` : undefined}
-                onDoubtStatusChange={handleDoubtStatusChange}
-            />
 
 
         </div>

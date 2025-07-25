@@ -72,6 +72,7 @@ export default function VideoCallPage() {
         const urlParams = new URLSearchParams(window.location.search)
         const role = urlParams.get("role")
         const waitingParam = urlParams.get("waitingForTutor")
+        const notifyStudentParam = urlParams.get("notifyStudent")
         
         if (waitingParam === "true") {
             setWaitingForTutor(true)
@@ -81,6 +82,7 @@ export default function VideoCallPage() {
             // Tutor view - get student info
             const studentIdParam = urlParams.get("studentId")
             const studentNameParam = urlParams.get("studentName")
+            const doubtIdParam = urlParams.get("doubtId")
             
             if (studentIdParam) {
                 setOtherUserId(parseInt(studentIdParam))
@@ -90,6 +92,12 @@ export default function VideoCallPage() {
             }
             setUserRole("tutor")
             setTutorReady(true) // Tutor is ready when they join
+            
+            // If tutor should notify student, we'll do it after WebSocket connects
+            if (notifyStudentParam === "true" && doubtIdParam) {
+                // Store the doubt ID for later notification
+                sessionStorage.setItem('notifyStudentDoubtId', doubtIdParam)
+            }
         } else {
             // Student view - get tutor info
             const tutorIdParam = urlParams.get("tutorId")
@@ -252,6 +260,26 @@ export default function VideoCallPage() {
                                             timestamp: Date.now()
                                         })
                                     )
+                                    
+                                    // Check if we need to notify student that tutor is waiting for call
+                                    const notifyDoubtId = sessionStorage.getItem('notifyStudentDoubtId')
+                                    if (notifyDoubtId) {
+                                        console.log("Sending tutor_waiting_for_call notification to student")
+                                        socketRef.current.send(
+                                            JSON.stringify({
+                                                type: "tutor_waiting_for_call",
+                                                to: otherUserId.toString(),
+                                                from: user?.id.toString(),
+                                                doubtId: parseInt(notifyDoubtId),
+                                                sessionId: sessionId,
+                                                tutorName: `${user?.firstName} ${user?.lastName}`,
+                                                timestamp: Date.now()
+                                            })
+                                        )
+                                        // Clear the flag
+                                        sessionStorage.removeItem('notifyStudentDoubtId')
+                                        toast.success("Student has been notified! Waiting for them to join...")
+                                    }
                                 }
                             }, 1000)
                         }
@@ -519,7 +547,7 @@ export default function VideoCallPage() {
                         })
                     )
                 }
-                
+
                 // Send initial call
                 sendCallMessage()
                 
@@ -616,9 +644,9 @@ export default function VideoCallPage() {
             }, 1500)
         } else {
             // For tutors, navigate back to previous page
-            router.back()
-            
-            // Refresh page for tutors after call ends
+        router.back()
+
+        // Refresh page for tutors after call ends
             setTimeout(() => {
                 window.location.reload()
             }, 500)
@@ -1178,17 +1206,17 @@ export default function VideoCallPage() {
                     <div className="flex flex-col items-center justify-center flex-1">
                         {/* Status Messages */}
                         {waitingForTutor && userRole === "student" && !tutorReady && (
-                            <div className="mb-4 text-blue-700 bg-blue-100 border border-blue-300 rounded px-4 py-2 text-center animate-pulse">
+                                <div className="mb-4 text-blue-700 bg-blue-100 border border-blue-300 rounded px-4 py-2 text-center animate-pulse">
                                 🎓 Waiting for {otherUserName} to join...
-                                <br />
+                                    <br />
                                 Your tutor will start the call when ready.
-                            </div>
-                        )}
+                                </div>
+                            )}
                         {userRole === "tutor" && callStatus === "Idle" && (
                             <div className="mb-4 text-green-700 bg-green-100 border border-green-300 rounded px-4 py-2 text-center">
-                                👨‍🏫 Ready to help {otherUserName}
+                                👨‍🏫 Waiting for {otherUserName} to join
                                 <br />
-                                Click "Start Call" when you're ready to begin.
+                                Student will see "Join Now" button when you're ready.
                             </div>
                         )}
                         
@@ -1213,8 +1241,8 @@ export default function VideoCallPage() {
                                     : !isConnectedRef.current
                                     ? "⏳ Connecting..."
                                     : status === "Ready to call" || status === "Connected"
-                                    ? "🚀 Start Call"
-                                    : "⏳ Connecting..."}
+                                        ? "🚀 Start Call"
+                                        : "⏳ Connecting..."}
                             </Button>
                         ) : (
                             <Button

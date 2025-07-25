@@ -4,6 +4,7 @@ import { ReactNode, useState, useEffect } from "react"
 import { useAuth } from "@/context/AuthContext"
 import { TutorCallNotification } from "@/components/VideoCall/TutorCallNotification"
 import { IncomingCallNotification } from "@/components/VideoCall/IncomingCallNotification"
+import { StudentCallNotification } from "@/components/VideoCall/StudentCallNotification"
 
 interface TutorCallProviderProps {
     children: ReactNode
@@ -68,7 +69,7 @@ export function TutorCallProvider({ children }: TutorCallProviderProps) {
     return (
         <>
             {children}
-            {/* Only render the notification components for tutors */}
+            {/* Render notification components based on user role */}
             {user?.role === "TUTOR" && (
                 <>
                     <TutorCallNotification />
@@ -81,6 +82,11 @@ export function TutorCallProvider({ children }: TutorCallProviderProps) {
                         sessionId={incomingCall.sessionId}
                     />
                 </>
+            )}
+            
+            {/* Global call notification for students */}
+            {user?.role === "STUDENT" && (
+                <StudentCallNotification />
             )}
         </>
     )

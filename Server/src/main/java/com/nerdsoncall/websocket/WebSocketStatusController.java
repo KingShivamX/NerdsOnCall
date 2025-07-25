@@ -20,21 +20,21 @@ public class WebSocketStatusController {
     @GetMapping("/status")
     public Map<String, Object> getWebSocketStatus() {
         Map<String, Object> status = new HashMap<>();
-        
+
         // Check if WebSocketConfig is registered
         String[] webSocketConfigurers = applicationContext.getBeanNamesForType(WebSocketConfigurer.class);
         status.put("webSocketConfigurersCount", webSocketConfigurers.length);
         status.put("webSocketConfigurers", webSocketConfigurers);
-        
+
         // Check if handlers are registered
         boolean signalingHandlerExists = applicationContext.containsBean("signalingHandler");
         boolean webRTCHandlerExists = applicationContext.containsBean("webRTCSignalingHandler");
         boolean tutoringSessionHandlerExists = applicationContext.containsBean("tutoringSessionHandler");
-        
+
         status.put("signalingHandlerRegistered", signalingHandlerExists);
         status.put("webRTCHandlerRegistered", webRTCHandlerExists);
         status.put("tutoringSessionHandlerRegistered", tutoringSessionHandlerExists);
-        
+
         return status;
     }
 }
