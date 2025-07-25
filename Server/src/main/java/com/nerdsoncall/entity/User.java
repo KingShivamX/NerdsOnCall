@@ -48,6 +48,10 @@ public class User {
 
     private String phoneNumber;
 
+    public String getFullName() {
+        return String.format("%s %s", firstName, lastName).trim();
+    }
+
     // Tutor specific fields
     private String bio;
     
