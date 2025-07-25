@@ -10,7 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/sessions")
@@ -38,6 +40,72 @@ public class SessionController {
             return ResponseEntity.ok(session);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Failed to create session: " + e.getMessage());
+        }
+    }
+
+    // New endpoint for creating call-based sessions
+    @PostMapping("/call")
+    public ResponseEntity<?> createCallSession(@RequestParam Long tutorId, @RequestParam String sessionId,
+            Authentication authentication) {
+        try {
+            System.out.println("📞 Creating call session - TutorId: " + tutorId + ", SessionId: " + sessionId);
+
+            User currentUser = userService.findByEmail(authentication.getName())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            System.out.println("👤 Current user: " + currentUser.getFirstName() + " " + currentUser.getLastName() + " (ID: " + currentUser.getId() + ", Role: " + currentUser.getRole() + ")");
+
+            Long studentId;
+            Long actualTutorId;
+
+            if (currentUser.getRole() == User.Role.STUDENT) {
+                // Student is creating the session
+                studentId = currentUser.getId();
+                actualTutorId = tutorId;
+                System.out.println("👨‍🎓 Student creating session with tutor ID: " + tutorId);
+            } else if (currentUser.getRole() == User.Role.TUTOR) {
+                // Tutor is creating the session - they are the tutor, tutorId param is actually studentId
+                studentId = tutorId; // The tutorId parameter is actually the student ID when tutor creates
+                actualTutorId = currentUser.getId();
+                System.out.println("👨‍🏫 Tutor creating session with student ID: " + tutorId);
+            } else {
+                System.out.println("❌ Invalid user role: " + currentUser.getRole());
+                return ResponseEntity.badRequest().body("Invalid user role for session creation");
+            }
+
+            Session session = sessionService.createCallSession(studentId, actualTutorId, sessionId);
+            System.out.println("✅ Call session created successfully with ID: " + session.getId());
+            return ResponseEntity.ok(session);
+        } catch (Exception e) {
+            System.err.println("❌ Failed to create call session: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Failed to create call session: " + e.getMessage());
+        }
+    }
+
+    // Start call session by sessionId (for video calls)
+    @PutMapping("/call/{sessionId}/start")
+    public ResponseEntity<?> startCallSession(@PathVariable String sessionId) {
+        try {
+            System.out.println("🚀 Starting call session: " + sessionId);
+            Session session = sessionService.startCallSession(sessionId);
+            System.out.println("✅ Call session started successfully: " + sessionId);
+            return ResponseEntity.ok(session);
+        } catch (Exception e) {
+            System.err.println("❌ Failed to start call session: " + sessionId + " - " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Failed to start call session: " + e.getMessage());
+        }
+    }
+
+    // End call session by sessionId (for video calls)
+    @PutMapping("/call/{sessionId}/end")
+    public ResponseEntity<?> endCallSession(@PathVariable String sessionId) {
+        try {
+            Session session = sessionService.endCallSession(sessionId);
+            return ResponseEntity.ok(session);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Failed to end call session: " + e.getMessage());
         }
     }
 
@@ -101,6 +169,28 @@ public class SessionController {
             return ResponseEntity.ok(session);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Failed to get session: " + e.getMessage());
+        }
+    }
+
+    // Health check endpoint for session functionality
+    @GetMapping("/health")
+    public ResponseEntity<String> healthCheck() {
+        try {
+            long sessionCount = sessionService.getSessionCount();
+            return ResponseEntity.ok("Session service healthy. Total sessions: " + sessionCount);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Session service unhealthy: " + e.getMessage());
+        }
+    }
+
+    // Database update endpoint for adding actual_start_time column
+    @PostMapping("/update-schema")
+    public ResponseEntity<String> updateSchema() {
+        try {
+            sessionService.updateDatabaseSchema();
+            return ResponseEntity.ok("Database schema updated successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Failed to update schema: " + e.getMessage());
         }
     }
 }

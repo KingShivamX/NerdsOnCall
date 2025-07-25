@@ -3,7 +3,6 @@ package com.nerdsoncall.service;
 import com.nerdsoncall.entity.Doubt;
 import com.nerdsoncall.entity.User;
 import com.nerdsoncall.repository.DoubtRepository;
-import com.nerdsoncall.websocket.DoubtNotificationHandler;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,23 +17,10 @@ public class DoubtService {
     private DoubtRepository doubtRepository;
 
     @Autowired
-    private DoubtNotificationHandler doubtNotificationHandler;
-
-    @Autowired
     private SessionService sessionService;
 
     public Doubt createDoubt(Doubt doubt) {
         Doubt savedDoubt = doubtRepository.save(doubt);
-
-        // Broadcast to online tutors using WebSocket
-        // Using try-catch to prevent any WebSocket errors from affecting the main flow
-        try {
-            doubtNotificationHandler.broadcastDoubtToTutors(savedDoubt);
-        } catch (Exception e) {
-            // Log the error but don't fail the doubt creation
-            System.err.println("Error broadcasting doubt: " + e.getMessage());
-        }
-
         return savedDoubt;
     }
 

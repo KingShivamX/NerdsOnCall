@@ -29,7 +29,7 @@ public class Session {
     private User tutor;
 
     @ManyToOne
-    @JoinColumn(name = "doubt_id", nullable = false)
+    @JoinColumn(name = "doubt_id", nullable = true)  // Made nullable for direct call sessions
     private Doubt doubt;
 
     @Enumerated(EnumType.STRING)
@@ -40,8 +40,11 @@ public class Session {
     @Column(name = "payment_status", nullable = false)
     private PaymentStatus paymentStatus = PaymentStatus.PENDING;
 
-    @Column(nullable = false)
+    @Column(nullable = false)  // Keep as NOT NULL - we'll set a placeholder time
     private LocalDateTime startTime;
+
+    @Column(nullable = true)  // Actual call start time
+    private LocalDateTime actualStartTime;
 
     private LocalDateTime endTime;
 

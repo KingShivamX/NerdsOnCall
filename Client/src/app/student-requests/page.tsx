@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useAuth } from "@/context/AuthContext"
 import { api } from "@/lib/api"
 import { Navbar } from "@/components/layout/Navbar"
-import { TutorDoubtNotification } from "@/components/Doubt/TutorDoubtNotification"
+
 import { VideoCallModal } from "@/components/VideoCall/VideoCallModal"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
@@ -117,22 +117,7 @@ export default function StudentRequestsPage() {
         }
     }
 
-    // Handle new doubt notifications from WebSocket
-    const handleNewDoubt = (newDoubt?: any) => {
-        console.log("handleNewDoubt called with:", newDoubt)
-        if (newDoubt) {
-            console.log("Adding new doubt to requests list")
-            setRequests((prev) => {
-                console.log("Previous requests:", prev.length)
-                const updated = [newDoubt, ...prev]
-                console.log("Updated requests:", updated.length)
-                return updated
-            })
-        } else {
-            console.log("Refreshing requests list")
-            fetchRequests()
-        }
-    }
+
 
     // Handle accept request and create session
     const handleAcceptRequest = async (requestId: number) => {
@@ -307,7 +292,7 @@ export default function StudentRequestsPage() {
     return (
         <div className="min-h-screen bg-slate-50">
             <Navbar />
-            <TutorDoubtNotification onNewDoubt={handleNewDoubt} />
+
 
             <div className="pt-20 pb-10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

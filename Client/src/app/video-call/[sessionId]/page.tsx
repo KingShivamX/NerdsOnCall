@@ -22,6 +22,7 @@ import { Canvas } from "@/components/VideoCall/Canvas"
 import { ChatPanel } from "@/components/VideoCall/ChatPanel"
 import { IncomingCallNotification } from "@/components/VideoCall/IncomingCallNotification"
 import toast from "react-hot-toast"
+import { api } from "@/lib/api"
 
 interface VideoCallPageProps { }
 
@@ -40,6 +41,7 @@ export default function VideoCallPage() {
     const [showWhiteboard, setShowWhiteboard] = useState(false)
     const [showChat, setShowChat] = useState(false)
     const [isFullscreen, setIsFullscreen] = useState(false)
+    const [whiteboardSocket, setWhiteboardSocket] = useState<WebSocket | null>(null)
 
     // Incoming call states
     const [incomingCall, setIncomingCall] = useState<{
@@ -73,26 +75,48 @@ export default function VideoCallPage() {
         const role = urlParams.get("role")
         const waitingParam = urlParams.get("waitingForTutor")
         const notifyStudentParam = urlParams.get("notifyStudent")
-        
+
+        console.log("🔍 Video call page initialization:")
+        console.log("- Auth user:", user?.firstName, user?.lastName, "Role:", user?.role)
+        console.log("- URL role param:", role)
+        console.log("- Session ID:", sessionId)
+
+        // Extract tutor and student IDs from sessionId if it follows the pattern
+        let extractedTutorId: number | null = null
+        let extractedStudentId: number | null = null
+
+        const sessionIdMatch = sessionId.match(/tutor_(\d+)_student_(\d+)_\d+/)
+        if (sessionIdMatch) {
+            extractedTutorId = parseInt(sessionIdMatch[1])
+            extractedStudentId = parseInt(sessionIdMatch[2])
+            console.log("📋 Extracted from sessionId - Tutor ID:", extractedTutorId, "Student ID:", extractedStudentId)
+        }
+
         if (waitingParam === "true") {
             setWaitingForTutor(true)
         }
         
-        if (role === "tutor") {
+        if (role === "tutor" || user?.role === "TUTOR") {
             // Tutor view - get student info
             const studentIdParam = urlParams.get("studentId")
             const studentNameParam = urlParams.get("studentName")
             const doubtIdParam = urlParams.get("doubtId")
-            
-            if (studentIdParam) {
-                setOtherUserId(parseInt(studentIdParam))
+
+            // Use URL param if available, otherwise use extracted ID
+            const studentIdToUse = studentIdParam ? parseInt(studentIdParam) : extractedStudentId
+            if (studentIdToUse) {
+                setOtherUserId(studentIdToUse)
+                console.log("👨‍🏫 Tutor - other user (student) ID:", studentIdToUse)
             }
+
             if (studentNameParam) {
                 setOtherUserName(decodeURIComponent(studentNameParam))
+            } else {
+                setOtherUserName("Student") // Default name
             }
             setUserRole("tutor")
             setTutorReady(true) // Tutor is ready when they join
-            
+
             // If tutor should notify student, we'll do it after WebSocket connects
             if (notifyStudentParam === "true" && doubtIdParam) {
                 // Store the doubt ID for later notification
@@ -102,12 +126,18 @@ export default function VideoCallPage() {
             // Student view - get tutor info
             const tutorIdParam = urlParams.get("tutorId")
             const tutorNameParam = urlParams.get("tutorName")
-            
-            if (tutorIdParam) {
-                setOtherUserId(parseInt(tutorIdParam))
+
+            // Use URL param if available, otherwise use extracted ID
+            const tutorIdToUse = tutorIdParam ? parseInt(tutorIdParam) : extractedTutorId
+            if (tutorIdToUse) {
+                setOtherUserId(tutorIdToUse)
+                console.log("👨‍🎓 Student - other user (tutor) ID:", tutorIdToUse)
             }
+
             if (tutorNameParam) {
                 setOtherUserName(decodeURIComponent(tutorNameParam))
+            } else {
+                setOtherUserName("Tutor") // Default name
             }
             setUserRole("student")
         }
@@ -115,30 +145,97 @@ export default function VideoCallPage() {
         // Initialize video call
         initializeVideoCall()
 
-        // Initialize whiteboard socket
-        const serverUrl =
-            process.env.NEXT_PUBLIC_API_URL?.replace("http", "ws") ||
-            "ws://localhost:8080"
-        const wsUrl = `${serverUrl}/ws/webrtc?userId=${user?.id}&sessionId=${sessionId}&type=whiteboard`
-        whiteboardSocketRef.current = new WebSocket(wsUrl)
-        whiteboardSocketRef.current.onopen = () => {
-            console.log("Whiteboard socket connected")
-            if (user?.id && sessionId) {
-                whiteboardSocketRef.current?.send(
-                    JSON.stringify({
-                        type: "subscribe",
-                        userId: user.id,
-                        sessionId: sessionId,
-                    })
-                )
+        // Initialize whiteboard socket - Use the correct endpoint for canvas updates
+        const initializeWhiteboardSocket = () => {
+            try {
+                const serverUrl =
+                    process.env.NEXT_PUBLIC_API_URL?.replace("http", "ws") ||
+                    "ws://localhost:8080"
+                const wsUrl = `${serverUrl}/ws/session?userId=${user?.id}&sessionId=${sessionId}`
+
+                console.log("🎨 Connecting to whiteboard socket:", wsUrl)
+                const newSocket = new WebSocket(wsUrl)
+                whiteboardSocketRef.current = newSocket
+
+                newSocket.onopen = () => {
+                    console.log("🎨 Whiteboard socket connected to /ws/session")
+                    setWhiteboardSocket(newSocket) // Update state when connected
+
+                    // Wait a moment to ensure connection is fully established
+                    setTimeout(() => {
+                        if (newSocket.readyState === WebSocket.OPEN && user?.id && sessionId) {
+                            const subscribeMessage = {
+                                type: "subscribe",
+                                userId: user.id,
+                                sessionId: sessionId,
+                            }
+                            console.log("📤 Sending subscribe message:", subscribeMessage)
+                            try {
+                                newSocket.send(JSON.stringify(subscribeMessage))
+                                console.log("✅ Subscribe message sent successfully")
+                            } catch (error) {
+                                console.error("❌ Error sending subscribe message:", error)
+                            }
+                        } else {
+                            console.warn("⚠️ WebSocket not ready for subscription")
+                        }
+                    }, 100) // Wait 100ms for connection to stabilize
+                }
+
+                newSocket.onmessage = (event) => {
+                    try {
+                        const message = JSON.parse(event.data)
+                        console.log("📨 Whiteboard message received:", message.type, message)
+
+                        // Forward ALL messages to Canvas component for processing
+                        window.dispatchEvent(new CustomEvent('whiteboardUpdate', {
+                            detail: message
+                        }))
+
+                        // Handle video call page specific messages
+                        if (message.type === "whiteboard_enabled") {
+                            // Auto-enable whiteboard when other user enables it
+                            if (!showWhiteboard) {
+                                setShowWhiteboard(true)
+                                toast.success(`${message.userName || 'Other user'} enabled the whiteboard`)
+                            }
+                        } else if (message.type === "subscribed") {
+                            console.log("✅ Successfully subscribed to whiteboard session")
+                        } else if (message.type === "connection_established") {
+                            console.log("✅ Whiteboard connection established")
+                        }
+                    } catch (error) {
+                        console.error("Error parsing whiteboard message:", error)
+                    }
+                }
+
+                newSocket.onerror = (err) => {
+                    console.error("❌ Whiteboard socket error:", err)
+                    setWhiteboardSocket(null)
+                }
+
+                newSocket.onclose = (event) => {
+                    console.log("🔌 Whiteboard socket closed:", event.code, event.reason)
+                    setWhiteboardSocket(null)
+                    whiteboardSocketRef.current = null
+
+                    // Attempt to reconnect after a delay if not intentionally closed
+                    if (event.code !== 1000 && user?.id && sessionId) {
+                        console.log("🔄 Attempting to reconnect whiteboard socket in 3 seconds...")
+                        setTimeout(() => {
+                            if (!whiteboardSocketRef.current || whiteboardSocketRef.current.readyState === WebSocket.CLOSED) {
+                                initializeWhiteboardSocket()
+                            }
+                        }, 3000)
+                    }
+                }
+            } catch (error) {
+                console.error("❌ Error initializing whiteboard socket:", error)
             }
         }
-        whiteboardSocketRef.current.onerror = (err) => {
-            console.error("Whiteboard socket error", err)
-        }
-        whiteboardSocketRef.current.onclose = () => {
-            console.log("Whiteboard socket closed")
-        }
+
+        // Initialize the whiteboard socket
+        initializeWhiteboardSocket()
 
         return () => {
             console.log("Component unmounting, cleaning up...")
@@ -223,9 +320,57 @@ export default function VideoCallPage() {
 
             socketRef.current = new WebSocket(wsUrl)
 
-            socketRef.current.onopen = () => {
+            socketRef.current.onopen = async () => {
                 setStatus("Connected")
                 isConnectedRef.current = true
+
+                // Create session in backend - both students and tutors can now create sessions
+                try {
+                    console.log("🔄 Creating session:", sessionId)
+                    console.log("Auth user role:", user?.role, "URL role:", userRole, "User ID:", user?.id, "Other user ID:", otherUserId)
+
+                    let parameterToPass;
+                    let parameterDescription;
+
+                    if (user?.role === "STUDENT") {
+                        // Student creating session - pass tutor ID
+                        parameterToPass = otherUserId;
+                        parameterDescription = "tutor ID";
+                        console.log("👨‍🎓 Student creating session with tutor ID:", parameterToPass)
+                    } else if (user?.role === "TUTOR") {
+                        // Tutor creating session - pass student ID
+                        parameterToPass = otherUserId;
+                        parameterDescription = "student ID";
+                        console.log("👨‍🏫 Tutor creating session with student ID:", parameterToPass)
+                    } else {
+                        console.warn("⚠️ Unknown user role:", user?.role)
+                        return
+                    }
+
+                    if (!parameterToPass || parameterToPass === 0) {
+                        console.warn("⚠️ No valid other user ID found, skipping session creation")
+                        console.warn("Debug info - sessionId:", sessionId, "userRole:", user?.role, "otherUserId:", otherUserId)
+                        return
+                    }
+
+                    console.log(`📤 API call: POST /api/sessions/call?tutorId=${parameterToPass}&sessionId=${sessionId}`)
+                    console.log(`📝 Parameter explanation: tutorId=${parameterToPass} (${parameterDescription})`)
+
+                    const response = await api.post(`/api/sessions/call?tutorId=${parameterToPass}&sessionId=${sessionId}`)
+                    console.log("✅ Session created successfully:", response.data)
+                } catch (error: any) {
+                    console.error("❌ Error creating session:", error)
+                    console.error("Error status:", error.response?.status)
+                    console.error("Error details:", error.response?.data)
+                    console.error("Full error response:", error.response)
+
+                    // Show user-friendly error message
+                    if (error.response?.status === 400) {
+                        toast.error(`Session creation failed: ${error.response?.data || 'Bad request'}`)
+                    } else {
+                        toast.error("Failed to create session - continuing anyway")
+                    }
+                }
 
                 // Wait a bit to ensure WebSocket is fully ready
                 setTimeout(() => {
@@ -348,7 +493,27 @@ export default function VideoCallPage() {
                     console.log(`User ${message.userId} disconnected`)
                     if (isInCallRef.current) {
                         toast.error("Other user disconnected")
-                        
+
+                        // End the session in the backend when other user disconnects
+                        try {
+                            console.log("🔚 Ending session due to user disconnect:", sessionId)
+                            const response = await api.put(`/api/sessions/call/${sessionId}/end`)
+                            console.log("✅ Session ended due to disconnect:", response.data)
+
+                            if (response.data.durationMinutes && response.data.tutorEarnings) {
+                                const duration = response.data.durationMinutes
+                                const earnings = response.data.tutorEarnings
+                                const cost = response.data.cost
+
+                                toast.success(
+                                    `Session completed! Duration: ${duration} min, ${user?.role === 'TUTOR' ? `Earnings: $${earnings}` : `Cost: $${cost}`}`,
+                                    { duration: 5000 }
+                                )
+                            }
+                        } catch (error) {
+                            console.error("❌ Error ending session on disconnect:", error)
+                        }
+
                         // Clean up the call state
                         setCallStatus("Disconnected")
                         if (peerConnectionRef.current) {
@@ -356,7 +521,7 @@ export default function VideoCallPage() {
                             peerConnectionRef.current = null
                         }
                         isInCallRef.current = false
-                        
+
                         // Reload page after disconnect for students to clear WebSocket errors
                         if (user?.role === "STUDENT") {
                             toast.loading("Returning to browse tutors...")
@@ -509,6 +674,54 @@ export default function VideoCallPage() {
 
         try {
             setCallStatus("Calling...")
+
+            // Start the session in the backend to track start time
+            try {
+                console.log("🚀 Starting session in backend:", sessionId)
+                const response = await api.put(`/api/sessions/call/${sessionId}/start`)
+                console.log("✅ Session started successfully:", response.data)
+                toast.success("Session started - timer is now running!")
+            } catch (error: any) {
+                console.error("❌ Error starting session:", error)
+                console.error("Error status:", error.response?.status)
+                console.error("Error details:", error.response?.data)
+                console.error("Full error response:", error.response)
+
+                // If session doesn't exist, try to create it first
+                if (error.response?.status === 400) {
+                    try {
+                        console.log("🔄 Session not found, creating it first...")
+
+                        let parameterToPass;
+                        if (user?.role === "STUDENT") {
+                            parameterToPass = otherUserId; // Student passes tutor ID
+                            console.log("👨‍🎓 Student creating session with tutor ID:", parameterToPass)
+                        } else if (user?.role === "TUTOR") {
+                            parameterToPass = otherUserId; // Tutor passes student ID
+                            console.log("👨‍🏫 Tutor creating session with student ID:", parameterToPass)
+                        } else {
+                            throw new Error("Unknown user role: " + user?.role)
+                        }
+
+                        console.log("Creating session with parameter:", parameterToPass, "sessionId:", sessionId)
+
+                        const createResponse = await api.post(`/api/sessions/call?tutorId=${parameterToPass}&sessionId=${sessionId}`)
+                        console.log("✅ Session created:", createResponse.data)
+
+                        // Now try to start it again
+                        const retryResponse = await api.put(`/api/sessions/call/${sessionId}/start`)
+                        console.log("✅ Session created and started successfully:", retryResponse.data)
+                        toast.success("Session started - timer is now running!")
+                    } catch (retryError: any) {
+                        console.error("❌ Failed to create and start session:", retryError)
+                        console.error("Retry error details:", retryError.response?.data)
+                        toast.error(`Session tracking failed: ${retryError.response?.data || retryError.message}`)
+                    }
+                } else {
+                    toast.error(`Session tracking failed: ${error.response?.data || error.message}`)
+                }
+            }
+
             createPeerConnection()
 
             if (localStreamRef.current && peerConnectionRef.current) {
@@ -607,7 +820,7 @@ export default function VideoCallPage() {
         }
     }
 
-    const endCall = () => {
+    const endCall = async () => {
         // Send disconnect message to other user before ending call
         if (isInCallRef.current && socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
             socketRef.current.send(
@@ -634,6 +847,29 @@ export default function VideoCallPage() {
             }
 
             isInCallRef.current = false
+
+            // End the session in the backend to calculate duration and earnings
+            try {
+                console.log("🔚 Ending session in backend:", sessionId)
+                const response = await api.put(`/api/sessions/call/${sessionId}/end`)
+                console.log("✅ Session ended successfully:", response.data)
+
+                if (response.data.durationMinutes && response.data.tutorEarnings) {
+                    const duration = response.data.durationMinutes
+                    const earnings = response.data.tutorEarnings
+                    const cost = response.data.cost
+
+                    toast.success(
+                        `Session completed! Duration: ${duration} min, ${user?.role === 'TUTOR' ? `Earnings: $${earnings}` : `Cost: $${cost}`}`,
+                        { duration: 5000 }
+                    )
+                } else {
+                    toast.success("Session ended successfully!")
+                }
+            } catch (error) {
+                console.error("❌ Error ending session:", error)
+                toast.error("Session ended but failed to save duration. Please contact support.")
+            }
         }
 
         // Show end call message and reload page for students to clear WebSocket errors
@@ -991,7 +1227,7 @@ export default function VideoCallPage() {
                             <Canvas
                                 sessionId={sessionId}
                                 user={user}
-                                socket={whiteboardSocketRef.current}
+                                socket={whiteboardSocket}
                                 onCanvasUpdate={(data) => {
                                     // Handle canvas updates safely
                                     try {
@@ -1179,18 +1415,57 @@ export default function VideoCallPage() {
                                     const newState = !showWhiteboard
                                     setShowWhiteboard(newState)
 
-                                    if (newState) {
-                                        toast.success(
-                                            "Whiteboard opened - Draw and collaborate!"
-                                        )
-                                    } else {
+                                    // Notify other users when whiteboard is enabled
+                                    if (newState && whiteboardSocket &&
+                                        whiteboardSocket.readyState === WebSocket.OPEN) {
+                                        try {
+                                            whiteboardSocket.send(
+                                                JSON.stringify({
+                                                    type: "whiteboard_enabled",
+                                                    sessionId: sessionId,
+                                                    userId: user?.id,
+                                                    userName: `${user?.firstName} ${user?.lastName}`,
+                                                    enabled: true
+                                                })
+                                            )
+                                            toast.success(
+                                                "🎨 Whiteboard opened - Draw and collaborate!"
+                                            )
+                                            console.log("🎨 Whiteboard enabled, notified other users")
+                                        } catch (error) {
+                                            console.error("❌ Error notifying whiteboard enabled:", error)
+                                            toast.success("🎨 Whiteboard opened")
+                                        }
+                                    } else if (!newState) {
+                                        // Optionally notify when disabled
+                                        if (whiteboardSocket &&
+                                            whiteboardSocket.readyState === WebSocket.OPEN) {
+                                            try {
+                                                whiteboardSocket.send(
+                                                    JSON.stringify({
+                                                        type: "whiteboard_disabled",
+                                                        sessionId: sessionId,
+                                                        userId: user?.id,
+                                                        userName: `${user?.firstName} ${user?.lastName}`,
+                                                        enabled: false
+                                                    })
+                                                )
+                                            } catch (error) {
+                                                console.error("❌ Error notifying whiteboard disabled:", error)
+                                            }
+                                        }
                                         toast("Whiteboard closed")
+                                        console.log("🎨 Whiteboard disabled")
+                                    } else if (newState && !whiteboardSocket) {
+                                        toast.success("🎨 Whiteboard opened (connecting...)")
+                                        console.log("🎨 Whiteboard enabled but socket not ready")
                                     }
                                 } catch (error) {
                                     console.error(
                                         "Error toggling whiteboard:",
                                         error
                                     )
+                                    toast.error("Failed to toggle whiteboard")
                                 }
                             }}
                             className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full transition-all shadow-lg hover:shadow-xl transform hover:scale-105 ${showWhiteboard

@@ -39,16 +39,25 @@ public class TutoringSessionHandler extends TextWebSocketHandler {
         try {
             // Extract userId from query parameters
             String query = session.getUri().getQuery();
+            logger.info("🔗 New tutoring session connection attempt. Query: {}", query);
+
             if (query != null && query.contains("userId=")) {
                 String userId = query.split("userId=")[1].split("&")[0];
-                logger.info("Tutoring session connection established for user: {}", userId);
+                logger.info("✅ Tutoring session connection established for user: {}", userId);
                 userSessions.put(userId, session);
+
+                // Send connection confirmation
+                ObjectNode confirmMsg = objectMapper.createObjectNode();
+                confirmMsg.put("type", "connection_established");
+                confirmMsg.put("userId", userId);
+                session.sendMessage(new TextMessage(confirmMsg.toString()));
+
             } else {
-                logger.error("Tutoring session connection rejected: No userId provided");
+                logger.error("❌ Tutoring session connection rejected: No userId provided");
                 session.close(CloseStatus.BAD_DATA.withReason("No userId provided"));
             }
         } catch (Exception e) {
-            logger.error("Error in tutoring session connection establishment", e);
+            logger.error("❌ Error in tutoring session connection establishment", e);
             try {
                 session.close(CloseStatus.SERVER_ERROR.withReason("Internal server error"));
             } catch (IOException ex) {
@@ -77,6 +86,12 @@ public class TutoringSessionHandler extends TextWebSocketHandler {
                         break;
                     case "canvas_update":
                         handleCanvasUpdate(session, jsonNode);
+                        break;
+                    case "whiteboard_enabled":
+                        handleWhiteboardEnabled(session, jsonNode);
+                        break;
+                    case "whiteboard_disabled":
+                        handleWhiteboardDisabled(session, jsonNode);
                         break;
                     case "screen_share":
                         handleScreenShare(session, jsonNode);
@@ -129,22 +144,27 @@ public class TutoringSessionHandler extends TextWebSocketHandler {
     // Helper methods
     
     private void handleSubscribe(WebSocketSession session, JsonNode message) throws IOException {
-        if (message.has("sessionId")) {
+        if (message.has("sessionId") && message.has("userId")) {
             String sessionId = message.get("sessionId").asText();
-            
+            String userId = message.get("userId").asText();
+
             // Add session to subscription list
             sessionSubscriptions.computeIfAbsent(sessionId, k -> new CopyOnWriteArraySet<>())
                               .add(session);
-            
-            logger.info("Client subscribed to session: {}", sessionId);
-            
+
+            logger.info("🎨 Client {} subscribed to whiteboard session: {}", userId, sessionId);
+
             // Confirm subscription
             ObjectNode confirmMsg = objectMapper.createObjectNode();
             confirmMsg.put("type", "subscribed");
             confirmMsg.put("sessionId", sessionId);
+            confirmMsg.put("userId", userId);
             session.sendMessage(new TextMessage(confirmMsg.toString()));
+
+            logger.info("✅ Subscription confirmed for user {} in session {}", userId, sessionId);
         } else {
-            sendErrorMessage(session, "Invalid subscribe message format");
+            logger.error("❌ Invalid subscribe message format: {}", message.toString());
+            sendErrorMessage(session, "Invalid subscribe message format - missing sessionId or userId");
         }
     }
     
@@ -178,12 +198,53 @@ public class TutoringSessionHandler extends TextWebSocketHandler {
     private void handleCanvasUpdate(WebSocketSession session, JsonNode message) {
         if (message.has("sessionId") && message.has("data") && message.has("userId")) {
             String sessionId = message.get("sessionId").asText();
-            
-            // Broadcast canvas update to all subscribers of this session
-            broadcastToSession(sessionId, message);
+            String userId = message.get("userId").asText();
+
+            logger.debug("📝 Canvas update from user {} in session {}", userId, sessionId);
+
+            // Broadcast canvas update to all subscribers of this session (except sender)
+            broadcastToSessionExceptSender(sessionId, message, session);
         } else {
             try {
                 sendErrorMessage(session, "Invalid canvas update message format");
+            } catch (IOException e) {
+                logger.error("Error sending error message", e);
+            }
+        }
+    }
+
+    private void handleWhiteboardEnabled(WebSocketSession session, JsonNode message) {
+        if (message.has("sessionId") && message.has("userId")) {
+            String sessionId = message.get("sessionId").asText();
+            String userId = message.get("userId").asText();
+            String userName = message.has("userName") ? message.get("userName").asText() : "User";
+
+            logger.info("🎨 Whiteboard enabled by user {} ({}) in session {}", userName, userId, sessionId);
+
+            // Broadcast whiteboard enabled to all subscribers of this session (except sender)
+            broadcastToSessionExceptSender(sessionId, message, session);
+        } else {
+            try {
+                sendErrorMessage(session, "Invalid whiteboard enabled message format");
+            } catch (IOException e) {
+                logger.error("Error sending error message", e);
+            }
+        }
+    }
+
+    private void handleWhiteboardDisabled(WebSocketSession session, JsonNode message) {
+        if (message.has("sessionId") && message.has("userId")) {
+            String sessionId = message.get("sessionId").asText();
+            String userId = message.get("userId").asText();
+            String userName = message.has("userName") ? message.get("userName").asText() : "User";
+
+            logger.info("🎨 Whiteboard disabled by user {} ({}) in session {}", userName, userId, sessionId);
+
+            // Broadcast whiteboard disabled to all subscribers of this session (except sender)
+            broadcastToSessionExceptSender(sessionId, message, session);
+        } else {
+            try {
+                sendErrorMessage(session, "Invalid whiteboard disabled message format");
             } catch (IOException e) {
                 logger.error("Error sending error message", e);
             }
@@ -207,16 +268,36 @@ public class TutoringSessionHandler extends TextWebSocketHandler {
     
     private void broadcastToSession(String sessionId, JsonNode message) {
         Set<WebSocketSession> subscribers = sessionSubscriptions.get(sessionId);
-        
+
         if (subscribers != null && !subscribers.isEmpty()) {
             TextMessage textMessage = new TextMessage(message.toString());
-            
+
             for (WebSocketSession subscriber : subscribers) {
                 if (subscriber.isOpen()) {
                     try {
                         subscriber.sendMessage(textMessage);
                     } catch (IOException e) {
                         logger.error("Error broadcasting message to session subscriber", e);
+                    }
+                }
+            }
+        }
+    }
+
+    private void broadcastToSessionExceptSender(String sessionId, JsonNode message, WebSocketSession senderSession) {
+        Set<WebSocketSession> subscribers = sessionSubscriptions.get(sessionId);
+
+        if (subscribers != null && !subscribers.isEmpty()) {
+            TextMessage textMessage = new TextMessage(message.toString());
+
+            for (WebSocketSession subscriber : subscribers) {
+                // Don't send message back to the sender
+                if (subscriber.isOpen() && !subscriber.getId().equals(senderSession.getId())) {
+                    try {
+                        subscriber.sendMessage(textMessage);
+                        logger.debug("📤 Broadcasted message to session {} subscriber", sessionId);
+                    } catch (IOException e) {
+                        logger.error("Error broadcasting to session subscriber", e);
                     }
                 }
             }

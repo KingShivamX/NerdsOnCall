@@ -35,29 +35,45 @@ import Link from "next/link"
 
 interface Session {
     id: number
-    title: string
-    subject: string
-    status: string
-    duration: number
-    scheduledAt: string
-    completedAt?: string
-    tutor: {
+    sessionId: string
+    status: "PENDING" | "ACTIVE" | "COMPLETED" | "CANCELLED" | "TIMEOUT"
+    paymentStatus?: "PENDING" | "PAID" | "FAILED" | "REFUNDED"
+    startTime: string
+    actualStartTime?: string
+    endTime?: string
+    durationMinutes?: number
+    cost?: number
+    tutorEarnings?: number
+    amount?: number
+    commission?: number
+    roomId?: string
+    sessionNotes?: string
+    canvasData?: string
+    recordingEnabled?: boolean
+    recordingUrl?: string
+    createdAt?: string
+    updatedAt?: string
+    tutor?: {
         id: number
         firstName: string
         lastName: string
+        email?: string
+        profilePicture?: string
         rating?: number
-        profilePicture?: string
     }
-    student: {
+    student?: {
         id: number
         firstName: string
         lastName: string
+        email?: string
         profilePicture?: string
     }
-    rating?: number
-    feedback?: string
-    sessionUrl?: string
-    createdAt: string
+    doubt?: {
+        id: number
+        title: string
+        subject: string
+        description: string
+    }
 }
 
 export default function MySessionsPage() {
@@ -94,62 +110,88 @@ export default function MySessionsPage() {
     // Get status color
     const getStatusColor = (status: string) => {
         switch (status) {
-            case "SCHEDULED":
+            case "PENDING":
                 return "bg-blue-100 text-blue-800 border-blue-200"
-            case "IN_PROGRESS":
+            case "ACTIVE":
                 return "bg-yellow-100 text-yellow-800 border-yellow-200"
             case "COMPLETED":
                 return "bg-green-100 text-green-800 border-green-200"
             case "CANCELLED":
                 return "bg-red-100 text-red-800 border-red-200"
-            case "NO_SHOW":
-                return "bg-gray-100 text-gray-800 border-gray-200"
+            case "TIMEOUT":
+                return "bg-orange-100 text-orange-800 border-orange-200"
             default:
                 return "bg-gray-100 text-gray-800 border-gray-200"
+        }
+    }
+
+    // Get status display text
+    const getStatusText = (status: string) => {
+        switch (status) {
+            case "PENDING":
+                return "Scheduled"
+            case "ACTIVE":
+                return "In Progress"
+            case "COMPLETED":
+                return "Completed"
+            case "CANCELLED":
+                return "Cancelled"
+            case "TIMEOUT":
+                return "Timed Out"
+            default:
+                return status
         }
     }
 
     // Get status icon
     const getStatusIcon = (status: string) => {
         switch (status) {
-            case "SCHEDULED":
+            case "PENDING":
                 return <Clock className="h-4 w-4" />
-            case "IN_PROGRESS":
+            case "ACTIVE":
                 return <Play className="h-4 w-4" />
             case "COMPLETED":
                 return <CheckCircle className="h-4 w-4" />
             case "CANCELLED":
                 return <XCircle className="h-4 w-4" />
-            case "NO_SHOW":
+            case "TIMEOUT":
                 return <AlertCircle className="h-4 w-4" />
             default:
                 return <Clock className="h-4 w-4" />
         }
     }
 
-    // Filter sessions
+    // Filter sessions with safe property access
     const filteredSessions = sessions.filter((session) => {
-        const matchesSearch =
-            session.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            `${session.tutor.firstName} ${session.tutor.lastName}`
-                .toLowerCase()
-                .includes(searchQuery.toLowerCase()) ||
-            `${session.student.firstName} ${session.student.lastName}`
-                .toLowerCase()
-                .includes(searchQuery.toLowerCase())
-        const matchesSubject =
-            selectedSubject === "all" || session.subject === selectedSubject
-        const matchesStatus =
-            selectedStatus === "all" || session.status === selectedStatus
+        const searchLower = searchQuery.toLowerCase()
+
+        // Safe search matching
+        const matchesSearch = searchQuery === "" || [
+            session.sessionId,
+            session.doubt?.title,
+            session.doubt?.subject,
+            session.tutor?.firstName,
+            session.tutor?.lastName,
+            session.student?.firstName,
+            session.student?.lastName,
+            session.sessionNotes
+        ].some(field => field?.toLowerCase().includes(searchLower))
+
+        // Subject matching (use doubt subject if available)
+        const sessionSubject = session.doubt?.subject || "General"
+        const matchesSubject = selectedSubject === "all" || sessionSubject === selectedSubject
+
+        // Status matching
+        const matchesStatus = selectedStatus === "all" || session.status === selectedStatus
 
         // Filter by tab
         let matchesTab = true
         if (activeTab === "upcoming") {
-            matchesTab = session.status === "SCHEDULED"
+            matchesTab = ["PENDING", "ACTIVE"].includes(session.status)
         } else if (activeTab === "completed") {
             matchesTab = session.status === "COMPLETED"
         } else if (activeTab === "cancelled") {
-            matchesTab = ["CANCELLED", "NO_SHOW"].includes(session.status)
+            matchesTab = ["CANCELLED", "TIMEOUT"].includes(session.status)
         }
 
         return matchesSearch && matchesSubject && matchesStatus && matchesTab
@@ -158,15 +200,16 @@ export default function MySessionsPage() {
     // Get session counts
     const sessionCounts = {
         all: sessions.length,
-        upcoming: sessions.filter((s) => s.status === "SCHEDULED").length,
+        upcoming: sessions.filter((s) => ["PENDING", "ACTIVE"].includes(s.status)).length,
         completed: sessions.filter((s) => s.status === "COMPLETED").length,
         cancelled: sessions.filter((s) =>
-            ["CANCELLED", "NO_SHOW"].includes(s.status)
+            ["CANCELLED", "TIMEOUT"].includes(s.status)
         ).length,
     }
 
     // Format duration
-    const formatDuration = (minutes: number) => {
+    const formatDuration = (minutes?: number) => {
+        if (!minutes || minutes === 0) return "0m"
         const hours = Math.floor(minutes / 60)
         const mins = minutes % 60
         if (hours > 0) {
@@ -177,18 +220,32 @@ export default function MySessionsPage() {
 
     // Join session
     const joinSession = (session: Session) => {
-        if (session.sessionUrl) {
-            window.open(session.sessionUrl, "_blank")
+        if (session.recordingUrl) {
+            window.open(session.recordingUrl, "_blank")
         } else {
-            // Generate session URL
-            const sessionId = `session_${session.id}_${Date.now()}`
-            const tutorId = session.tutor.id
-            const tutorName = `${session.tutor.firstName} ${session.tutor.lastName}`
-            router.push(
-                `/video-call/${sessionId}?tutorId=${tutorId}&tutorName=${encodeURIComponent(
-                    tutorName
-                )}`
-            )
+            // Use existing sessionId or generate one
+            const sessionIdToUse = session.sessionId || `session_${session.id}_${Date.now()}`
+
+            if (isStudent && session.tutor) {
+                const tutorId = session.tutor.id
+                const tutorName = `${session.tutor.firstName} ${session.tutor.lastName}`
+                router.push(
+                    `/video-call/${sessionIdToUse}?role=student&tutorId=${tutorId}&tutorName=${encodeURIComponent(
+                        tutorName
+                    )}`
+                )
+            } else if (!isStudent && session.student) {
+                const studentId = session.student.id
+                const studentName = `${session.student.firstName} ${session.student.lastName}`
+                router.push(
+                    `/video-call/${sessionIdToUse}?role=tutor&studentId=${studentId}&studentName=${encodeURIComponent(
+                        studentName
+                    )}`
+                )
+            } else {
+                // Fallback - just use the sessionId
+                router.push(`/video-call/${sessionIdToUse}`)
+            }
         }
     }
 
@@ -455,10 +512,7 @@ export default function MySessionsPage() {
                                                                     variant="outline"
                                                                     className="text-xs"
                                                                 >
-                                                                    {session.subject.replace(
-                                                                        /_/g,
-                                                                        " "
-                                                                    )}
+                                                                    {session.doubt?.subject || "General"}
                                                                 </Badge>
                                                                 <Badge
                                                                     className={`text-xs border ${getStatusColor(
@@ -469,61 +523,70 @@ export default function MySessionsPage() {
                                                                         session.status
                                                                     )}
                                                                     <span>
-                                                                        {session.status.replace(
-                                                                            /_/g,
-                                                                            " "
-                                                                        )}
+                                                                        {getStatusText(session.status)}
                                                                     </span>
                                                                 </Badge>
-                                                                <Badge
-                                                                    variant="outline"
-                                                                    className="text-xs"
-                                                                >
-                                                                    {formatDuration(
-                                                                        session.duration
-                                                                    )}
-                                                                </Badge>
+                                                                {session.durationMinutes && (
+                                                                    <Badge
+                                                                        variant="outline"
+                                                                        className="text-xs"
+                                                                    >
+                                                                        {session.durationMinutes} min
+                                                                    </Badge>
+                                                                )}
+                                                                {session.cost && (
+                                                                    <Badge
+                                                                        variant="outline"
+                                                                        className="text-xs text-green-700 border-green-200"
+                                                                    >
+                                                                        ${session.cost}
+                                                                    </Badge>
+                                                                )}
                                                             </div>
 
                                                             {/* Session Content */}
                                                             <h3 className="font-semibold text-slate-800 mb-2">
-                                                                {session.title}
+                                                                {session.doubt?.title || `Session ${session.sessionId}`}
                                                             </h3>
+
+                                                            {session.doubt?.description && (
+                                                                <p className="text-sm text-slate-600 mb-3">
+                                                                    {session.doubt.description.length > 100
+                                                                        ? `${session.doubt.description.substring(0, 100)}...`
+                                                                        : session.doubt.description
+                                                                    }
+                                                                </p>
+                                                            )}
 
                                                             {/* Participant Info */}
                                                             <div className="flex items-center space-x-4 mb-3">
                                                                 <div className="flex items-center space-x-2">
                                                                     <div className="w-8 h-8 bg-gradient-to-br from-slate-600 to-slate-800 rounded-full flex items-center justify-center text-white text-xs font-bold">
                                                                         {isStudent
-                                                                            ? session
-                                                                                  .tutor
-                                                                                  .firstName[0]
-                                                                            : session
-                                                                                  .student
-                                                                                  .firstName[0]}
+                                                                            ? session.tutor?.firstName?.[0] || "T"
+                                                                            : session.student?.firstName?.[0] || "S"}
                                                                     </div>
                                                                     <div>
                                                                         <p className="text-sm font-medium text-slate-800">
                                                                             {isStudent
-                                                                                ? `${session.tutor.firstName} ${session.tutor.lastName}`
-                                                                                : `${session.student.firstName} ${session.student.lastName}`}
+                                                                                ? session.tutor
+                                                                                    ? `${session.tutor.firstName} ${session.tutor.lastName}`
+                                                                                    : "Unknown Tutor"
+                                                                                : session.student
+                                                                                    ? `${session.student.firstName} ${session.student.lastName}`
+                                                                                    : "Unknown Student"}
                                                                         </p>
                                                                         <p className="text-xs text-slate-600">
-                                                                            {isStudent
-                                                                                ? "Tutor"
-                                                                                : "Student"}
+                                                                            {isStudent ? "Tutor" : "Student"}
                                                                         </p>
                                                                     </div>
                                                                 </div>
 
-                                                                {session.rating && (
+                                                                {session.tutor?.rating && (
                                                                     <div className="flex items-center space-x-1">
                                                                         <Star className="h-4 w-4 text-amber-500 fill-current" />
                                                                         <span className="text-sm text-slate-600">
-                                                                            {
-                                                                                session.rating
-                                                                            }
-                                                                            /5
+                                                                            {session.tutor.rating}/5
                                                                         </span>
                                                                     </div>
                                                                 )}
@@ -534,44 +597,32 @@ export default function MySessionsPage() {
                                                                 <div className="flex items-center space-x-1">
                                                                     <Calendar className="h-3 w-3" />
                                                                     <span>
-                                                                        {new Date(
-                                                                            session.scheduledAt
-                                                                        ).toLocaleDateString()}{" "}
-                                                                        at{" "}
-                                                                        {new Date(
-                                                                            session.scheduledAt
-                                                                        ).toLocaleTimeString(
-                                                                            [],
-                                                                            {
-                                                                                hour: "2-digit",
-                                                                                minute: "2-digit",
-                                                                            }
-                                                                        )}
+                                                                        {session.actualStartTime
+                                                                            ? new Date(session.actualStartTime).toLocaleDateString() + " at " +
+                                                                              new Date(session.actualStartTime).toLocaleTimeString([], {
+                                                                                  hour: "2-digit",
+                                                                                  minute: "2-digit",
+                                                                              })
+                                                                            : new Date(session.startTime).toLocaleDateString() + " (Created)"
+                                                                        }
                                                                     </span>
                                                                 </div>
-                                                                {session.completedAt && (
+                                                                {session.endTime && (
                                                                     <div className="flex items-center space-x-1">
                                                                         <CheckCircle className="h-3 w-3" />
                                                                         <span>
-                                                                            Completed
-                                                                            on{" "}
-                                                                            {new Date(
-                                                                                session.completedAt
-                                                                            ).toLocaleDateString()}
+                                                                            Completed on{" "}
+                                                                            {new Date(session.endTime).toLocaleDateString()}
                                                                         </span>
                                                                     </div>
                                                                 )}
                                                             </div>
 
-                                                            {/* Feedback */}
-                                                            {session.feedback && (
+                                                            {/* Session Notes */}
+                                                            {session.sessionNotes && (
                                                                 <div className="bg-slate-50 rounded-lg p-3 mb-4">
                                                                     <p className="text-sm text-slate-700">
-                                                                        "
-                                                                        {
-                                                                            session.feedback
-                                                                        }
-                                                                        "
+                                                                        "{session.sessionNotes}"
                                                                     </p>
                                                                 </div>
                                                             )}
@@ -579,8 +630,7 @@ export default function MySessionsPage() {
 
                                                         {/* Action Buttons */}
                                                         <div className="flex flex-col space-y-2 ml-4">
-                                                            {session.status ===
-                                                                "SCHEDULED" && (
+                                                            {["PENDING", "ACTIVE"].includes(session.status) && (
                                                                 <Button
                                                                     size="sm"
                                                                     onClick={() =>
@@ -591,23 +641,24 @@ export default function MySessionsPage() {
                                                                     className="bg-green-600 hover:bg-green-700"
                                                                 >
                                                                     <Video className="h-4 w-4 mr-2" />
-                                                                    Join Session
+                                                                    {session.status === "ACTIVE" ? "Rejoin Session" : "Join Session"}
                                                                 </Button>
                                                             )}
 
-                                                            {session.status ===
-                                                                "COMPLETED" &&
-                                                                !session.rating &&
-                                                                isStudent && (
-                                                                    <Button
-                                                                        variant="outline"
-                                                                        size="sm"
-                                                                    >
-                                                                        <Star className="h-4 w-4 mr-2" />
-                                                                        Rate
-                                                                        Session
-                                                                    </Button>
-                                                                )}
+                                                            {session.status === "COMPLETED" && isStudent && (
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    onClick={() =>
+                                                                        router.push(
+                                                                            `/rate-session/${session.id}`
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <Star className="h-4 w-4 mr-2" />
+                                                                    Rate Session
+                                                                </Button>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </CardContent>

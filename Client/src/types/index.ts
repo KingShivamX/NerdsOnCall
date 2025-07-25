@@ -54,13 +54,17 @@ export interface Session {
     id: number
     student: User
     tutor?: User
-    doubt: Doubt
+    doubt?: Doubt  // Made optional for direct call sessions
     status: "PENDING" | "ACTIVE" | "COMPLETED" | "CANCELLED" | "TIMEOUT"
-    startTime: string
+    paymentStatus?: "PENDING" | "PAID" | "FAILED" | "REFUNDED"
+    startTime: string  // Placeholder time for DB constraint
+    actualStartTime?: string  // Actual call start time
     endTime?: string
     durationMinutes?: number
     cost?: number
     tutorEarnings?: number
+    amount?: number  // Total amount charged
+    commission?: number  // Platform commission
     sessionId: string
     roomId?: string
     sessionNotes?: string

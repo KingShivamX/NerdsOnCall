@@ -10,20 +10,14 @@ import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
-import com.nerdsoncall.websocket.DoubtNotificationHandler;
 import com.nerdsoncall.websocket.SignalingHandler;
 import com.nerdsoncall.websocket.TutoringSessionHandler;
 import com.nerdsoncall.websocket.WebRTCSignalingHandler;
-
-import org.springframework.beans.factory.annotation.Autowired;
 
 @Configuration
 @EnableWebSocket
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketConfigurer, WebSocketMessageBrokerConfigurer {
-    
-    @Autowired
-    private DoubtNotificationHandler doubtNotificationHandler;
     
     @Bean
     public SignalingHandler signalingHandler() {
@@ -52,10 +46,6 @@ public class WebSocketConfig implements WebSocketConfigurer, WebSocketMessageBro
         
         // Tutoring session endpoint for canvas and screen sharing
         registry.addHandler(tutoringSessionHandler(), "/ws/session")
-               .setAllowedOrigins("*");
-        
-        // Doubt notification endpoint
-        registry.addHandler(doubtNotificationHandler, "/ws/doubts")
                .setAllowedOrigins("*");
     }
     

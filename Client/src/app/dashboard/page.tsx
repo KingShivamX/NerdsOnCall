@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { useAuth } from "@/context/AuthContext"
 import { api } from "@/lib/api"
+import { useDashboard } from "@/hooks/useDashboard"
 import { Navbar } from "@/components/layout/Navbar"
 import { Button } from "@/components/ui/Button"
 import {
@@ -16,7 +17,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { StudentDoubtNotification } from "@/components/Doubt/StudentDoubtNotification"
+
 import {
     BookOpen,
     Users,
@@ -46,12 +47,43 @@ import {
     Power,
     CheckCircle,
     XCircle,
+    RefreshCw,
 } from "lucide-react"
 
 export default function DashboardPage() {
     const { user, loading } = useAuth()
     const [isOnline, setIsOnline] = useState(user?.isOnline || false)
     const [updatingStatus, setUpdatingStatus] = useState(false)
+
+    // Fetch dashboard data for students
+    const { dashboardData, loading: dashboardLoading, error: dashboardError, refetch } = useDashboard()
+
+    // Track if we've already fetched data to prevent continuous fetching
+    const hasFetchedRef = useRef(false)
+
+    // Fetch data only once when user is ready
+    useEffect(() => {
+        if (user && user.role === 'STUDENT' && !loading && !hasFetchedRef.current) {
+            console.log('🎯 Dashboard page loaded, fetching data once...')
+            hasFetchedRef.current = true
+            refetch()
+        }
+    }, [user, loading, refetch])
+
+    // Helper function to get icon component from string
+    const getIconComponent = (iconName: string) => {
+        const icons: { [key: string]: any } = {
+            Video,
+            BookOpen,
+            Star,
+            MessageCircle,
+            Clock,
+            Users,
+            CheckCircle,
+            XCircle,
+        }
+        return icons[iconName] || BookOpen
+    }
 
     // Sync local state with user data when user changes
     useEffect(() => {
@@ -186,6 +218,34 @@ export default function DashboardPage() {
                         </div>
                     </div>
 
+                    {/* Load Data Button for Students */}
+                    {isStudent && !dashboardData && !dashboardLoading && (
+                        <div className="mb-6">
+                            <Card className="border-blue-200 bg-blue-50">
+                                <CardContent className="px-6 py-4">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <h3 className="text-lg font-semibold text-blue-800 mb-1">
+                                                Welcome to Your Dashboard!
+                                            </h3>
+                                            <p className="text-blue-600 text-sm">
+                                                Click the button to load your learning statistics and recent activities.
+                                            </p>
+                                        </div>
+                                        <Button
+                                            onClick={refetch}
+                                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                                            disabled={dashboardLoading}
+                                        >
+                                            <RefreshCw className={`w-4 h-4 mr-2 ${dashboardLoading ? 'animate-spin' : ''}`} />
+                                            Load Dashboard Data
+                                        </Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    )}
+
                     {/* Stats Cards - Only for Students */}
                     {isStudent && (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-8 lg:mb-10">
@@ -200,10 +260,17 @@ export default function DashboardPage() {
                                 </CardHeader>
                                 <CardContent className="px-4 sm:px-6">
                                     <div className="text-2xl font-bold text-slate-800">
-                                        {user.totalSessions || 0}
+                                        {dashboardLoading ? (
+                                            <div className="flex items-center">
+                                                <div className="w-6 h-6 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin mr-2"></div>
+                                                <span className="text-lg">...</span>
+                                            </div>
+                                        ) : (
+                                            dashboardData?.sessionsAttended || 0
+                                        )}
                                     </div>
                                     <p className="text-xs text-slate-600 mt-1">
-                                        Total learning sessions
+                                        Completed sessions
                                     </p>
                                 </CardContent>
                             </Card>
@@ -219,13 +286,23 @@ export default function DashboardPage() {
                                 </CardHeader>
                                 <CardContent className="px-4 sm:px-6">
                                     <div className="text-2xl font-bold text-slate-800">
-                                        {Math.round(
-                                            (user.totalSessions || 0) * 1.5
+                                        {dashboardLoading ? (
+                                            <div className="flex items-center">
+                                                <div className="w-6 h-6 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin mr-2"></div>
+                                                <span className="text-lg">...</span>
+                                            </div>
+                                        ) : (
+                                            `${dashboardData?.hoursLearned || 0}h`
                                         )}
                                     </div>
                                     <p className="text-xs text-slate-600 mt-1">
-                                        Estimated learning time
+                                        Actual learning time
                                     </p>
+                                    {dashboardData && dashboardData.hoursLearned > 0 && (
+                                        <p className="text-xs text-blue-600 mt-1">
+                                            {Math.round((dashboardData.hoursLearned / (dashboardData.sessionsAttended || 1)) * 10) / 10}h avg per session
+                                        </p>
+                                    )}
                                 </CardContent>
                             </Card>
                         </div>
@@ -280,27 +357,6 @@ export default function DashboardPage() {
                                 </CardContent>
                             </Card>
 
-                            <Card className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-lg group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6">
-                                    <CardTitle className="text-sm font-medium text-slate-600">
-                                        Average Rating
-                                    </CardTitle>
-                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center">
-                                        <Star className="h-5 w-5 text-white" />
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="px-4 sm:px-6">
-                                    <div className="text-2xl font-bold text-slate-800">
-                                        {user.rating?.toFixed(1) || "0.0"}
-                                    </div>
-                                    <p className="text-xs text-slate-600 mt-1">
-                                        <span className="text-emerald-600">
-                                            +0.1
-                                        </span>{" "}
-                                        improvement
-                                    </p>
-                                </CardContent>
-                            </Card>
 
                             <Card className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-lg group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6">
@@ -449,67 +505,71 @@ export default function DashboardPage() {
                                             variant="ghost"
                                             size="sm"
                                             className="text-slate-600 hover:text-slate-800"
+                                            onClick={refetch}
+                                            disabled={dashboardLoading}
                                         >
-                                            View All
+                                            <RefreshCw className={`w-4 h-4 mr-1 ${dashboardLoading ? 'animate-spin' : ''}`} />
+                                            Refresh
                                         </Button>
                                     </div>
                                 </CardHeader>
                                 <CardContent className="px-4 sm:px-6">
                                     <div className="space-y-4">
-                                        {[
-                                            {
-                                                title: "Mathematics Session Completed",
-                                                subtitle:
-                                                    "With Dr. Sarah Johnson",
-                                                time: "2 hours ago",
-                                                icon: Video,
-                                                color: "text-emerald-600",
-                                                bg: "bg-emerald-100",
-                                            },
-                                            {
-                                                title: "Physics Homework Help",
-                                                subtitle:
-                                                    "Question about quantum mechanics",
-                                                time: "5 hours ago",
-                                                icon: BookOpen,
-                                                color: "text-slate-600",
-                                                bg: "bg-slate-100",
-                                            },
-                                            {
-                                                title: "Session Rated 5 Stars",
-                                                subtitle:
-                                                    "Great explanation of calculus concepts",
-                                                time: "1 day ago",
-                                                icon: Star,
-                                                color: "text-amber-600",
-                                                bg: "bg-amber-100",
-                                            },
-                                        ].map((activity, index) => (
-                                            <div
-                                                key={index}
-                                                className="flex items-start space-x-3 p-3 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer group"
-                                            >
-                                                <div
-                                                    className={`w-10 h-10 rounded-full ${activity.bg} flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}
-                                                >
-                                                    <activity.icon
-                                                        className={`h-5 w-5 ${activity.color}`}
-                                                    />
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-sm font-medium text-slate-800">
-                                                        {activity.title}
-                                                    </p>
-                                                    <p className="text-sm text-slate-600">
-                                                        {activity.subtitle}
-                                                    </p>
-                                                    <p className="text-xs text-slate-500 mt-1">
-                                                        {activity.time}
-                                                    </p>
-                                                </div>
-                                                <ArrowRight className="w-4 h-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        {dashboardLoading ? (
+                                            <div className="flex items-center justify-center py-8">
+                                                <div className="w-6 h-6 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin mr-2"></div>
+                                                <span className="text-slate-600">Loading activities...</span>
                                             </div>
-                                        ))}
+                                        ) : dashboardError ? (
+                                            <div className="text-center py-8">
+                                                <p className="text-slate-500 mb-2">Failed to load recent activities</p>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={refetch}
+                                                    className="text-xs"
+                                                >
+                                                    <RefreshCw className="w-3 h-3 mr-1" />
+                                                    Retry
+                                                </Button>
+                                            </div>
+                                        ) : !dashboardData?.recentActivities || dashboardData.recentActivities.length === 0 ? (
+                                            <div className="text-center py-8">
+                                                <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-2" />
+                                                <p className="text-slate-500 text-sm">No recent activities</p>
+                                                <p className="text-slate-400 text-xs">Start a session to see your activity here</p>
+                                            </div>
+                                        ) : (
+                                            dashboardData.recentActivities.map((activity, index) => {
+                                                const IconComponent = getIconComponent(activity.icon)
+                                                return (
+                                                <div
+                                                    key={index}
+                                                    className="flex items-start space-x-3 p-3 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer group"
+                                                >
+                                                    <div
+                                                        className={`w-10 h-10 rounded-full ${activity.bg} flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}
+                                                    >
+                                                        <IconComponent
+                                                            className={`h-5 w-5 ${activity.color}`}
+                                                        />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-medium text-slate-800">
+                                                            {activity.title}
+                                                        </p>
+                                                        <p className="text-sm text-slate-600">
+                                                            {activity.subtitle}
+                                                        </p>
+                                                        <p className="text-xs text-slate-500 mt-1">
+                                                            {activity.time}
+                                                        </p>
+                                                    </div>
+                                                    <ArrowRight className="w-4 h-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                </div>
+                                            )
+                                        })
+                                        )}
                                     </div>
                                 </CardContent>
                             </Card>
@@ -538,7 +598,11 @@ export default function DashboardPage() {
                                                     </span>
                                                 </div>
                                                 <span className="text-sm text-slate-600">
-                                                    0
+                                                    {dashboardLoading ? (
+                                                        <div className="w-4 h-4 border border-slate-300 border-t-slate-600 rounded-full animate-spin"></div>
+                                                    ) : (
+                                                        dashboardData?.activeSessions || 0
+                                                    )}
                                                 </span>
                                             </div>
                                             <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
@@ -551,20 +615,11 @@ export default function DashboardPage() {
                                                     </span>
                                                 </div>
                                                 <span className="text-sm text-slate-600">
-                                                    0
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                                                <div className="flex items-center space-x-3">
-                                                    <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center">
-                                                        <Users className="h-4 w-4 text-white" />
-                                                    </div>
-                                                    <span className="text-sm font-medium text-slate-700">
-                                                        Favorite Tutors
-                                                    </span>
-                                                </div>
-                                                <span className="text-sm text-slate-600">
-                                                    0
+                                                    {dashboardLoading ? (
+                                                        <div className="w-4 h-4 border border-slate-300 border-t-slate-600 rounded-full animate-spin"></div>
+                                                    ) : (
+                                                        dashboardData?.openQuestions || 0
+                                                    )}
                                                 </span>
                                             </div>
                                         </div>
@@ -581,8 +636,7 @@ export default function DashboardPage() {
                 </div>
             </div>
 
-            {/* Student Doubt Notifications */}
-            {isStudent && <StudentDoubtNotification />}
+
         </div>
     )
 }
