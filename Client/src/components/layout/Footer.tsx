@@ -222,30 +222,7 @@ export function Footer() {
                             </div>
                         </div>
                     </div>
-
-                    {/* Newsletter Section */}
-                    <div className="border-t border-slate-700 pt-12 mb-12">
-                        <div className="max-w-md">
-                            <h3 className="font-bold text-white mb-4 text-lg">
-                                Stay Updated
-                            </h3>
-                            <p className="text-slate-300 text-sm mb-6 leading-relaxed">
-                                Get the latest updates on new features,
-                                subjects, and exclusive offers.
-                            </p>
-                            <div className="flex space-x-3">
-                                <input
-                                    type="email"
-                                    placeholder="Enter your email"
-                                    className="flex-1 px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent h-12"
-                                />
-                                <button className="px-6 py-3 bg-gradient-to-r from-slate-700 to-slate-900 hover:from-slate-600 hover:to-slate-800 text-white rounded-lg font-medium transition-all duration-300 shadow-lg h-12">
-                                    Subscribe
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
+                    
                     {/* Bottom Section */}
                     <div className="border-t border-slate-700 pt-10">
                         <div className="flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">

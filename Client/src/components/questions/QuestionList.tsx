@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { toast } from 'sonner';
 import { QuestionCard } from './QuestionCard';
 import { api } from '@/lib/api';
+import { Search, Filter, BookOpen, Clock, CheckCircle } from 'lucide-react';
 
 type QuestionStatus = 'PENDING' | 'RESOLVED';
 
@@ -98,53 +99,94 @@ export function QuestionList({
   }, [questions, searchTerm, statusFilter]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Search and Filter Controls */}
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <input
-          type="text"
-          placeholder="Search questions..."
-          className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-        <select
-          className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-        >
-          <option value="ALL">All Statuses</option>
-          <option value="PENDING">Pending</option>
-          <option value="RESOLVED">Resolved</option>
-        </select>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="flex flex-col lg:flex-row gap-4">
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search questions by title, description, or subject..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              />
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="pl-10 pr-8 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white"
+              >
+                <option value="ALL">All Questions</option>
+                <option value="PENDING">Pending</option>
+                <option value="RESOLVED">Resolved</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Filter Stats */}
+        <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-gray-600">
+          <div className="flex items-center gap-2">
+            <BookOpen className="h-4 w-4" />
+            <span>{filteredQuestions.length} questions found</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4 text-amber-600" />
+            <span>{filteredQuestions.filter(q => q.status === 'PENDING').length} pending</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-green-600" />
+            <span>{filteredQuestions.filter(q => q.status === 'RESOLVED').length} resolved</span>
+          </div>
+        </div>
       </div>
 
+      {/* Questions List */}
       {loading ? (
-        <div className="space-y-4">
+        <div className="space-y-6">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-32 bg-gray-100 rounded-lg animate-pulse" />
+            <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="animate-pulse">
+                <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2 mb-3"></div>
+                <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+              </div>
+            </div>
           ))}
         </div>
       ) : error ? (
-        <div className="text-red-500 p-4">{error}</div>
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+          <div className="text-red-600 font-medium mb-2">Error Loading Questions</div>
+          <p className="text-red-500">{error}</p>
+        </div>
       ) : filteredQuestions.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-gray-500">
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-12 text-center">
+          <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No questions found</h3>
+          <p className="text-gray-600 mb-4">
             {searchTerm || statusFilter !== 'ALL'
-              ? 'No questions match your filters.'
-              : 'No questions found. Be the first to ask a question!'}
+              ? 'Try adjusting your search or filter criteria.'
+              : 'Be the first to ask a question!'}
           </p>
           {statusFilter !== 'ALL' && (
             <button
               onClick={() => setStatusFilter('ALL')}
-              className="mt-2 text-blue-600 hover:underline"
+              className="inline-flex items-center gap-2 px-4 py-2 text-blue-600 hover:text-blue-700 font-medium transition-colors"
             >
               Clear filters
             </button>
           )}
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-6">
           {filteredQuestions.map((question) => (
             <QuestionCard
               key={question.id}
