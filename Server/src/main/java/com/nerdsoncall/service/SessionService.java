@@ -248,8 +248,13 @@ public class SessionService {
 
             // Make doubt_id nullable for direct call sessions
             System.out.println("Making doubt_id nullable...");
-            entityManager.createNativeQuery("ALTER TABLE sessions ALTER COLUMN doubt_id DROP NOT NULL").executeUpdate();
-            System.out.println("✅ doubt_id is now nullable");
+            try {
+                entityManager.createNativeQuery("ALTER TABLE sessions ALTER COLUMN doubt_id DROP NOT NULL").executeUpdate();
+                System.out.println("✅ doubt_id is now nullable");
+            } catch (Exception e) {
+                // If already nullable, just log
+                System.out.println("ℹ️ doubt_id might already be nullable: " + e.getMessage());
+            }
 
             // Add actual_start_time column if it doesn't exist
             System.out.println("Adding actual_start_time column...");
@@ -264,7 +269,7 @@ public class SessionService {
         } catch (Exception e) {
             System.err.println("❌ Error updating database schema: " + e.getMessage());
             e.printStackTrace();
-            throw new RuntimeException("Failed to update database schema: " + e.getMessage());
+            // Don't throw exception, allow app to continue
         }
     }
 }

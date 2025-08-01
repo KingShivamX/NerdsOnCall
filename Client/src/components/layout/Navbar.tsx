@@ -59,12 +59,14 @@ export function Navbar() {
                                 Dashboard
                             </Link>
                         )}
-                        <Link
-                            href="/questions"
-                            className="text-slate-700 hover:text-slate-800 focus:text-slate-900 font-medium transition-colors duration-200 text-sm"
-                        >
-                            Explore
-                        </Link>
+                        {user && (
+                            <Link
+                                href="/questions"
+                                className="text-slate-700 hover:text-slate-800 focus:text-slate-900 font-medium transition-colors duration-200 text-sm"
+                            >
+                                Explore
+                            </Link>
+                        )}
                         <Link
                             href="/chat"
                             className="text-slate-700 hover:text-slate-800 focus:text-slate-900 font-medium transition-colors duration-200 text-sm"
@@ -183,13 +185,15 @@ export function Navbar() {
                                 Profile
                             </Link>
                         )}
-                        <Link
-                            href="/questions"
-                            className="block text-slate-700 hover:text-slate-800 focus:text-slate-900 font-medium py-2 px-3 rounded-md hover:bg-slate-100 focus:bg-slate-200 transition-colors duration-200 text-sm"
-                            onClick={toggleMenu}
-                        >
-                            Explore
-                        </Link>
+                        {user && (
+                            <Link
+                                href="/questions"
+                                className="block text-slate-700 hover:text-slate-800 focus:text-slate-900 font-medium py-2 px-3 rounded-md hover:bg-slate-100 focus:bg-slate-200 transition-colors duration-200 text-sm"
+                                onClick={toggleMenu}
+                            >
+                                Explore
+                            </Link>
+                        )}
                         <Link
                             href="/chat"
                             className="block text-slate-700 hover:text-slate-800 focus:text-slate-900 font-medium py-2 px-3 rounded-md hover:bg-slate-100 focus:bg-slate-200 transition-colors duration-200 text-sm"

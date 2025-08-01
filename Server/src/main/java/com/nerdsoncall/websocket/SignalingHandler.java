@@ -69,17 +69,16 @@ public class SignalingHandler extends TextWebSocketHandler {
                         sessions.remove(toUserId);
                     }
                 } else {
-                    logger.warn("Recipient not found or offline: {}", toUserId);
-                    // Optionally send back a message to sender that recipient is offline
-                    session.sendMessage(new TextMessage("{\"type\":\"error\",\"message\":\"Recipient offline or not found\"}"));
+                    logger.debug("Recipient not found or offline: {}", toUserId);
+                    // Don't send error message - recipient being offline is normal behavior
                 }
             } else {
-                logger.warn("Invalid message format: {}", payload);
-                session.sendMessage(new TextMessage("{\"type\":\"error\",\"message\":\"Invalid message format\"}"));
+                logger.debug("Invalid message format: {}", payload);
+                // Don't send error for invalid formats to reduce frontend spam
             }
         } catch (Exception e) {
             logger.error("Error handling WebSocket message", e);
-            session.sendMessage(new TextMessage("{\"type\":\"error\",\"message\":\"Server error processing message\"}"));
+            // Don't send error messages to frontend to avoid spam
         }
     }
     

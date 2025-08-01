@@ -28,8 +28,8 @@ public class Session {
     @JoinColumn(name = "tutor_id")
     private User tutor;
 
-    @ManyToOne
-    @JoinColumn(name = "doubt_id", nullable = true)  // Made nullable for direct call sessions
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "doubt_id", nullable = true) // Allow null for direct video calls
     private Doubt doubt;
 
     @Enumerated(EnumType.STRING)

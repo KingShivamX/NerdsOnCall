@@ -86,8 +86,8 @@ public class WebRTCSignalingHandler extends TextWebSocketHandler {
                         handleLeaveMessage(session, jsonNode);
                         break;
                     default:
-                        logger.warn("Unknown message type: {}", type);
-                        sendErrorMessage(session, "Unknown message type");
+                        logger.debug("Unknown message type: {}", type);
+                        // Don't send error for unknown message types to reduce frontend spam
                 }
             } else {
                 logger.warn("Invalid message format (missing type): {}", payload);
@@ -95,7 +95,7 @@ public class WebRTCSignalingHandler extends TextWebSocketHandler {
             }
         } catch (Exception e) {
             logger.error("Error handling WebRTC message", e);
-            sendErrorMessage(session, "Server error processing message");
+            // Don't send error messages to frontend to avoid spam
         }
     }
     
@@ -188,13 +188,10 @@ public class WebRTCSignalingHandler extends TextWebSocketHandler {
                 recipientSession.sendMessage(new TextMessage(message.toString()));
                 logger.debug("WebRTC message forwarded to user: {}", toUserId);
             } else {
-                logger.warn("WebRTC recipient not found or offline: {}", toUserId);
+                logger.debug("WebRTC recipient not found or offline: {}", toUserId);
                 
-                // Send error back to sender
-                ObjectNode errorMsg = objectMapper.createObjectNode();
-                errorMsg.put("type", "error");
-                errorMsg.put("message", "Recipient offline or not found");
-                session.sendMessage(new TextMessage(errorMsg.toString()));
+                // Don't send error message for recipient offline - this is normal behavior
+                // The frontend handles this gracefully by timeout mechanisms
             }
         } else {
             sendErrorMessage(session, "Invalid message format (missing recipient)");

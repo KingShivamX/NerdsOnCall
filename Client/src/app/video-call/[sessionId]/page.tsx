@@ -458,15 +458,17 @@ export default function VideoCallPage() {
 
                     // Show user-friendly error message
                     if (error.response?.status === 400) {
-                        toast.error(
+                        console.error(
                             `Session creation failed: ${
                                 error.response?.data || "Bad request"
                             }`
                         )
+                        // Don't show toast to reduce notification spam
                     } else {
-                        toast.error(
-                            "Failed to create session - continuing anyway"
+                        console.log(
+                            "Session creation failed, continuing anyway"
                         )
+                        // Don't show toast to reduce notification spam
                     }
                 }
 
@@ -568,7 +570,6 @@ export default function VideoCallPage() {
                 setStatus("Connection error")
             }
         } catch (error: any) {
-            console.error("Error connecting to signaling server:", error)
             setStatus(`Error: ${error.message}`)
         }
     }
@@ -576,7 +577,7 @@ export default function VideoCallPage() {
     const handleWebSocketMessage = async (event: MessageEvent) => {
         try {
             const message = JSON.parse(event.data)
-            console.log("Received message:", message.type, message)
+            // Process received message
 
             switch (message.type) {
                 case "offer":
@@ -589,11 +590,11 @@ export default function VideoCallPage() {
                     await handleIceCandidate(message)
                     break
                 case "user-joined":
-                    console.log(`User ${message.userId} joined`)
+                    // User joined
                     break
                 case "tutor_joined":
                     if (userRole === "student") {
-                        console.log("Tutor has joined the session")
+                        // Tutor joined
                         setTutorReady(true)
                         setWaitingForTutor(false)
                         toast.success(
@@ -626,16 +627,12 @@ export default function VideoCallPage() {
                     }
                     break
                 case "user-disconnect":
-                    console.log(`User ${message.userId} disconnected`)
+                    // User disconnected
                     if (isInCallRef.current) {
-                        toast.error("Other user disconnected")
+                        // Don't show toast for disconnections
 
                         // End the session in the backend when other user disconnects
                         try {
-                            console.log(
-                                "🔚 Ending session due to user disconnect:",
-                                sessionId
-                            )
                             const response = await api.put(
                                 `/api/sessions/call/${sessionId}/end`
                             )
@@ -664,10 +661,7 @@ export default function VideoCallPage() {
                                 )
                             }
                         } catch (error) {
-                            console.error(
-                                "❌ Error ending session on disconnect:",
-                                error
-                            )
+                            // Silently handle session ending errors
                         }
 
                         // Clean up the call state
@@ -779,7 +773,7 @@ export default function VideoCallPage() {
             }
         } catch (error: any) {
             console.error("Error parsing WebSocket message:", error)
-            toast.error("Failed to process incoming message")
+            // Don't show toast for message parsing errors to avoid spam
         }
     }
 
@@ -808,33 +802,19 @@ export default function VideoCallPage() {
         }
 
         peerConnectionRef.current.ontrack = (event) => {
-            console.log("Received remote track", event.streams[0])
+            // Received remote track
             if (remoteVideoRef.current) {
                 remoteVideoRef.current.srcObject = event.streams[0]
-                console.log(
-                    "Set remoteVideoRef.current.srcObject",
-                    remoteVideoRef.current.srcObject
-                )
             }
             setCallStatus("Connected")
         }
 
         peerConnectionRef.current.onconnectionstatechange = () => {
             if (peerConnectionRef.current) {
-                console.log(
-                    "Connection state:",
-                    peerConnectionRef.current.connectionState
-                )
-
                 // Only end call on failed state after multiple attempts
                 if (peerConnectionRef.current.connectionState === "failed") {
-                    console.log(
-                        "Connection failed, but not ending call automatically"
-                    )
-                    // Don't auto-end call, let user decide
-                    toast.error(
-                        "Connection issues detected. You may need to refresh if problems persist."
-                    )
+                    // Don't show toast for connection failures to avoid spam
+                    // User can see connection status in the UI
                 }
 
                 // Update call status based on connection state
@@ -861,84 +841,33 @@ export default function VideoCallPage() {
 
             // Start the session in the backend to track start time
             try {
-                console.log("🚀 Starting session in backend:", sessionId)
                 const response = await api.put(
                     `/api/sessions/call/${sessionId}/start`
                 )
-                console.log("✅ Session started successfully:", response.data)
-                toast.success("Session started - timer is now running!")
             } catch (error: any) {
-                console.error("❌ Error starting session:", error)
-                console.error("Error status:", error.response?.status)
-                console.error("Error details:", error.response?.data)
-                console.error("Full error response:", error.response)
-
                 // If session doesn't exist, try to create it first
                 if (error.response?.status === 400) {
                     try {
-                        console.log(
-                            "🔄 Session not found, creating it first..."
-                        )
-
                         let parameterToPass
                         if (user?.role === "STUDENT") {
                             parameterToPass = otherUserId // Student passes tutor ID
-                            console.log(
-                                "👨‍🎓 Student creating session with tutor ID:",
-                                parameterToPass
-                            )
                         } else if (user?.role === "TUTOR") {
                             parameterToPass = otherUserId // Tutor passes student ID
-                            console.log(
-                                "👨‍🏫 Tutor creating session with student ID:",
-                                parameterToPass
-                            )
                         } else {
                             throw new Error("Unknown user role: " + user?.role)
                         }
 
-                        console.log(
-                            "Creating session with parameter:",
-                            parameterToPass,
-                            "sessionId:",
-                            sessionId
-                        )
-
                         const createResponse = await api.post(
                             `/api/sessions/call?tutorId=${parameterToPass}&sessionId=${sessionId}`
                         )
-                        console.log("✅ Session created:", createResponse.data)
 
                         // Now try to start it again
                         const retryResponse = await api.put(
                             `/api/sessions/call/${sessionId}/start`
                         )
-                        console.log(
-                            "✅ Session created and started successfully:",
-                            retryResponse.data
-                        )
-                        toast.success("Session started - timer is now running!")
                     } catch (retryError: any) {
-                        console.error(
-                            "❌ Failed to create and start session:",
-                            retryError
-                        )
-                        console.error(
-                            "Retry error details:",
-                            retryError.response?.data
-                        )
-                        toast.error(
-                            `Session tracking failed: ${
-                                retryError.response?.data || retryError.message
-                            }`
-                        )
+                        // Silently handle errors - session tracking is optional
                     }
-                } else {
-                    toast.error(
-                        `Session tracking failed: ${
-                            error.response?.data || error.message
-                        }`
-                    )
                 }
             }
 
@@ -957,8 +886,6 @@ export default function VideoCallPage() {
 
             // Send incoming call notification to other user with retry mechanism
             if (socketRef.current) {
-                console.log("Sending call to user:", otherUserId)
-
                 let attempts = 0
                 const maxAttempts = 3
 
@@ -966,10 +893,6 @@ export default function VideoCallPage() {
                     if (!socketRef.current || attempts >= maxAttempts) return
 
                     attempts++
-                    console.log(
-                        `Sending call attempt ${attempts}/${maxAttempts} to user:`,
-                        otherUserId
-                    )
 
                     socketRef.current.send(
                         JSON.stringify({

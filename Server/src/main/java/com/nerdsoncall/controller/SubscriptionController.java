@@ -79,8 +79,13 @@ public class SubscriptionController {
             Plan plan = planService.getPlanEntity(planId)
                     .orElseThrow(() -> new RuntimeException("Plan not found"));
 
+            // Convert USD to INR (matching frontend conversion)
+            // Frontend uses: convertToINR(plan.price) = plan.price * 83
+            double usdToInrRate = 83.0;
+            double priceInINR = plan.getPrice() * usdToInrRate;
+            
             // Amount in paise (Razorpay expects INR in paise)
-            long amount = (long) (plan.getPrice() * 100);
+            long amount = (long) (priceInINR * 100);
             String currency = "INR";
             String receipt = "receipt_" + user.getId() + "_" + System.currentTimeMillis();
             Order order = paymentService.createOrder(amount, currency, receipt);
@@ -89,7 +94,7 @@ public class SubscriptionController {
             Subscription subscription = new Subscription();
             subscription.setUser(user);
             subscription.setStatus(Subscription.Status.PENDING);
-            subscription.setPrice(plan.getPrice());
+            subscription.setPrice(priceInINR); // Store the converted INR price
             // Set start and end dates based on plan duration
             java.time.LocalDateTime startDate = java.time.LocalDateTime.now();
             java.time.LocalDateTime endDate;
