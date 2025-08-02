@@ -2,34 +2,22 @@
 
 import { useRef, useEffect, useState, useCallback } from "react"
 import { Button } from "@/components/ui/Button"
-import {
-    Pencil,
-    Eraser,
-    Square,
-    Circle,
-    Type,
-    Trash2,
-    Undo,
-    Redo,
-    Palette,
-    Users,
-} from "lucide-react"
+import { Pencil, Eraser, Trash2, Palette, Users } from "lucide-react"
 
 interface CanvasProps {
     sessionId: string
     user?: any
-    onCanvasUpdate?: (canvasData: string) => void
-    socket?: WebSocket | null
+    socket?: WebSocket | null // Fallback socket if dedicated connection fails
+    onCanvasUpdate?: (data: string) => void
 }
 
 interface DrawingEvent {
-    type: 'start' | 'draw' | 'end' | 'clear' | 'undo' | 'redo'
+    type: "start" | "draw" | "end" | "clear"
     x?: number
     y?: number
-    tool?: string
     color?: string
     lineWidth?: number
-    canvasData?: string
+    tool?: string
     userId?: string
     timestamp?: number
 }
@@ -37,25 +25,24 @@ interface DrawingEvent {
 export function Canvas({
     sessionId,
     user,
-    onCanvasUpdate,
     socket,
+    onCanvasUpdate,
 }: CanvasProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const [isDrawing, setIsDrawing] = useState(false)
-    const [tool, setTool] = useState<
-        "pen" | "eraser" | "rectangle" | "circle" | "text"
-    >("pen")
     const [color, setColor] = useState("#000000")
-    const [lineWidth, setLineWidth] = useState(3)
-    const [history, setHistory] = useState<string[]>([])
-    const [historyIndex, setHistoryIndex] = useState(-1)
-    const [connectedUsers, setConnectedUsers] = useState<string[]>([])
-    const [socketConnected, setSocketConnected] = useState(false)
-    const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-    const lastDrawEventRef = useRef<DrawingEvent | null>(null)
-    const isReceivingUpdateRef = useRef(false)
+    const [lineWidth, setLineWidth] = useState(2)
+    const [tool, setTool] = useState<"pen" | "eraser">("pen")
+    const [isConnected, setIsConnected] = useState(false)
+    const [connectionType, setConnectionType] = useState<
+        "canvas" | "fallback" | "none"
+    >("none")
 
-    // Initialize canvas and set up real-time synchronization
+    const lastPointRef = useRef<{ x: number; y: number } | null>(null)
+    const isReceivingUpdateRef = useRef(false)
+    const canvasSocketRef = useRef<WebSocket | null>(null)
+
+    // Initialize canvas
     useEffect(() => {
         const canvas = canvasRef.current
         if (!canvas) return
@@ -63,17 +50,11 @@ export function Canvas({
         const ctx = canvas.getContext("2d")
         if (!ctx) return
 
-        // Set canvas size to full container
+        // Set canvas size
         const resizeCanvas = () => {
             const rect = canvas.getBoundingClientRect()
             canvas.width = rect.width
             canvas.height = rect.height
-
-            // Set default styles
-            ctx.lineCap = "round"
-            ctx.lineJoin = "round"
-            ctx.strokeStyle = color
-            ctx.lineWidth = lineWidth
 
             // Fill with white background
             ctx.fillStyle = "white"
@@ -83,100 +64,13 @@ export function Canvas({
         resizeCanvas()
         window.addEventListener("resize", resizeCanvas)
 
-        // Save initial state
-        saveToHistory()
-
-        return () => window.removeEventListener("resize", resizeCanvas)
+        return () => {
+            window.removeEventListener("resize", resizeCanvas)
+        }
     }, [])
 
-    // Monitor socket connection state
-    useEffect(() => {
-        const checkSocketConnection = () => {
-            if (socket) {
-                setSocketConnected(socket.readyState === WebSocket.OPEN)
-            } else {
-                setSocketConnected(false)
-            }
-        }
-
-        // Check immediately
-        checkSocketConnection()
-
-        // Check periodically
-        const interval = setInterval(checkSocketConnection, 1000)
-
-        return () => clearInterval(interval)
-    }, [socket])
-
-    // Set up real-time whiteboard synchronization
-    useEffect(() => {
-        const handleWhiteboardUpdate = (event: CustomEvent) => {
-            const message = event.detail
-            console.log("🎨 Whiteboard event received:", message.type, message)
-
-            if (message.type === "canvas_update" && message.userId !== user?.id) {
-                console.log("🎨 Receiving canvas update from:", message.userId)
-                applyRemoteDrawingEvent(message.data)
-            } else if (message.type === "subscribed") {
-                console.log("✅ Canvas component: Subscription confirmed")
-                setSocketConnected(true)
-            } else if (message.type === "connection_established") {
-                console.log("✅ Canvas component: Connection established")
-            }
-        }
-
-        // Listen for whiteboard updates from other users
-        window.addEventListener('whiteboardUpdate', handleWhiteboardUpdate as EventListener)
-
-        return () => {
-            window.removeEventListener('whiteboardUpdate', handleWhiteboardUpdate as EventListener)
-        }
-    }, [user?.id])
-
-    // Send drawing events to other users
-    const sendDrawingEvent = useCallback((drawingEvent: DrawingEvent) => {
-        console.log("🎨 Attempting to send drawing event:", drawingEvent.type, {
-            socketExists: !!socket,
-            socketState: socket?.readyState,
-            socketStateText: socket?.readyState === 0 ? 'CONNECTING' :
-                           socket?.readyState === 1 ? 'OPEN' :
-                           socket?.readyState === 2 ? 'CLOSING' :
-                           socket?.readyState === 3 ? 'CLOSED' : 'UNKNOWN',
-            isReceiving: isReceivingUpdateRef.current,
-            userId: user?.id,
-            sessionId: sessionId
-        })
-
-        if (socket && socket.readyState === WebSocket.OPEN && !isReceivingUpdateRef.current) {
-            const message = {
-                type: "canvas_update",
-                sessionId: sessionId,
-                userId: user?.id,
-                data: drawingEvent,
-                timestamp: Date.now()
-            }
-
-            console.log("📤 Sending canvas update:", drawingEvent.type, message)
-            try {
-                socket.send(JSON.stringify(message))
-                console.log("✅ Canvas update sent successfully")
-            } catch (error) {
-                console.error("❌ Error sending canvas update:", error)
-            }
-        } else {
-            console.warn("❌ Cannot send drawing event - socket not ready", {
-                socketExists: !!socket,
-                socketState: socket?.readyState,
-                isReceiving: isReceivingUpdateRef.current,
-                reason: !socket ? 'No socket' :
-                       socket.readyState !== WebSocket.OPEN ? 'Socket not open' :
-                       isReceivingUpdateRef.current ? 'Currently receiving update' : 'Unknown'
-            })
-        }
-    }, [socket, sessionId, user?.id])
-
-    // Apply drawing events received from other users
-    const applyRemoteDrawingEvent = useCallback((drawingEvent: DrawingEvent) => {
+    // Handle remote drawing events from other users
+    const handleRemoteDrawingEvent = useCallback((event: DrawingEvent) => {
         const canvas = canvasRef.current
         if (!canvas) return
 
@@ -185,240 +79,325 @@ export function Canvas({
 
         isReceivingUpdateRef.current = true
 
-        try {
-            switch (drawingEvent.type) {
-                case 'start':
-                    // Set up for remote drawing
-                    ctx.strokeStyle = drawingEvent.color || "#000000"
-                    ctx.lineWidth = drawingEvent.lineWidth || 3
-                    ctx.globalCompositeOperation =
-                        drawingEvent.tool === "eraser" ? "destination-out" : "source-over"
+        console.log(
+            "📥 Received drawing event:",
+            event.type,
+            "from user:",
+            event.userId
+        )
+
+        switch (event.type) {
+            case "start":
+                lastPointRef.current = { x: event.x!, y: event.y! }
+                break
+            case "draw":
+                if (
+                    lastPointRef.current &&
+                    event.x !== undefined &&
+                    event.y !== undefined
+                ) {
                     ctx.beginPath()
-                    if (drawingEvent.x !== undefined && drawingEvent.y !== undefined) {
-                        ctx.moveTo(drawingEvent.x, drawingEvent.y)
-                    }
-                    break
-
-                case 'draw':
-                    if (drawingEvent.x !== undefined && drawingEvent.y !== undefined) {
-                        ctx.lineTo(drawingEvent.x, drawingEvent.y)
-                        ctx.stroke()
-                    }
-                    break
-
-                case 'end':
-                    // Finalize the drawing
-                    ctx.closePath()
-                    break
-
-                case 'clear':
-                    ctx.clearRect(0, 0, canvas.width, canvas.height)
-                    ctx.fillStyle = "white"
-                    ctx.fillRect(0, 0, canvas.width, canvas.height)
-                    break
-
-                case 'undo':
-                case 'redo':
-                    if (drawingEvent.canvasData) {
-                        const img = new Image()
-                        img.onload = () => {
-                            ctx.clearRect(0, 0, canvas.width, canvas.height)
-                            ctx.drawImage(img, 0, 0)
-                        }
-                        img.src = drawingEvent.canvasData
-                    }
-                    break
-            }
-        } catch (error) {
-            console.error("Error applying remote drawing event:", error)
-        } finally {
-            isReceivingUpdateRef.current = false
+                    ctx.moveTo(lastPointRef.current.x, lastPointRef.current.y)
+                    ctx.lineTo(event.x, event.y)
+                    ctx.strokeStyle = event.color || "#000000"
+                    ctx.lineWidth = event.lineWidth || 2
+                    ctx.lineCap = "round"
+                    ctx.globalCompositeOperation =
+                        event.tool === "eraser"
+                            ? "destination-out"
+                            : "source-over"
+                    ctx.stroke()
+                    lastPointRef.current = { x: event.x, y: event.y }
+                }
+                break
+            case "end":
+                lastPointRef.current = null
+                break
+            case "clear":
+                ctx.clearRect(0, 0, canvas.width, canvas.height)
+                ctx.fillStyle = "white"
+                ctx.fillRect(0, 0, canvas.width, canvas.height)
+                break
         }
+
+        setTimeout(() => {
+            isReceivingUpdateRef.current = false
+        }, 10)
     }, [])
 
+    // Create dedicated WebSocket connection for canvas
     useEffect(() => {
-        // Listen for canvas updates from other users
-        if (socket) {
-            const handleMessage = (event: MessageEvent) => {
-                try {
-                    const data = JSON.parse(event.data)
-                    if (
-                        data.type === "canvas_update" &&
-                        data.sessionId === sessionId &&
-                        data.data
-                    ) {
-                        // Apply remote canvas update
-                        const canvas = canvasRef.current
-                        if (canvas) {
-                            const ctx = canvas.getContext("2d")
-                            if (ctx) {
-                                const img = new Image()
-                                img.onload = () => {
-                                    ctx.clearRect(
-                                        0,
-                                        0,
-                                        canvas.width,
-                                        canvas.height
-                                    )
-                                    ctx.drawImage(img, 0, 0)
-                                }
-                                img.src = data.data
-                            }
-                        }
-                    }
-                } catch (error) {
-                    console.error("Error parsing canvas message:", error)
-                }
-            }
+        if (!user?.id || !sessionId) return
 
-            socket.addEventListener("message", handleMessage)
-            return () => socket.removeEventListener("message", handleMessage)
+        const serverUrl =
+            process.env.NEXT_PUBLIC_API_URL?.replace("http", "ws") ||
+            "ws://localhost:8080"
+        const wsUrl = `${serverUrl}/ws/session?userId=${user.id}&sessionId=${sessionId}`
+
+        console.log("🎨 Connecting to canvas WebSocket:", wsUrl)
+
+        canvasSocketRef.current = new WebSocket(wsUrl)
+
+        canvasSocketRef.current.onopen = () => {
+            console.log("✅ Canvas WebSocket connected")
+            setIsConnected(true)
+            setConnectionType("canvas")
+
+            // Subscribe to the session
+            if (canvasSocketRef.current) {
+                canvasSocketRef.current.send(
+                    JSON.stringify({
+                        type: "subscribe",
+                        sessionId: sessionId,
+                        userId: user.id,
+                    })
+                )
+            }
         }
-    }, [socket, sessionId])
 
-    const saveToHistory = () => {
-        const canvas = canvasRef.current
-        if (!canvas) return
+        const handleCanvasMessage = (event: MessageEvent) => {
+            try {
+                const message = JSON.parse(event.data)
 
-        try {
-            const dataURL = canvas.toDataURL()
-            const newHistory = history.slice(0, historyIndex + 1)
-            newHistory.push(dataURL)
-            setHistory(newHistory)
-            setHistoryIndex(newHistory.length - 1)
-
-            // Broadcast to other users (with error handling)
-            if (
-                socket &&
-                socket.readyState === WebSocket.OPEN &&
-                onCanvasUpdate
-            ) {
-                try {
-                    onCanvasUpdate(dataURL)
-                    socket.send(
-                        JSON.stringify({
-                            type: "canvas_update",
-                            sessionId,
-                            userId: user?.id,
-                            data: dataURL,
-                            timestamp: Date.now(),
-                        })
-                    )
-                } catch (socketError) {
-                    console.warn("Failed to send canvas update:", socketError)
+                if (
+                    message.type === "drawing_event" &&
+                    message.sessionId === sessionId &&
+                    message.userId !== user?.id
+                ) {
+                    handleRemoteDrawingEvent(message.data)
                 }
+            } catch (error) {
+                console.error("Error parsing drawing message:", error)
             }
-        } catch (error) {
-            console.error("Error saving canvas history:", error)
+        }
+
+        canvasSocketRef.current.onmessage = handleCanvasMessage
+
+        canvasSocketRef.current.onclose = (event) => {
+            console.log(
+                "❌ Canvas WebSocket disconnected",
+                event.code,
+                event.reason
+            )
+
+            // Check if fallback socket is available
+            if (socket?.readyState === WebSocket.OPEN) {
+                console.log("🔄 Switching to fallback socket")
+                setIsConnected(true)
+                setConnectionType("fallback")
+            } else {
+                setIsConnected(false)
+                setConnectionType("none")
+            }
+
+            // Attempt to reconnect after 3 seconds if not a normal closure
+            if (event.code !== 1000 && user?.id && sessionId) {
+                setTimeout(() => {
+                    console.log(
+                        "🔄 Attempting to reconnect canvas WebSocket..."
+                    )
+                    // The useEffect will handle reconnection when dependencies change
+                }, 3000)
+            }
+        }
+
+        canvasSocketRef.current.onerror = (error) => {
+            console.error(
+                "❌ Canvas WebSocket connection failed. Check if backend server is running on port 8080"
+            )
+            console.error("WebSocket URL:", wsUrl)
+            setIsConnected(false)
+        }
+
+        // Also listen on the main socket as fallback
+        if (socket) {
+            socket.addEventListener("message", handleCanvasMessage)
+        }
+
+        return () => {
+            if (canvasSocketRef.current) {
+                canvasSocketRef.current.close()
+            }
+            if (socket) {
+                socket.removeEventListener("message", handleCanvasMessage)
+            }
+        }
+    }, [user?.id, sessionId, socket])
+
+    // Update connection status when main socket changes
+    useEffect(() => {
+        if (canvasSocketRef.current?.readyState === WebSocket.OPEN) {
+            setIsConnected(true)
+            setConnectionType("canvas")
+        } else if (socket?.readyState === WebSocket.OPEN) {
+            setIsConnected(true)
+            setConnectionType("fallback")
+        } else {
+            setIsConnected(false)
+            setConnectionType("none")
+        }
+    }, [socket])
+
+    const sendDrawingEvent = useCallback(
+        (event: DrawingEvent) => {
+            // Try dedicated canvas socket first, then fallback to main socket
+            const activeSocket =
+                canvasSocketRef.current?.readyState === WebSocket.OPEN
+                    ? canvasSocketRef.current
+                    : socket?.readyState === WebSocket.OPEN
+                    ? socket
+                    : null
+
+            if (!activeSocket) {
+                console.warn(
+                    "No active WebSocket connection for drawing events"
+                )
+                return
+            }
+
+            const message = {
+                type: "drawing_event",
+                sessionId: sessionId,
+                userId: user?.id,
+                data: event,
+                timestamp: Date.now(),
+            }
+
+            try {
+                activeSocket.send(JSON.stringify(message))
+                console.log(
+                    "📝 Sent drawing event:",
+                    event.type,
+                    "via",
+                    activeSocket === canvasSocketRef.current
+                        ? "canvas socket"
+                        : "main socket"
+                )
+            } catch (error) {
+                console.error("Error sending drawing event:", error)
+            }
+        },
+        [sessionId, user?.id, socket]
+    )
+
+    const getEventCoordinates = (
+        e:
+            | React.MouseEvent<HTMLCanvasElement>
+            | React.TouchEvent<HTMLCanvasElement>
+    ) => {
+        const canvas = canvasRef.current
+        if (!canvas) return { x: 0, y: 0 }
+
+        const rect = canvas.getBoundingClientRect()
+
+        if ("touches" in e) {
+            // Touch event
+            const touch = e.touches[0] || e.changedTouches[0]
+            return {
+                x: touch.clientX - rect.left,
+                y: touch.clientY - rect.top,
+            }
+        } else {
+            // Mouse event
+            return {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top,
+            }
         }
     }
 
-    const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
-        e.preventDefault()
-        e.stopPropagation()
-
+    const startDrawing = (
+        e:
+            | React.MouseEvent<HTMLCanvasElement>
+            | React.TouchEvent<HTMLCanvasElement>
+    ) => {
         if (isReceivingUpdateRef.current) return
+        e.preventDefault()
+        e.stopPropagation() // Prevent event bubbling to grid layout
 
         const canvas = canvasRef.current
         if (!canvas) return
 
-        const rect = canvas.getBoundingClientRect()
-        const x = e.clientX - rect.left
-        const y = e.clientY - rect.top
+        const { x, y } = getEventCoordinates(e)
 
         setIsDrawing(true)
+        lastPointRef.current = { x, y }
 
-        const ctx = canvas.getContext("2d")
-        if (!ctx) return
-
-        ctx.strokeStyle = color
-        ctx.lineWidth = lineWidth
-
-        if (tool === "pen" || tool === "eraser") {
-            ctx.globalCompositeOperation =
-                tool === "eraser" ? "destination-out" : "source-over"
-            ctx.beginPath()
-            ctx.moveTo(x, y)
-
-            // Send start drawing event to other users
-            const drawingEvent: DrawingEvent = {
-                type: 'start',
-                x,
-                y,
-                tool,
-                color,
-                lineWidth,
-                userId: user?.id,
-                timestamp: Date.now()
-            }
-            sendDrawingEvent(drawingEvent)
-            lastDrawEventRef.current = drawingEvent
+        const drawingEvent: DrawingEvent = {
+            type: "start",
+            x,
+            y,
+            color,
+            lineWidth,
+            tool,
+            userId: user?.id,
+            timestamp: Date.now(),
         }
+        sendDrawingEvent(drawingEvent)
     }
 
-    const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
-        e.preventDefault()
-        e.stopPropagation()
-
+    const draw = (
+        e:
+            | React.MouseEvent<HTMLCanvasElement>
+            | React.TouchEvent<HTMLCanvasElement>
+    ) => {
         if (!isDrawing || isReceivingUpdateRef.current) return
+        e.preventDefault()
+        e.stopPropagation() // Prevent event bubbling to grid layout
 
         const canvas = canvasRef.current
         if (!canvas) return
 
-        const rect = canvas.getBoundingClientRect()
-        const x = e.clientX - rect.left
-        const y = e.clientY - rect.top
+        const { x, y } = getEventCoordinates(e)
 
         const ctx = canvas.getContext("2d")
-        if (!ctx) return
+        if (!ctx || !lastPointRef.current) return
 
-        if (tool === "pen" || tool === "eraser") {
-            ctx.lineTo(x, y)
-            ctx.stroke()
+        ctx.beginPath()
+        ctx.moveTo(lastPointRef.current.x, lastPointRef.current.y)
+        ctx.lineTo(x, y)
+        ctx.strokeStyle = color
+        ctx.lineWidth = lineWidth
+        ctx.lineCap = "round"
+        ctx.globalCompositeOperation =
+            tool === "eraser" ? "destination-out" : "source-over"
+        ctx.stroke()
 
-            // Send draw event to other users (throttled)
-            const now = Date.now()
-            if (!lastDrawEventRef.current || now - lastDrawEventRef.current.timestamp! > 16) { // ~60fps
-                const drawingEvent: DrawingEvent = {
-                    type: 'draw',
-                    x,
-                    y,
-                    tool,
-                    color,
-                    lineWidth,
-                    userId: user?.id,
-                    timestamp: now
-                }
-                sendDrawingEvent(drawingEvent)
-                lastDrawEventRef.current = drawingEvent
-            }
-        }
-    }
-
-    const stopDrawing = (e?: React.MouseEvent<HTMLCanvasElement>) => {
-        if (e) {
-            e.preventDefault()
-            e.stopPropagation()
-        }
-
-        if (!isDrawing || isReceivingUpdateRef.current) return
-        setIsDrawing(false)
-
-        // Send end drawing event to other users
         const drawingEvent: DrawingEvent = {
-            type: 'end',
+            type: "draw",
+            x,
+            y,
+            color,
+            lineWidth,
+            tool,
             userId: user?.id,
-            timestamp: Date.now()
+            timestamp: Date.now(),
         }
         sendDrawingEvent(drawingEvent)
 
-        // Debounce the save to prevent too frequent updates
-        if (saveTimeoutRef.current) {
-            clearTimeout(saveTimeoutRef.current)
+        lastPointRef.current = { x, y }
+    }
+
+    const stopDrawing = (
+        e?:
+            | React.MouseEvent<HTMLCanvasElement>
+            | React.TouchEvent<HTMLCanvasElement>
+    ) => {
+        if (!isDrawing || isReceivingUpdateRef.current) return
+        if (e) {
+            e.preventDefault()
+            e.stopPropagation() // Prevent event bubbling to grid layout
         }
-        saveTimeoutRef.current = setTimeout(() => {
-            saveToHistory()
-        }, 300) // Wait 300ms before saving
+
+        setIsDrawing(false)
+        lastPointRef.current = null
+
+        const drawingEvent: DrawingEvent = {
+            type: "end",
+            userId: user?.id,
+            timestamp: Date.now(),
+        }
+        sendDrawingEvent(drawingEvent)
     }
 
     const clearCanvas = () => {
@@ -434,66 +413,12 @@ export function Canvas({
         ctx.fillStyle = "white"
         ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-        // Send clear event to other users
         const drawingEvent: DrawingEvent = {
-            type: 'clear',
+            type: "clear",
             userId: user?.id,
-            timestamp: Date.now()
+            timestamp: Date.now(),
         }
         sendDrawingEvent(drawingEvent)
-
-        saveToHistory()
-    }
-
-    const undo = () => {
-        if (isReceivingUpdateRef.current || historyIndex <= 0) return
-
-        const newIndex = historyIndex - 1
-        setHistoryIndex(newIndex)
-        const canvasData = history[newIndex]
-        restoreFromHistory(canvasData)
-
-        // Send undo event to other users
-        const drawingEvent: DrawingEvent = {
-            type: 'undo',
-            canvasData,
-            userId: user?.id,
-            timestamp: Date.now()
-        }
-        sendDrawingEvent(drawingEvent)
-    }
-
-    const redo = () => {
-        if (isReceivingUpdateRef.current || historyIndex >= history.length - 1) return
-
-        const newIndex = historyIndex + 1
-        setHistoryIndex(newIndex)
-        const canvasData = history[newIndex]
-        restoreFromHistory(canvasData)
-
-        // Send redo event to other users
-        const drawingEvent: DrawingEvent = {
-            type: 'redo',
-            canvasData,
-            userId: user?.id,
-            timestamp: Date.now()
-        }
-        sendDrawingEvent(drawingEvent)
-    }
-
-    const restoreFromHistory = (dataURL: string) => {
-        const canvas = canvasRef.current
-        if (!canvas) return
-
-        const ctx = canvas.getContext("2d")
-        if (!ctx) return
-
-        const img = new Image()
-        img.onload = () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height)
-            ctx.drawImage(img, 0, 0)
-        }
-        img.src = dataURL
     }
 
     const colors = [
@@ -517,20 +442,20 @@ export function Canvas({
 
     return (
         <div className="flex flex-col h-full bg-white">
-            {/* Modern Toolbar */}
-            <div className="bg-gradient-to-r from-white to-gray-50 border-b border-gray-200 shadow-lg">
-                <div className="flex items-center justify-between p-4">
-                    {/* Left - Drawing Tools */}
+            {/* Toolbar */}
+            <div className="bg-gray-50 border-b border-gray-200 p-4">
+                <div className="flex items-center justify-between">
+                    {/* Drawing Tools */}
                     <div className="flex items-center space-x-3">
-                        <div className="flex items-center bg-white rounded-xl p-1 shadow-md border border-gray-200">
+                        <div className="flex items-center bg-white rounded-lg p-1 shadow-sm border">
                             <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => setTool("pen")}
-                                className={`h-10 w-10 p-0 rounded-lg transition-all transform hover:scale-105 ${
+                                className={`h-8 w-8 p-0 rounded ${
                                     tool === "pen"
-                                        ? "bg-blue-500 text-white shadow-lg hover:bg-blue-600 animate-pulse"
-                                        : "hover:bg-blue-50 text-gray-600 hover:text-blue-600"
+                                        ? "bg-blue-500 text-white"
+                                        : "hover:bg-gray-100"
                                 }`}
                             >
                                 <Pencil className="h-4 w-4" />
@@ -539,62 +464,19 @@ export function Canvas({
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => setTool("eraser")}
-                                className={`h-10 w-10 p-0 rounded-lg transition-all transform hover:scale-105 ${
+                                className={`h-8 w-8 p-0 rounded ${
                                     tool === "eraser"
-                                        ? "bg-red-500 text-white shadow-lg hover:bg-red-600 animate-pulse"
-                                        : "hover:bg-red-50 text-gray-600 hover:text-red-600"
+                                        ? "bg-red-500 text-white"
+                                        : "hover:bg-gray-100"
                                 }`}
                             >
                                 <Eraser className="h-4 w-4" />
                             </Button>
                         </div>
 
-                        <div className="flex items-center bg-white rounded-xl p-1 shadow-md border border-gray-200">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setTool("rectangle")}
-                                className={`h-10 w-10 p-0 rounded-lg transition-all transform hover:scale-105 ${
-                                    tool === "rectangle"
-                                        ? "bg-green-500 text-white shadow-lg hover:bg-green-600 animate-pulse"
-                                        : "hover:bg-green-50 text-gray-600 hover:text-green-600"
-                                }`}
-                            >
-                                <Square className="h-4 w-4" />
-                            </Button>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setTool("circle")}
-                                className={`h-10 w-10 p-0 rounded-lg transition-all ${
-                                    tool === "circle"
-                                        ? "bg-green-500 text-white shadow-md hover:bg-green-600"
-                                        : "hover:bg-gray-200 text-gray-600"
-                                }`}
-                            >
-                                <Circle className="h-4 w-4" />
-                            </Button>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setTool("text")}
-                                className={`h-10 w-10 p-0 rounded-lg transition-all ${
-                                    tool === "text"
-                                        ? "bg-purple-500 text-white shadow-md hover:bg-purple-600"
-                                        : "hover:bg-gray-200 text-gray-600"
-                                }`}
-                            >
-                                <Type className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    </div>
-
-                    {/* Center - Brush Size */}
-                    <div className="flex items-center space-x-4 bg-gray-50 rounded-xl px-6 py-3 border border-gray-200">
-                        <span className="text-sm font-medium text-gray-700">
-                            Brush Size:
-                        </span>
-                        <div className="flex items-center space-x-3">
+                        {/* Line Width */}
+                        <div className="flex items-center space-x-2">
+                            <span className="text-sm text-gray-600">Size:</span>
                             <input
                                 type="range"
                                 min="1"
@@ -603,143 +485,84 @@ export function Canvas({
                                 onChange={(e) =>
                                     setLineWidth(Number(e.target.value))
                                 }
-                                className="w-32 h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer"
-                                style={{
-                                    background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${
-                                        (lineWidth / 20) * 100
-                                    }%, #d1d5db ${
-                                        (lineWidth / 20) * 100
-                                    }%, #d1d5db 100%)`,
-                                }}
+                                className="w-20"
                             />
-                            <div className="bg-white border border-gray-300 rounded-lg px-3 py-1 min-w-[50px] text-center">
-                                <span className="text-sm font-medium text-gray-700">
-                                    {lineWidth}px
-                                </span>
-                            </div>
+                            <span className="text-sm text-gray-600 w-8">
+                                {lineWidth}px
+                            </span>
                         </div>
                     </div>
 
-                    {/* Right - History Controls */}
-                    <div className="flex items-center space-x-3">
-                        <div className="flex items-center bg-gray-100 rounded-xl p-1">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={undo}
-                                disabled={historyIndex <= 0}
-                                className="h-10 w-10 p-0 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-gray-600"
-                            >
-                                <Undo className="h-4 w-4" />
-                            </Button>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={redo}
-                                disabled={historyIndex >= history.length - 1}
-                                className="h-10 w-10 p-0 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-gray-600"
-                            >
-                                <Redo className="h-4 w-4" />
-                            </Button>
-                        </div>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={clearCanvas}
-                            className="h-10 px-4 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 rounded-xl transition-all"
-                        >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Clear All
-                        </Button>
-                    </div>
+                    {/* Clear Button */}
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={clearCanvas}
+                        className="text-red-600 border-red-200 hover:bg-red-50"
+                    >
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Clear
+                    </Button>
                 </div>
 
                 {/* Color Palette */}
-                <div className="px-4 pb-4">
-                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                        <div className="flex items-center justify-center space-x-2">
-                            <Palette className="h-4 w-4 text-gray-600 mr-2" />
-                            <span className="text-sm font-medium text-gray-700 mr-4">
-                                Colors:
-                            </span>
-                            <div className="flex items-center space-x-2">
-                                {colors.map((c) => (
-                                    <button
-                                        key={c}
-                                        className={`w-8 h-8 rounded-full border-2 transition-all hover:scale-110 shadow-sm ${
-                                            color === c
-                                                ? "border-gray-800 shadow-lg scale-110 ring-2 ring-blue-200"
-                                                : "border-gray-300 hover:border-gray-400"
-                                        }`}
-                                        style={{ backgroundColor: c }}
-                                        onClick={() => setColor(c)}
-                                        title={c}
-                                    />
-                                ))}
-                                <div className="ml-2 pl-2 border-l border-gray-300">
-                                    <input
-                                        type="color"
-                                        value={color}
-                                        onChange={(e) =>
-                                            setColor(e.target.value)
-                                        }
-                                        className="w-8 h-8 rounded-full border-2 border-gray-300 cursor-pointer hover:border-gray-400 transition-all"
-                                        title="Custom color"
-                                    />
-                                </div>
-                            </div>
-                        </div>
+                <div className="mt-3 flex items-center space-x-2">
+                    <Palette className="h-4 w-4 text-gray-600" />
+                    <div className="flex items-center space-x-1">
+                        {colors.map((c) => (
+                            <button
+                                key={c}
+                                className={`w-6 h-6 rounded border-2 transition-all ${
+                                    color === c
+                                        ? "border-gray-800 scale-110"
+                                        : "border-gray-300 hover:scale-105"
+                                }`}
+                                style={{ backgroundColor: c }}
+                                onClick={() => setColor(c)}
+                            />
+                        ))}
+                        <input
+                            type="color"
+                            value={color}
+                            onChange={(e) => setColor(e.target.value)}
+                            className="w-6 h-6 rounded border-2 border-gray-300 cursor-pointer"
+                        />
                     </div>
                 </div>
             </div>
 
             {/* Canvas */}
-            <div className="flex-1 relative bg-white">
+            <div className="flex-1 relative">
                 <canvas
                     ref={canvasRef}
-                    className="absolute inset-0 w-full h-full cursor-crosshair"
+                    className="absolute inset-0 w-full h-full cursor-crosshair touch-none"
                     onMouseDown={startDrawing}
                     onMouseMove={draw}
                     onMouseUp={stopDrawing}
                     onMouseLeave={stopDrawing}
+                    onTouchStart={startDrawing}
+                    onTouchMove={draw}
+                    onTouchEnd={stopDrawing}
                 />
 
-                {/* Canvas overlay info */}
-                <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-sm border border-gray-200">
-                    <div className="flex items-center space-x-2 text-sm text-gray-600">
-                        <div className={`w-2 h-2 rounded-full ${
-                            socketConnected
-                                ? 'bg-green-500 animate-pulse'
-                                : 'bg-orange-500 animate-pulse'
-                        }`}></div>
-                        <span>
-                            {socketConnected
-                                ? 'Live Whiteboard - Changes sync in real-time'
-                                : 'Whiteboard - Connecting...'}
-                        </span>
-                        {socketConnected && (
-                            <div className="flex items-center space-x-1 ml-2">
-                                <Users className="w-3 h-3" />
-                                <span className="text-xs">2</span>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* Debug info - Remove in production */}
-                <div className="absolute top-4 right-4 bg-black/80 text-white text-xs rounded px-2 py-1 font-mono max-w-xs">
-                    <div>Socket: {socket ? '✅ exists' : '❌ null'}</div>
-                    <div>State: {socket?.readyState ?? 'N/A'} ({
-                        socket?.readyState === 0 ? 'CONNECTING' :
-                        socket?.readyState === 1 ? 'OPEN' :
-                        socket?.readyState === 2 ? 'CLOSING' :
-                        socket?.readyState === 3 ? 'CLOSED' : 'UNKNOWN'
-                    })</div>
-                    <div>Connected: {socketConnected ? '✅ Yes' : '❌ No'}</div>
-                    <div>User: {user?.id ?? 'N/A'}</div>
-                    <div>Session: {sessionId}</div>
-                    <div>Drawing: {isDrawing ? '✏️ Yes' : '⏸️ No'}</div>
-                    <div>Receiving: {isReceivingUpdateRef.current ? '📥 Yes' : '📤 No'}</div>
+                {/* Status */}
+                <div className="absolute top-4 right-4 bg-black/80 text-white px-3 py-1 rounded-lg text-sm flex items-center gap-2">
+                    <div
+                        className={`w-2 h-2 rounded-full ${
+                            isConnected ? "bg-green-500" : "bg-red-500"
+                        }`}
+                    />
+                    {isConnected
+                        ? connectionType === "canvas"
+                            ? "Connected"
+                            : "Connected (Fallback)"
+                        : "Disconnected"}
+                    {isConnected && (
+                        <div className="flex items-center gap-1 ml-2">
+                            <Users className="w-3 h-3" />
+                            <span>Live</span>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

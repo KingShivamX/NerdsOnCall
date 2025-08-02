@@ -52,6 +52,8 @@
         "sonner": "^2.0.5",
         "tailwind-merge": "^2.6.0",
         "textarea": "^0.3.0",
+        "y-protocols": "^1.0.6",
+        "y-websocket": "^3.0.0",
         "yjs": "^13.6.27"
     },
     "devDependencies": {

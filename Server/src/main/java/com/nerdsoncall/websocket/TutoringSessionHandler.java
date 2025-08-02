@@ -87,6 +87,12 @@ public class TutoringSessionHandler extends TextWebSocketHandler {
                     case "canvas_update":
                         handleCanvasUpdate(session, jsonNode);
                         break;
+                    case "excalidraw_update":
+                        handleExcalidrawUpdate(session, jsonNode);
+                        break;
+                    case "drawing_event":
+                        handleDrawingEvent(session, jsonNode);
+                        break;
                     case "whiteboard_enabled":
                         handleWhiteboardEnabled(session, jsonNode);
                         break;
@@ -207,6 +213,48 @@ public class TutoringSessionHandler extends TextWebSocketHandler {
         } else {
             try {
                 sendErrorMessage(session, "Invalid canvas update message format");
+            } catch (IOException e) {
+                logger.error("Error sending error message", e);
+            }
+        }
+    }
+
+    private void handleExcalidrawUpdate(WebSocketSession session, JsonNode message) {
+        if (message.has("sessionId") && message.has("data") && message.has("userId")) {
+            String sessionId = message.get("sessionId").asText();
+            String userId = message.get("userId").asText();
+
+            logger.debug("🎨 Excalidraw update from user {} in session {}", userId, sessionId);
+
+            // Broadcast Excalidraw update to all subscribers of this session (except sender)
+            broadcastToSessionExceptSender(sessionId, message, session);
+        } else {
+            try {
+                sendErrorMessage(session, "Invalid Excalidraw update message format");
+            } catch (IOException e) {
+                logger.error("Error sending error message", e);
+            }
+        }
+    }
+
+    private void handleDrawingEvent(WebSocketSession session, JsonNode message) {
+        if (message.has("sessionId") && message.has("data") && message.has("userId")) {
+            String sessionId = message.get("sessionId").asText();
+            String userId = message.get("userId").asText();
+
+            // Get the drawing event type for logging
+            String eventType = "unknown";
+            if (message.has("data") && message.get("data").has("type")) {
+                eventType = message.get("data").get("type").asText();
+            }
+
+            logger.debug("✏️ Drawing event '{}' from user {} in session {}", eventType, userId, sessionId);
+
+            // Broadcast drawing event to all subscribers of this session (except sender)
+            broadcastToSessionExceptSender(sessionId, message, session);
+        } else {
+            try {
+                sendErrorMessage(session, "Invalid drawing event message format");
             } catch (IOException e) {
                 logger.error("Error sending error message", e);
             }

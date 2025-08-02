@@ -18,9 +18,9 @@ import {
     Users,
 } from "lucide-react"
 import { Responsive, WidthProvider } from "react-grid-layout"
-import { Excalidraw } from "@excalidraw/excalidraw"
-import * as Y from "yjs"
+
 import { ChatPanel } from "@/components/VideoCall/ChatPanel"
+import { Canvas } from "@/components/VideoCall/Canvas"
 import { IncomingCallNotification } from "@/components/VideoCall/IncomingCallNotification"
 import toast from "react-hot-toast"
 import { api } from "@/lib/api"
@@ -95,10 +95,6 @@ export default function VideoCallPage() {
     const [waitingForTutor, setWaitingForTutor] = useState(false)
     const [tutorReady, setTutorReady] = useState(false)
 
-    // Yjs document for collaborative whiteboard
-    const yjsDocRef = useRef<Y.Doc | null>(null)
-    const [excalidrawAPI, setExcalidrawAPI] = useState<any>(null)
-
     // Incoming call state
     const [incomingCall, setIncomingCall] = useState<any>(null)
     const [showIncomingCallModal, setShowIncomingCallModal] = useState(false)
@@ -160,23 +156,6 @@ export default function VideoCallPage() {
             cleanupConnection()
         }
     }, [sessionId, user])
-
-    // Initialize Yjs document for collaborative whiteboard
-    useEffect(() => {
-        if (!yjsDocRef.current) {
-            yjsDocRef.current = new Y.Doc()
-            console.log(
-                "🎨 Yjs document initialized for collaborative whiteboard"
-            )
-        }
-
-        return () => {
-            if (yjsDocRef.current) {
-                yjsDocRef.current.destroy()
-                yjsDocRef.current = null
-            }
-        }
-    }, [])
 
     // Add cleanup on page unload
     useEffect(() => {
@@ -788,6 +767,7 @@ export default function VideoCallPage() {
                     preventCollision={false}
                     isDraggable={true}
                     isResizable={true}
+                    draggableHandle=".react-grid-draghandle"
                     margin={[8, 8]}
                     containerPadding={[8, 8]}
                 >
@@ -797,7 +777,7 @@ export default function VideoCallPage() {
                         className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_black] overflow-hidden"
                     >
                         <div className="h-full flex flex-col">
-                            <div className="bg-black text-white p-2 flex items-center justify-between border-b-4 border-black">
+                            <div className="bg-black text-white p-2 flex items-center justify-between border-b-4 border-black react-grid-draghandle cursor-move">
                                 <div className="flex items-center space-x-2">
                                     <Users className="h-4 w-4" />
                                     <span className="font-black uppercase tracking-wide text-sm">
@@ -906,7 +886,7 @@ export default function VideoCallPage() {
                         className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_black] overflow-hidden"
                     >
                         <div className="h-full flex flex-col">
-                            <div className="bg-green-300 text-black p-2 flex items-center justify-between border-b-4 border-black">
+                            <div className="bg-green-300 text-black p-2 flex items-center justify-between border-b-4 border-black react-grid-draghandle cursor-move">
                                 <div className="flex items-center space-x-2">
                                     <PenTool className="h-4 w-4" />
                                     <span className="font-black uppercase tracking-wide text-sm">
@@ -924,25 +904,14 @@ export default function VideoCallPage() {
                                     {showWhiteboard ? "Close" : "Open"}
                                 </Button>
                             </div>
-                            <div className="flex-1 relative">
+                            <div className="flex-1 relative react-grid-no-drag">
                                 {showWhiteboard ? (
-                                    <Excalidraw
-                                        ref={(api) => setExcalidrawAPI(api)}
-                                        theme="light"
-                                        initialData={{
-                                            elements: [],
-                                            appState: {
-                                                viewBackgroundColor: "#ffffff",
-                                                currentItemFontFamily: 1,
-                                            },
-                                        }}
-                                        UIOptions={{
-                                            canvasActions: {
-                                                loadScene: false,
-                                                export: false,
-                                                saveToActiveFile: false,
-                                                toggleTheme: false,
-                                            },
+                                    <Canvas
+                                        sessionId={sessionId}
+                                        user={user}
+                                        socket={socketRef.current}
+                                        onCanvasUpdate={(data) => {
+                                            console.log("Canvas updated:", data)
                                         }}
                                     />
                                 ) : (
@@ -965,7 +934,7 @@ export default function VideoCallPage() {
                         className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_black] overflow-hidden"
                     >
                         <div className="h-full flex flex-col">
-                            <div className="bg-yellow-300 text-black p-2 flex items-center justify-between border-b-4 border-black">
+                            <div className="bg-yellow-300 text-black p-2 flex items-center justify-between border-b-4 border-black react-grid-draghandle cursor-move">
                                 <div className="flex items-center space-x-2">
                                     <MessageSquare className="h-4 w-4" />
                                     <span className="font-black uppercase tracking-wide text-sm">
