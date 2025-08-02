@@ -16,7 +16,7 @@ public class PayoutScheduler {
     // Runs at 2 AM on the 1st day of every month
     // @Scheduled(cron = "0 0 2 1 * ?")
     // @Scheduled(cron = "0 0 2 1 * ?")
-    @Scheduled(cron = "0 34 1 * * ?")
+    @Scheduled(cron = "0 59 2 * * ?")
     public void processMonthlyPayouts() {
         System.out.println("---------------------------------------");
         System.out.println("Processing monthly payouts");
