@@ -16,6 +16,7 @@ import {
     ArrowRight,
 } from "lucide-react"
 import toast from "react-hot-toast"
+import { getUserFriendlyErrorMessage } from "@/utils/errorMessages"
 
 interface FormData {
     email: string
@@ -77,10 +78,7 @@ export default function ForgotPasswordPage() {
                 setIsEmailSent(true)
                 toast.success("Password reset link sent to your email!")
             } catch (error: any) {
-                const errorMessage =
-                    error?.response?.data?.message ||
-                    error?.message ||
-                    "Failed to send reset email. Please try again."
+                const errorMessage = getUserFriendlyErrorMessage(error, "auth")
                 setErrors({ general: errorMessage })
                 toast.error(errorMessage)
             } finally {

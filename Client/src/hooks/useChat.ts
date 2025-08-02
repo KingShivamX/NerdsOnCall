@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react"
 import { toast } from "react-hot-toast"
+import { getUserFriendlyErrorMessage } from "@/utils/errorMessages"
 
 export interface ChatMessage {
     id: string
@@ -64,8 +65,7 @@ export function useChat(options: UseChatOptions = {}) {
                 return assistantMessage
             } catch (error: any) {
                 console.error("Chat error:", error)
-                const errorMessage =
-                    error.message || "Failed to get response from AI assistant"
+                const errorMessage = getUserFriendlyErrorMessage(error, "chat")
 
                 if (options.onError) {
                     options.onError(errorMessage)

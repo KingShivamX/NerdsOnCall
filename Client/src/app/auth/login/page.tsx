@@ -22,6 +22,7 @@ import {
     ArrowRight,
 } from "lucide-react"
 import toast from "react-hot-toast"
+import { getUserFriendlyErrorMessage } from "@/utils/errorMessages"
 
 interface FormData {
     email: string
@@ -112,10 +113,7 @@ export default function LoginPage() {
                     router.push("/dashboard")
                 }
             } catch (error: any) {
-                const errorMessage =
-                    error?.response?.data?.message ||
-                    error?.message ||
-                    "Login failed. Please check your credentials."
+                const errorMessage = getUserFriendlyErrorMessage(error, "auth")
                 setErrors({ general: errorMessage })
                 toast.error(errorMessage)
             } finally {

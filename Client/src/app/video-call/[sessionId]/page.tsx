@@ -23,6 +23,10 @@ import { ChatPanel } from "@/components/VideoCall/ChatPanel"
 import { IncomingCallNotification } from "@/components/VideoCall/IncomingCallNotification"
 import toast from "react-hot-toast"
 import { api } from "@/lib/api"
+import {
+    getUserFriendlyErrorMessage,
+    getWebSocketErrorMessage,
+} from "@/utils/errorMessages"
 
 interface VideoCallPageProps {}
 
@@ -87,7 +91,7 @@ export default function VideoCallPage() {
             user?.role
         )
         console.log("- URL role param:", role)
-        console.log("- Session ID:", sessionId)
+        console.log("- Session ID: [HIDDEN]")
 
         // Extract tutor and student IDs from sessionId if it follows the pattern
         let extractedTutorId: number | null = null
@@ -385,7 +389,7 @@ export default function VideoCallPage() {
 
                 // Create session in backend - both students and tutors can now create sessions
                 try {
-                    console.log("🔄 Creating session:", sessionId)
+                    console.log("🔄 Creating session: [HIDDEN]")
                     console.log(
                         "Auth user role:",
                         user?.role,
@@ -426,8 +430,7 @@ export default function VideoCallPage() {
                             "⚠️ No valid other user ID found, skipping session creation"
                         )
                         console.warn(
-                            "Debug info - sessionId:",
-                            sessionId,
+                            "Debug info - sessionId: [HIDDEN]",
                             "userRole:",
                             user?.role,
                             "otherUserId:",
@@ -437,7 +440,7 @@ export default function VideoCallPage() {
                     }
 
                     console.log(
-                        `📤 API call: POST /api/sessions/call?tutorId=${parameterToPass}&sessionId=${sessionId}`
+                        `📤 API call: POST /api/sessions/call?tutorId=${parameterToPass}&sessionId=[HIDDEN]`
                     )
                     console.log(
                         `📝 Parameter explanation: tutorId=${parameterToPass} (${parameterDescription})`
@@ -736,13 +739,6 @@ export default function VideoCallPage() {
                     console.error("WebSocket error:", message.message)
                     if (
                         message.message &&
-                        message.message.includes("Recipient offline")
-                    ) {
-                        toast.error(
-                            "Other user is not connected yet. Please wait..."
-                        )
-                    } else if (
-                        message.message &&
                         message.message.includes("Unknown message type")
                     ) {
                         console.warn(
@@ -750,11 +746,10 @@ export default function VideoCallPage() {
                             message
                         )
                     } else {
-                        toast.error(
-                            `Connection error: ${
-                                message.message || "Unknown error"
-                            }`
+                        const userFriendlyMessage = getWebSocketErrorMessage(
+                            message.message || "Unknown error"
                         )
+                        toast.error(userFriendlyMessage)
                     }
                     break
                 case "canvas_update":
@@ -1023,7 +1018,7 @@ export default function VideoCallPage() {
 
             // End the session in the backend to calculate duration and earnings
             try {
-                console.log("🔚 Ending session in backend:", sessionId)
+                console.log("🔚 Ending session in backend: [HIDDEN]")
                 const response = await api.put(
                     `/api/sessions/call/${sessionId}/end`
                 )

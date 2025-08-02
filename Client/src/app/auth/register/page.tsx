@@ -19,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { AuthPageGuard } from "@/components/auth/AuthPageGuard"
 import { Subject, RegisterRequest } from "@/types"
 import toast from "react-hot-toast"
+import { getUserFriendlyErrorMessage } from "@/utils/errorMessages"
 import {
     ArrowRight,
     Crown,
@@ -179,8 +180,7 @@ export default function RegisterPage() {
             }
         } catch (err: any) {
             console.error("Registration error:", err)
-            const errorMessage =
-                err?.response?.data || err?.message || "Registration failed."
+            const errorMessage = getUserFriendlyErrorMessage(err, "auth")
             console.error("Error message:", errorMessage)
             toast.error(errorMessage)
             setErrors({ general: errorMessage })
