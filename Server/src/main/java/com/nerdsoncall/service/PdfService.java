@@ -16,6 +16,7 @@ import com.itextpdf.layout.properties.HorizontalAlignment;
 import com.itextpdf.layout.properties.TextAlignment;
 import com.itextpdf.layout.properties.UnitValue;
 import com.itextpdf.layout.properties.VerticalAlignment;
+import com.nerdsoncall.entity.Payout;
 import com.nerdsoncall.entity.Subscription;
 import com.nerdsoncall.entity.User;
 import org.springframework.stereotype.Service;
@@ -65,6 +66,39 @@ public class PdfService {
         
         // Footer
         addFooter(document, regularFont);
+
+        document.close();
+        return baos.toByteArray();
+    }
+
+    public byte[] generateTutorPayoutReceipt(User tutor, Payout payout) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PdfWriter writer = new PdfWriter(baos);
+        PdfDocument pdfDoc = new PdfDocument(writer);
+        Document document = new Document(pdfDoc, PageSize.A4);
+        document.setMargins(40, 40, 40, 40);
+
+        // Fonts
+        PdfFont boldFont = PdfFontFactory.createFont(StandardFonts.HELVETICA_BOLD);
+        PdfFont regularFont = PdfFontFactory.createFont(StandardFonts.HELVETICA);
+
+        // Header Section
+        addPayoutHeader(document, boldFont, regularFont);
+
+        // Payout Title
+        addPayoutTitle(document, boldFont, payout);
+
+        // Tutor Information
+        addTutorInfo(document, boldFont, regularFont, tutor);
+
+        // Payout Details
+        addPayoutDetails(document, boldFont, regularFont, payout);
+
+        // Payment Summary
+        addPayoutSummary(document, boldFont, regularFont, payout);
+
+        // Footer
+        addPayoutFooter(document, regularFont);
 
         document.close();
         return baos.toByteArray();
@@ -319,5 +353,208 @@ public class PdfService {
 
         table.addCell(descCell);
         table.addCell(amountCell);
+    }
+
+    // Tutor Payout PDF Methods
+    private void addPayoutHeader(Document document, PdfFont boldFont, PdfFont regularFont) {
+        // Newbrutalism Header with bold styling
+        Table headerTable = new Table(UnitValue.createPercentArray(new float[]{70, 30}))
+                .setWidth(UnitValue.createPercentValue(100))
+                .setBackgroundColor(CYAN_BLUE)
+                .setBorder(new SolidBorder(PURE_BLACK, 4))
+                .setPadding(25);
+
+        // Company Info
+        Cell companyCell = new Cell()
+                .setBorder(Border.NO_BORDER)
+                .setVerticalAlignment(VerticalAlignment.MIDDLE);
+
+        Paragraph companyName = new Paragraph("💰 NERDS ON CALL")
+                .setFont(boldFont)
+                .setFontSize(28)
+                .setFontColor(PURE_BLACK)
+                .setMargin(0)
+                .setBold();
+
+        Paragraph tagline = new Paragraph("TUTOR PAYOUT SYSTEM")
+                .setFont(boldFont)
+                .setFontSize(12)
+                .setFontColor(PURE_BLACK)
+                .setMargin(0);
+
+        companyCell.add(companyName).add(tagline);
+
+        // Payout Info
+        Cell payoutCell = new Cell()
+                .setBorder(Border.NO_BORDER)
+                .setTextAlignment(TextAlignment.RIGHT)
+                .setVerticalAlignment(VerticalAlignment.MIDDLE);
+
+        Paragraph payoutText = new Paragraph("🎉 PAYOUT RECEIPT")
+                .setFont(boldFont)
+                .setFontSize(18)
+                .setFontColor(PURE_BLACK)
+                .setMargin(0)
+                .setBold();
+
+        Paragraph dateText = new Paragraph("Generated: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm")))
+                .setFont(boldFont)
+                .setFontSize(10)
+                .setFontColor(PURE_BLACK)
+                .setMargin(0);
+
+        payoutCell.add(payoutText).add(dateText);
+
+        headerTable.addCell(companyCell);
+        headerTable.addCell(payoutCell);
+
+        document.add(headerTable);
+        document.add(new Paragraph("\n"));
+    }
+
+    private void addPayoutTitle(Document document, PdfFont boldFont, Payout payout) {
+        // Payout ID and Status
+        Table titleTable = new Table(UnitValue.createPercentArray(new float[]{50, 50}))
+                .setWidth(UnitValue.createPercentValue(100));
+
+        Cell payoutIdCell = new Cell()
+                .setBorder(Border.NO_BORDER);
+        payoutIdCell.add(new Paragraph("Payout ID: #" + String.format("%06d", payout.getId()))
+                .setFont(boldFont)
+                .setFontSize(14)
+                .setFontColor(PURE_BLACK));
+
+        Cell statusCell = new Cell()
+                .setBorder(Border.NO_BORDER)
+                .setTextAlignment(TextAlignment.RIGHT);
+
+        Paragraph statusPara = new Paragraph("✅ " + payout.getStatus().toString())
+                .setFont(boldFont)
+                .setFontSize(12)
+                .setFontColor(LIME_GREEN);
+        statusCell.add(statusPara);
+
+        titleTable.addCell(payoutIdCell);
+        titleTable.addCell(statusCell);
+
+        document.add(titleTable);
+        document.add(new Paragraph("\n"));
+    }
+
+    private void addTutorInfo(Document document, PdfFont boldFont, PdfFont regularFont, User tutor) {
+        // Tutor Information Section
+        Paragraph sectionTitle = new Paragraph("👨‍🏫 TUTOR INFORMATION")
+                .setFont(boldFont)
+                .setFontSize(16)
+                .setFontColor(PURE_BLACK)
+                .setMarginBottom(10)
+                .setBold();
+        document.add(sectionTitle);
+
+        Table tutorTable = new Table(UnitValue.createPercentArray(new float[]{30, 70}))
+                .setWidth(UnitValue.createPercentValue(100))
+                .setBackgroundColor(HOT_PINK)
+                .setBorder(new SolidBorder(PURE_BLACK, 3))
+                .setPadding(20)
+                .setMarginBottom(20);
+
+        addInfoRow(tutorTable, "Name:", tutor.getFirstName() + " " + tutor.getLastName(), boldFont, regularFont);
+        addInfoRow(tutorTable, "Email:", tutor.getEmail(), boldFont, regularFont);
+        if (tutor.getPhoneNumber() != null) {
+            addInfoRow(tutorTable, "Phone:", tutor.getPhoneNumber(), boldFont, regularFont);
+        }
+        addInfoRow(tutorTable, "Total Sessions:", tutor.getTotalSessions().toString(), boldFont, regularFont);
+        addInfoRow(tutorTable, "Total Earnings:", "₹" + String.format("%.2f", tutor.getTotalEarnings()), boldFont, regularFont);
+        addInfoRow(tutorTable, "Hourly Rate:", "₹" + String.format("%.2f", tutor.getHourlyRate()), boldFont, regularFont);
+
+        document.add(tutorTable);
+    }
+
+    private void addPayoutDetails(Document document, PdfFont boldFont, PdfFont regularFont, Payout payout) {
+        // Payout Details Section
+        Paragraph sectionTitle = new Paragraph("📋 PAYOUT DETAILS")
+                .setFont(boldFont)
+                .setFontSize(16)
+                .setFontColor(PURE_BLACK)
+                .setMarginBottom(10)
+                .setBold();
+        document.add(sectionTitle);
+
+        Table payoutTable = new Table(UnitValue.createPercentArray(new float[]{30, 70}))
+                .setWidth(UnitValue.createPercentValue(100))
+                .setBackgroundColor(BRIGHT_YELLOW)
+                .setBorder(new SolidBorder(PURE_BLACK, 3))
+                .setPadding(20)
+                .setMarginBottom(20);
+
+        String month = payout.getPeriodStart().getMonth().name() + " " + payout.getPeriodStart().getYear();
+        addInfoRow(payoutTable, "Period:", month, boldFont, regularFont);
+        addInfoRow(payoutTable, "Period Start:", payout.getPeriodStart().toLocalDate().toString(), boldFont, regularFont);
+        addInfoRow(payoutTable, "Period End:", payout.getPeriodEnd().toLocalDate().toString(), boldFont, regularFont);
+        addInfoRow(payoutTable, "Transaction ID:", payout.getTransactionId(), boldFont, regularFont);
+        addInfoRow(payoutTable, "Status:", payout.getStatus().toString(), boldFont, regularFont);
+        if (payout.getDescription() != null) {
+            addInfoRow(payoutTable, "Description:", payout.getDescription(), boldFont, regularFont);
+        }
+
+        document.add(payoutTable);
+    }
+
+    private void addPayoutSummary(Document document, PdfFont boldFont, PdfFont regularFont, Payout payout) {
+        // Payment Summary Section
+        Paragraph sectionTitle = new Paragraph("💰 PAYMENT SUMMARY")
+                .setFont(boldFont)
+                .setFontSize(16)
+                .setFontColor(PURE_BLACK)
+                .setMarginBottom(10)
+                .setBold();
+        document.add(sectionTitle);
+
+        Table paymentTable = new Table(UnitValue.createPercentArray(new float[]{70, 30}))
+                .setWidth(UnitValue.createPercentValue(100))
+                .setBackgroundColor(LIME_GREEN)
+                .setBorder(new SolidBorder(PURE_BLACK, 4))
+                .setMarginBottom(20);
+
+        // Payment rows
+        addPaymentRow(paymentTable, "Gross Earnings", "₹" + String.format("%.2f", payout.getAmount()), regularFont, false);
+        addPaymentRow(paymentTable, "Platform Fee (0%)", "₹0.00", regularFont, false);
+        addPaymentRow(paymentTable, "Total Payout Amount", "₹" + String.format("%.2f", payout.getAmount()), boldFont, true);
+
+        document.add(paymentTable);
+    }
+
+    private void addPayoutFooter(Document document, PdfFont regularFont) {
+        // Thank you message
+        Paragraph thankYou = new Paragraph("🎉 THANK YOU FOR BEING AN AMAZING TUTOR! 🚀")
+                .setFont(regularFont)
+                .setFontSize(18)
+                .setFontColor(PURE_BLACK)
+                .setTextAlignment(TextAlignment.CENTER)
+                .setMarginTop(30)
+                .setMarginBottom(20)
+                .setBold();
+        document.add(thankYou);
+
+        // Description
+        Paragraph description = new Paragraph(
+            "This payout receipt confirms the successful transfer of your monthly earnings. " +
+            "Your dedication to helping students learn and grow is truly appreciated. " +
+            "Keep up the excellent work!"
+        )
+                .setFont(regularFont)
+                .setFontSize(10)
+                .setFontColor(PURE_BLACK)
+                .setTextAlignment(TextAlignment.CENTER)
+                .setMarginBottom(20);
+        document.add(description);
+
+        // Contact info
+        Paragraph contact = new Paragraph("For support, contact us at support@nerdsoncall.com")
+                .setFont(regularFont)
+                .setFontSize(10)
+                .setFontColor(PURE_BLACK)
+                .setTextAlignment(TextAlignment.CENTER);
+        document.add(contact);
     }
 }

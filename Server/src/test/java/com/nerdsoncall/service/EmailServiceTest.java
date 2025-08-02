@@ -1,5 +1,6 @@
 package com.nerdsoncall.service;
 
+import com.nerdsoncall.entity.Payout;
 import com.nerdsoncall.entity.Subscription;
 import com.nerdsoncall.entity.User;
 import jakarta.mail.MessagingException;
@@ -169,5 +170,27 @@ public class EmailServiceTest {
         });
         
         verify(mailSender, times(1)).send(any(SimpleMailMessage.class));
+    }
+
+    @Test
+    void testTutorPayoutEmailBodyGeneration() {
+        // Create test data
+        String tutorName = "John Doe";
+        Payout testPayout = new Payout();
+        testPayout.setAmount(5000.0);
+        testPayout.setTransactionId("TXN123456789");
+        String month = "JANUARY 2024";
+        String billingDate = "2024-01-31";
+
+        // Test email body generation
+        assertDoesNotThrow(() -> {
+            String emailBody = emailService.buildTutorPayoutEmailBody(tutorName, testPayout, month, billingDate);
+            assertNotNull(emailBody);
+            assertTrue(emailBody.contains("John Doe"));
+            assertTrue(emailBody.contains("₹5000.00"));
+            assertTrue(emailBody.contains("JANUARY 2024"));
+            assertTrue(emailBody.contains("TXN123456789"));
+            assertTrue(emailBody.contains("PAYOUT PROCESSED"));
+        });
     }
 }

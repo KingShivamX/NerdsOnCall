@@ -1,5 +1,6 @@
 package com.nerdsoncall.service;
 
+import com.nerdsoncall.entity.Payout;
 import com.nerdsoncall.entity.Subscription;
 import com.nerdsoncall.entity.User;
 import org.junit.jupiter.api.BeforeEach;
@@ -124,5 +125,45 @@ public class PdfServiceTest {
         // PDF should be reasonable size (not too small, not too large)
         assertTrue(pdfBytes.length > 1000, "PDF should be at least 1KB");
         assertTrue(pdfBytes.length < 1024 * 1024, "PDF should be less than 1MB");
+    }
+
+    @Test
+    void testGenerateTutorPayoutReceipt() throws IOException {
+        // Create test tutor
+        User testTutor = new User();
+        testTutor.setFirstName("John");
+        testTutor.setLastName("Doe");
+        testTutor.setEmail("john.doe@example.com");
+        testTutor.setPhoneNumber("1234567890");
+        testTutor.setTotalSessions(25);
+        testTutor.setTotalEarnings(12500.0);
+        testTutor.setHourlyRate(500.0);
+
+        // Create test payout
+        Payout testPayout = new Payout();
+        testPayout.setId(1L);
+        testPayout.setAmount(5000.0);
+        testPayout.setTransactionId("TXN123456789");
+        testPayout.setStatus(Payout.Status.COMPLETED);
+        testPayout.setPeriodStart(LocalDateTime.of(2024, 1, 1, 0, 0));
+        testPayout.setPeriodEnd(LocalDateTime.of(2024, 1, 31, 23, 59));
+        testPayout.setDescription("Monthly payout for January 2024");
+
+        // Generate PDF
+        byte[] pdfBytes = pdfService.generateTutorPayoutReceipt(testTutor, testPayout);
+
+        // Verify PDF was generated
+        assertNotNull(pdfBytes);
+        assertTrue(pdfBytes.length > 0);
+
+        // Verify PDF header (PDF files start with %PDF)
+        String pdfHeader = new String(pdfBytes, 0, 4);
+        assertEquals("%PDF", pdfHeader);
+
+        // PDF should be reasonable size (not too small, not too large)
+        assertTrue(pdfBytes.length > 1000, "PDF should be at least 1KB");
+        assertTrue(pdfBytes.length < 1024 * 1024, "PDF should be less than 1MB");
+
+        System.out.println("Tutor Payout PDF generated successfully with size: " + pdfBytes.length + " bytes");
     }
 }
