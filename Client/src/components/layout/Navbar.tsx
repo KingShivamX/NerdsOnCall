@@ -101,8 +101,8 @@ export function Navbar() {
                             // Logged in user - show user info and sign out
                             <>
                                 <Link
-                                    href="/dashboard"
-                                    className="flex items-center space-x-2 text-sm text-slate-700"
+                                    href={`/profile/${user.id}`}
+                                    className="flex items-center space-x-2 text-sm text-slate-700 hover:text-blue-600 transition-colors"
                                 >
                                     <User className="h-4 w-4" />
                                     <span>Hi, {user.firstName}</span>
@@ -229,10 +229,14 @@ export function Navbar() {
                             {user ? (
                                 // Logged in user - show user info and sign out
                                 <>
-                                    <div className="flex items-center space-x-2 px-3 py-2 text-sm text-slate-700">
+                                    <Link
+                                        href={`/profile/${user.id}`}
+                                        className="flex items-center space-x-2 px-3 py-2 text-sm text-slate-700 hover:text-blue-600 transition-colors rounded-md hover:bg-slate-100"
+                                        onClick={toggleMenu}
+                                    >
                                         <User className="h-4 w-4" />
                                         <span>Hi, {user.firstName}</span>
-                                    </div>
+                                    </Link>
                                     <Button
                                         variant="ghost"
                                         onClick={handleSignOut}

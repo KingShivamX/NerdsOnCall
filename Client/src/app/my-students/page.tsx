@@ -138,7 +138,11 @@ export default function MyStudentsPage() {
                     <div className="mb-8">
                         <div className="flex items-center mb-4">
                             <Link href="/dashboard">
-                                <Button variant="ghost" size="sm" className="mr-4">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="mr-4"
+                                >
                                     <ArrowLeft className="h-4 w-4 mr-2" />
                                     Back to Dashboard
                                 </Button>
@@ -187,7 +191,15 @@ export default function MyStudentsPage() {
                                             Pending
                                         </p>
                                         <p className="text-2xl font-bold text-slate-900">
-                                            {doubts.filter(d => ["OPEN", "ASSIGNED", "IN_PROGRESS"].includes(d.status)).length}
+                                            {
+                                                doubts.filter((d) =>
+                                                    [
+                                                        "OPEN",
+                                                        "ASSIGNED",
+                                                        "IN_PROGRESS",
+                                                    ].includes(d.status)
+                                                ).length
+                                            }
                                         </p>
                                     </div>
                                 </div>
@@ -205,7 +217,12 @@ export default function MyStudentsPage() {
                                             Resolved
                                         </p>
                                         <p className="text-2xl font-bold text-slate-900">
-                                            {doubts.filter(d => d.status === "RESOLVED").length}
+                                            {
+                                                doubts.filter(
+                                                    (d) =>
+                                                        d.status === "RESOLVED"
+                                                ).length
+                                            }
                                         </p>
                                     </div>
                                 </div>
@@ -214,13 +231,33 @@ export default function MyStudentsPage() {
                     </div>
 
                     {/* Tabs */}
-                    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+                    <Tabs
+                        value={activeTab}
+                        onValueChange={setActiveTab}
+                        className="space-y-6"
+                    >
                         <TabsList className="grid w-full grid-cols-2">
                             <TabsTrigger value="pending">
-                                Pending ({doubts.filter(d => ["OPEN", "ASSIGNED", "IN_PROGRESS"].includes(d.status)).length})
+                                Pending (
+                                {
+                                    doubts.filter((d) =>
+                                        [
+                                            "OPEN",
+                                            "ASSIGNED",
+                                            "IN_PROGRESS",
+                                        ].includes(d.status)
+                                    ).length
+                                }
+                                )
                             </TabsTrigger>
                             <TabsTrigger value="resolved">
-                                Resolved ({doubts.filter(d => d.status === "RESOLVED").length})
+                                Resolved (
+                                {
+                                    doubts.filter(
+                                        (d) => d.status === "RESOLVED"
+                                    ).length
+                                }
+                                )
                             </TabsTrigger>
                         </TabsList>
 
@@ -230,31 +267,50 @@ export default function MyStudentsPage() {
                                 <Card>
                                     <CardContent className="p-12 text-center">
                                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-600 mx-auto"></div>
-                                        <p className="mt-4 text-slate-600">Loading doubts...</p>
+                                        <p className="mt-4 text-slate-600">
+                                            Loading doubts...
+                                        </p>
                                     </CardContent>
                                 </Card>
                             ) : filteredDoubts.length > 0 ? (
                                 filteredDoubts.map((doubt) => (
-                                    <Card key={doubt.id} className="hover:shadow-md transition-shadow">
+                                    <Card
+                                        key={doubt.id}
+                                        className="hover:shadow-md transition-shadow"
+                                    >
                                         <CardContent className="p-6">
                                             <div className="flex items-start justify-between">
                                                 <div className="flex-1">
                                                     <div className="flex items-center space-x-2 mb-2">
-                                                        <Badge variant="outline" className="text-xs">
-                                                            {doubt.subject.replace(/_/g, " ")}
+                                                        <Badge
+                                                            variant="outline"
+                                                            className="text-xs"
+                                                        >
+                                                            {doubt.subject.replace(
+                                                                /_/g,
+                                                                " "
+                                                            )}
                                                         </Badge>
-                                                        <Badge className={`text-xs border ${getPriorityColor(doubt.priority)}`}>
+                                                        <Badge
+                                                            className={`text-xs border ${getPriorityColor(
+                                                                doubt.priority
+                                                            )}`}
+                                                        >
                                                             {doubt.priority}
                                                         </Badge>
-                                                        <Badge className={`text-xs border ${getStatusColor(doubt.status)}`}>
+                                                        <Badge
+                                                            className={`text-xs border ${getStatusColor(
+                                                                doubt.status
+                                                            )}`}
+                                                        >
                                                             {doubt.status}
                                                         </Badge>
                                                     </div>
-                                                    
+
                                                     <h3 className="font-semibold text-slate-800 mb-2">
                                                         {doubt.title}
                                                     </h3>
-                                                    
+
                                                     <p className="text-slate-600 text-sm mb-4 line-clamp-2">
                                                         {doubt.description}
                                                     </p>
@@ -262,23 +318,44 @@ export default function MyStudentsPage() {
                                                     <div className="flex items-center space-x-4 text-xs text-slate-500">
                                                         <div className="flex items-center space-x-1">
                                                             <User className="h-3 w-3" />
-                                                            <span>
-                                                                {doubt.student.firstName} {doubt.student.lastName}
-                                                            </span>
+                                                            <Link
+                                                                href={`/profile/${doubt.student.id}`}
+                                                            >
+                                                                <span className="hover:text-blue-600 cursor-pointer transition-colors">
+                                                                    {
+                                                                        doubt
+                                                                            .student
+                                                                            .firstName
+                                                                    }{" "}
+                                                                    {
+                                                                        doubt
+                                                                            .student
+                                                                            .lastName
+                                                                    }
+                                                                </span>
+                                                            </Link>
                                                         </div>
                                                         <div className="flex items-center space-x-1">
                                                             <Calendar className="h-3 w-3" />
                                                             <span>
-                                                                {new Date(doubt.createdAt).toLocaleDateString()}
+                                                                {new Date(
+                                                                    doubt.createdAt
+                                                                ).toLocaleDateString()}
                                                             </span>
                                                         </div>
                                                     </div>
                                                 </div>
-                                                
+
                                                 <div className="ml-4">
-                                                    {doubt.status !== "RESOLVED" ? (
-                                                        <Link href={`/doubts/${doubt.id}/solve`}>
-                                                            <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                                                    {doubt.status !==
+                                                    "RESOLVED" ? (
+                                                        <Link
+                                                            href={`/doubts/${doubt.id}/solve`}
+                                                        >
+                                                            <Button
+                                                                size="sm"
+                                                                className="bg-blue-600 hover:bg-blue-700"
+                                                            >
                                                                 <BookOpen className="h-4 w-4 mr-2" />
                                                                 Provide Solution
                                                             </Button>
@@ -301,7 +378,7 @@ export default function MyStudentsPage() {
                                             No {activeTab} doubts
                                         </h3>
                                         <p className="text-slate-600">
-                                            {activeTab === "pending" 
+                                            {activeTab === "pending"
                                                 ? "No pending doubts from your students yet."
                                                 : "No resolved doubts yet."}
                                         </p>
