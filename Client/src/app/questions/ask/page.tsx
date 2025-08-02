@@ -12,6 +12,7 @@ import {
     X,
     Image as ImageIcon,
 } from "lucide-react"
+import { BlockLoader } from "@/components/ui/Loader"
 import { api } from "@/lib/api"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
@@ -234,20 +235,20 @@ export default function AskQuestionPage() {
     }
 
     return (
-        <div className="min-h-screen flex flex-col bg-gray-50">
+        <div className="min-h-screen flex flex-col bg-orange-100">
             <Navbar />
             <main className="flex-grow">
                 {/* Hero Section */}
-                <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white">
+                <div className="bg-black border-b-4 border-black text-white">
                     <div className="container mx-auto px-4 py-12">
                         <div className="max-w-3xl mx-auto text-center">
-                            <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full mb-6">
-                                <HelpCircle className="h-8 w-8" />
+                            <div className="inline-flex items-center justify-center w-20 h-20 bg-cyan-300 border-3 border-black shadow-[4px_4px_0px_0px_black] mb-8">
+                                <HelpCircle className="h-10 w-10 text-black" />
                             </div>
-                            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+                            <h1 className="text-4xl md:text-5xl font-black mb-6 uppercase tracking-wide">
                                 Ask a Question
                             </h1>
-                            <p className="text-xl text-blue-100 max-w-2xl mx-auto">
+                            <p className="text-xl text-white font-bold max-w-2xl mx-auto uppercase tracking-wide">
                                 Get instant help from our community of expert
                                 tutors and fellow students
                             </p>
@@ -257,12 +258,12 @@ export default function AskQuestionPage() {
 
                 {/* Form Section */}
                 <div className="container mx-auto px-4 py-12 max-w-3xl">
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_black] overflow-hidden">
                         <div className="p-8">
-                            <div className="flex items-center gap-3 mb-6">
+                            <div className="flex items-center gap-4 mb-8">
                                 <button
                                     onClick={() => router.back()}
-                                    className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+                                    className="inline-flex items-center gap-2 bg-pink-300 hover:bg-pink-400 text-black border-3 border-black shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] transition-all font-bold px-4 py-2 uppercase tracking-wide"
                                 >
                                     <ArrowLeft className="h-4 w-4" />
                                     Back
@@ -271,26 +272,26 @@ export default function AskQuestionPage() {
 
                             <form onSubmit={handleSubmit} className="space-y-8">
                                 {/* Title */}
-                                <div className="space-y-3">
+                                <div className="space-y-4">
                                     <label
                                         htmlFor="title"
-                                        className="flex items-center gap-2 text-lg font-semibold text-gray-900"
+                                        className="flex items-center gap-3 text-lg font-black text-black uppercase tracking-wide"
                                     >
-                                        <FileText className="h-5 w-5 text-blue-600" />
+                                        <FileText className="h-6 w-6 text-black" />
                                         Question Title *
                                     </label>
                                     <input
                                         id="title"
                                         name="title"
                                         type="text"
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                        className="w-full px-4 py-4 border-3 border-black shadow-[4px_4px_0px_0px_black] focus:translate-x-[-2px] focus:translate-y-[-2px] focus:shadow-[6px_6px_0px_0px_black] transition-all font-bold text-black placeholder:text-gray-600"
                                         placeholder="What's your question? Be specific and clear."
                                         value={formData.title}
                                         onChange={handleChange}
                                         disabled={isSubmitting}
                                     />
-                                    <p className="text-sm text-gray-600 flex items-start gap-2">
-                                        <span className="text-blue-600 mt-0.5">
+                                    <p className="text-sm text-black font-bold flex items-start gap-2 uppercase tracking-wide">
+                                        <span className="text-black mt-0.5">
                                             💡
                                         </span>
                                         Keep it clear and concise, like you're
@@ -299,12 +300,12 @@ export default function AskQuestionPage() {
                                 </div>
 
                                 {/* Subject */}
-                                <div className="space-y-3">
+                                <div className="space-y-4">
                                     <label
                                         htmlFor="subject"
-                                        className="flex items-center gap-2 text-lg font-semibold text-gray-900"
+                                        className="flex items-center gap-3 text-lg font-black text-black uppercase tracking-wide"
                                     >
-                                        <BookOpen className="h-5 w-5 text-blue-600" />
+                                        <BookOpen className="h-6 w-6 text-black" />
                                         Subject *
                                     </label>
                                     <select
@@ -313,7 +314,7 @@ export default function AskQuestionPage() {
                                         value={formData.subject}
                                         onChange={handleSubjectChange}
                                         disabled={isSubmitting}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                        className="w-full px-4 py-4 border-3 border-black shadow-[4px_4px_0px_0px_black] focus:translate-x-[-2px] focus:translate-y-[-2px] focus:shadow-[6px_6px_0px_0px_black] transition-all font-bold text-black bg-white"
                                     >
                                         <option value="">
                                             Select a subject
@@ -330,26 +331,26 @@ export default function AskQuestionPage() {
                                 </div>
 
                                 {/* Description */}
-                                <div className="space-y-3">
+                                <div className="space-y-4">
                                     <label
                                         htmlFor="description"
-                                        className="flex items-center gap-2 text-lg font-semibold text-gray-900"
+                                        className="flex items-center gap-3 text-lg font-black text-black uppercase tracking-wide"
                                     >
-                                        <FileText className="h-5 w-5 text-blue-600" />
+                                        <FileText className="h-6 w-6 text-black" />
                                         Details *
                                     </label>
                                     <textarea
                                         id="description"
                                         name="description"
                                         rows={8}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                        className="w-full px-4 py-4 border-3 border-black shadow-[4px_4px_0px_0px_black] resize-none focus:translate-x-[-2px] focus:translate-y-[-2px] focus:shadow-[6px_6px_0px_0px_black] transition-all font-bold text-black placeholder:text-gray-600 bg-white"
                                         placeholder="Include all the information someone would need to answer your question. Be as detailed as possible..."
                                         value={formData.description}
                                         onChange={handleChange}
                                         disabled={isSubmitting}
                                     />
-                                    <p className="text-sm text-gray-600 flex items-start gap-2">
-                                        <span className="text-blue-600 mt-0.5">
+                                    <p className="text-sm text-black font-bold flex items-start gap-2 uppercase tracking-wide">
+                                        <span className="text-black mt-0.5">
                                             📝
                                         </span>
                                         The more details you provide, the better
@@ -358,14 +359,14 @@ export default function AskQuestionPage() {
                                 </div>
 
                                 {/* Image Upload */}
-                                <div className="space-y-3">
-                                    <label className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-                                        <ImageIcon className="h-5 w-5 text-blue-600" />
+                                <div className="space-y-4">
+                                    <label className="flex items-center gap-3 text-lg font-black text-black uppercase tracking-wide">
+                                        <ImageIcon className="h-6 w-6 text-black" />
                                         Images (Optional)
                                     </label>
 
                                     {/* Upload Area */}
-                                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+                                    <div className="border-3 border-black border-dashed bg-green-100 p-6 text-center hover:bg-green-200 transition-colors shadow-[4px_4px_0px_0px_black]">
                                         <input
                                             type="file"
                                             id="image-upload"
@@ -380,15 +381,15 @@ export default function AskQuestionPage() {
                                         />
                                         <label
                                             htmlFor="image-upload"
-                                            className="cursor-pointer flex flex-col items-center gap-2"
+                                            className="cursor-pointer flex flex-col items-center gap-3"
                                         >
-                                            <Upload className="h-8 w-8 text-gray-400" />
+                                            <Upload className="h-10 w-10 text-black" />
                                             <div>
-                                                <p className="text-gray-600 font-medium">
+                                                <p className="text-black font-bold uppercase tracking-wide">
                                                     Click to upload images or
                                                     drag and drop
                                                 </p>
-                                                <p className="text-sm text-gray-500">
+                                                <p className="text-sm text-black font-bold">
                                                     PNG, JPG, GIF up to 10MB
                                                     each (max 5 images)
                                                 </p>
@@ -443,10 +444,10 @@ export default function AskQuestionPage() {
                                 </div>
 
                                 {/* Buttons */}
-                                <div className="flex justify-end gap-4 pt-6 border-t border-gray-100">
+                                <div className="flex justify-end gap-4 pt-8 border-t-4 border-black">
                                     <button
                                         type="button"
-                                        className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50 font-medium transition-colors"
+                                        className="px-6 py-3 bg-gray-300 hover:bg-gray-400 text-black border-3 border-black shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] disabled:opacity-50 font-black transition-all uppercase tracking-wide"
                                         onClick={() => router.back()}
                                         disabled={isSubmitting}
                                     >
@@ -454,12 +455,15 @@ export default function AskQuestionPage() {
                                     </button>
                                     <button
                                         type="submit"
-                                        className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center font-medium transition-colors shadow-sm"
+                                        className="px-8 py-3 bg-cyan-300 hover:bg-cyan-400 text-black border-3 border-black shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] disabled:opacity-50 flex items-center font-black transition-all uppercase tracking-wide"
                                         disabled={isSubmitting}
                                     >
                                         {isSubmitting ? (
                                             <>
-                                                <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                                                <BlockLoader
+                                                    size="sm"
+                                                    className="mr-2"
+                                                />
                                                 Posting Question...
                                             </>
                                         ) : (

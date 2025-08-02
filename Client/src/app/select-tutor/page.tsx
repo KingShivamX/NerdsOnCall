@@ -341,53 +341,50 @@ export default function SelectTutorPage() {
                             {filteredTutors.map((tutor) => (
                                 <Card
                                     key={tutor.id}
-                                    className="bg-white shadow-lg border-0 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                                    className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_black] overflow-hidden hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[10px_10px_0px_0px_black] transition-all duration-300"
                                 >
-                                    <CardHeader className="pb-4">
+                                    <CardHeader className="pb-4 bg-yellow-100 border-b-4 border-black">
                                         <div className="flex items-center space-x-4">
                                             <div className="relative">
-                                                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center text-white text-xl font-bold">
+                                                <div className="w-16 h-16 bg-cyan-300 border-3 border-black shadow-[4px_4px_0px_0px_black] flex items-center justify-center text-black text-xl font-black">
                                                     {tutor.firstName[0]}
                                                     {tutor.lastName[0]}
                                                 </div>
                                                 {tutor.isOnline && (
-                                                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-2 border-white rounded-full"></div>
+                                                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-400 border-2 border-black"></div>
                                                 )}
                                             </div>
                                             <div className="flex-1">
-                                                <h3 className="font-bold text-slate-800 text-lg">
+                                                <h3 className="font-black text-black text-lg uppercase tracking-wide">
                                                     {tutor.firstName}{" "}
                                                     {tutor.lastName}
                                                 </h3>
-                                                <div className="flex items-center space-x-1 mt-1">
-                                                    <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                                                    <span className="text-sm font-medium text-slate-600">
+                                                <div className="flex items-center space-x-2 mt-2">
+                                                    <Star className="h-4 w-4 text-black fill-current" />
+                                                    <span className="text-sm font-black text-black">
                                                         {tutor.rating.toFixed(
                                                             1
                                                         )}
                                                     </span>
-                                                    <span className="text-xs text-slate-500">
-                                                        (
+                                                    <span className="text-xs text-black font-bold bg-green-200 px-2 py-1 border border-black uppercase tracking-wide">
                                                         {tutor.isOnline
                                                             ? "Online"
                                                             : "Offline"}
-                                                        )
                                                     </span>
                                                 </div>
                                             </div>
                                         </div>
                                     </CardHeader>
-                                    <CardContent className="pt-0">
+                                    <CardContent className="pt-0 bg-white">
                                         {/* Subjects */}
                                         <div className="mb-4">
-                                            <div className="flex flex-wrap gap-1">
+                                            <div className="flex flex-wrap gap-2">
                                                 {tutor.subjects
                                                     .slice(0, 3)
                                                     .map((subject, index) => (
                                                         <Badge
                                                             key={index}
-                                                            variant="outline"
-                                                            className="text-xs"
+                                                            className="text-xs bg-pink-200 text-black border-2 border-black font-bold uppercase tracking-wide"
                                                         >
                                                             {subject.replace(
                                                                 /_/g,
@@ -397,7 +394,7 @@ export default function SelectTutorPage() {
                                                     ))}
                                                 {tutor.subjects.length > 3 && (
                                                     <Badge
-                                                        variant="outline"
+                                                        className="text-xs bg-orange-200 text-black border-2 border-black font-bold uppercase tracking-wide"
                                                         className="text-xs"
                                                     >
                                                         +
@@ -411,7 +408,7 @@ export default function SelectTutorPage() {
 
                                         {/* Bio */}
                                         {tutor.bio && (
-                                            <p className="text-sm text-slate-600 mb-4 line-clamp-2">
+                                            <p className="text-sm text-black font-bold mb-4 line-clamp-2">
                                                 {tutor.bio}
                                             </p>
                                         )}
@@ -426,11 +423,11 @@ export default function SelectTutorPage() {
                                                 (sessionStatus &&
                                                     !sessionStatus.canAskDoubt)
                                             }
-                                            className={`w-full font-medium py-2 rounded-xl shadow-lg transition-all ${
+                                            className={`w-full font-black py-3 border-3 border-black shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] transition-all uppercase tracking-wide ${
                                                 sessionStatus?.canAskDoubt &&
                                                 !loadingSession
-                                                    ? "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white hover:shadow-xl"
-                                                    : "bg-gray-400 text-gray-600 cursor-not-allowed"
+                                                    ? "bg-cyan-300 hover:bg-cyan-400 text-black"
+                                                    : "bg-gray-300 text-gray-600 cursor-not-allowed"
                                             }`}
                                         >
                                             <MessageCircle className="h-4 w-4 mr-2" />

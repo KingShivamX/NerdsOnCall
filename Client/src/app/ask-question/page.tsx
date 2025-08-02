@@ -27,6 +27,7 @@ import {
     Paperclip,
     Loader2,
 } from "lucide-react"
+import { BlockLoader } from "@/components/ui/Loader"
 import toast from "react-hot-toast"
 import { getUserFriendlyErrorMessage } from "@/utils/errorMessages"
 
@@ -218,18 +219,18 @@ export default function AskQuestionPage() {
                     </Button>
 
                     {/* Main Form Card */}
-                    <Card className="bg-white shadow-2xl border-0 rounded-3xl overflow-hidden">
+                    <Card className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_black] overflow-hidden">
                         {/* Header */}
-                        <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 px-8 py-6">
+                        <div className="bg-black px-8 py-6">
                             <div className="flex items-center space-x-4">
-                                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                                    <MessageCircle className="h-6 w-6 text-white" />
+                                <div className="w-12 h-12 bg-cyan-300 border-3 border-black shadow-[4px_4px_0px_0px_black] flex items-center justify-center">
+                                    <MessageCircle className="h-6 w-6 text-black" />
                                 </div>
                                 <div>
-                                    <h1 className="text-2xl font-bold text-white">
+                                    <h1 className="text-2xl font-black text-white uppercase tracking-wide">
                                         Ask Your Question
                                     </h1>
-                                    <p className="text-blue-100 text-sm">
+                                    <p className="text-white text-sm font-bold uppercase tracking-wide">
                                         Get expert help with your studies
                                     </p>
                                 </div>
@@ -238,11 +239,11 @@ export default function AskQuestionPage() {
 
                         {/* Selected Tutor Info */}
                         {tutorId && (
-                            <div className="px-8 py-4 bg-slate-50 border-b border-slate-200">
+                            <div className="px-8 py-4 bg-yellow-100 border-b-4 border-black">
                                 {loadingTutor ? (
                                     <div className="flex items-center space-x-3">
-                                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                                        <span className="text-slate-600">
+                                        <BlockLoader size="sm" />
+                                        <span className="text-black font-bold uppercase tracking-wide">
                                             Loading tutor information...
                                         </span>
                                     </div>
@@ -297,7 +298,7 @@ export default function AskQuestionPage() {
                         <form onSubmit={handleSubmit} className="p-8 space-y-6">
                             {/* Subject */}
                             <div className="relative z-50">
-                                <label className="block text-sm font-medium text-slate-700 mb-3">
+                                <label className="block text-sm font-black text-black mb-3 uppercase tracking-wide">
                                     Subject{" "}
                                     <span className="text-red-500">*</span>
                                 </label>
@@ -307,15 +308,15 @@ export default function AskQuestionPage() {
                                         handleInputChange("subject", value)
                                     }
                                 >
-                                    <SelectTrigger className="h-12 bg-slate-50 border-slate-200 rounded-xl text-slate-700 font-medium hover:border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+                                    <SelectTrigger className="h-12 bg-white border-3 border-black shadow-[4px_4px_0px_0px_black] text-black font-bold hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] transition-all">
                                         <SelectValue placeholder="Select a subject" />
                                     </SelectTrigger>
-                                    <SelectContent className="bg-white border border-slate-200 rounded-xl shadow-xl z-50 max-h-60 overflow-y-auto">
+                                    <SelectContent className="bg-white border-3 border-black shadow-[4px_4px_0px_0px_black] z-50 max-h-60 overflow-y-auto">
                                         {SUBJECTS.map((subject) => (
                                             <SelectItem
                                                 key={subject.value}
                                                 value={subject.value}
-                                                className="rounded-lg hover:bg-blue-50 focus:bg-blue-50 cursor-pointer px-3 py-2 text-slate-700"
+                                                className="hover:bg-yellow-200 focus:bg-yellow-200 cursor-pointer px-3 py-2 text-black font-bold"
                                             >
                                                 {subject.label}
                                             </SelectItem>
@@ -326,7 +327,7 @@ export default function AskQuestionPage() {
 
                             {/* Title */}
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-3">
+                                <label className="block text-sm font-black text-black mb-3 uppercase tracking-wide">
                                     Title{" "}
                                     <span className="text-red-500">*</span>
                                 </label>
@@ -339,11 +340,11 @@ export default function AskQuestionPage() {
                                             e.target.value
                                         )
                                     }
-                                    className="h-12 bg-slate-50 border-slate-200 rounded-xl text-slate-700 placeholder:text-slate-400"
+                                    className="h-12 bg-white border-3 border-black shadow-[4px_4px_0px_0px_black] text-black placeholder:text-gray-600 font-bold focus:translate-x-[-2px] focus:translate-y-[-2px] focus:shadow-[6px_6px_0px_0px_black] transition-all"
                                     maxLength={200}
                                 />
                                 <div className="flex justify-between items-center mt-2">
-                                    <p className="text-xs text-slate-500">
+                                    <p className="text-xs text-black font-bold">
                                         {formData.title.length}/200 characters
                                     </p>
                                     {formData.title.length > 0 && (
@@ -513,10 +514,9 @@ export default function AskQuestionPage() {
                             <div className="flex justify-end space-x-4 pt-6">
                                 <Button
                                     type="button"
-                                    variant="outline"
                                     onClick={() => router.back()}
                                     disabled={isSubmitting}
-                                    className="px-6 py-2 rounded-xl border-slate-300 text-slate-600 hover:bg-slate-50"
+                                    className="px-6 py-3 bg-gray-300 hover:bg-gray-400 text-black border-3 border-black shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] font-black uppercase tracking-wide transition-all"
                                 >
                                     Cancel
                                 </Button>
@@ -528,11 +528,14 @@ export default function AskQuestionPage() {
                                         !formData.description.trim() ||
                                         !formData.subject
                                     }
-                                    className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-2 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all"
+                                    className="bg-cyan-300 hover:bg-cyan-400 text-black px-8 py-3 border-3 border-black shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] font-black uppercase tracking-wide transition-all disabled:opacity-50"
                                 >
                                     {isSubmitting ? (
                                         <>
-                                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                            <BlockLoader
+                                                size="sm"
+                                                className="mr-2"
+                                            />
                                             Submitting...
                                         </>
                                     ) : (

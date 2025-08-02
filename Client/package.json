@@ -9,6 +9,7 @@
         "lint": "next lint"
     },
     "dependencies": {
+        "@excalidraw/excalidraw": "^0.18.0",
         "@radix-ui/react-accordion": "^1.2.11",
         "@radix-ui/react-alert-dialog": "^1.1.14",
         "@radix-ui/react-avatar": "^1.1.10",
@@ -40,15 +41,18 @@
         "openai": "^5.11.0",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
+        "react-grid-layout": "^1.5.2",
         "react-hot-toast": "^2.5.2",
         "react-markdown": "^10.1.0",
+        "react-resizable-panels": "^3.0.4",
         "rehype-katex": "^7.0.1",
         "remark-math": "^6.0.0",
         "simple-peer": "^9.11.1",
         "socket.io-client": "^4.7.4",
         "sonner": "^2.0.5",
         "tailwind-merge": "^2.6.0",
-        "textarea": "^0.3.0"
+        "textarea": "^0.3.0",
+        "yjs": "^13.6.27"
     },
     "devDependencies": {
         "@tailwindcss/postcss": "^4.0.0-alpha.26",

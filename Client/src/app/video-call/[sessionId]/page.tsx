@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { useAuth } from "@/context/AuthContext"
 import { Button } from "@/components/ui/Button"
@@ -15,10 +15,11 @@ import {
     PhoneOff,
     MessageSquare,
     PenTool,
-    Maximize2,
-    Minimize2,
+    Users,
 } from "lucide-react"
-import { Canvas } from "@/components/VideoCall/Canvas"
+import { Responsive, WidthProvider } from "react-grid-layout"
+import { Excalidraw } from "@excalidraw/excalidraw"
+import * as Y from "yjs"
 import { ChatPanel } from "@/components/VideoCall/ChatPanel"
 import { IncomingCallNotification } from "@/components/VideoCall/IncomingCallNotification"
 import toast from "react-hot-toast"
@@ -27,6 +28,12 @@ import {
     getUserFriendlyErrorMessage,
     getWebSocketErrorMessage,
 } from "@/utils/errorMessages"
+
+// Import CSS for react-grid-layout
+import "react-grid-layout/css/styles.css"
+import "react-resizable/css/styles.css"
+
+const ResponsiveGridLayout = WidthProvider(Responsive)
 
 interface VideoCallPageProps {}
 
@@ -44,20 +51,34 @@ export default function VideoCallPage() {
     const [isScreenSharing, setIsScreenSharing] = useState(false)
     const [showWhiteboard, setShowWhiteboard] = useState(false)
     const [showChat, setShowChat] = useState(false)
-    const [isFullscreen, setIsFullscreen] = useState(false)
-    const [whiteboardSocket, setWhiteboardSocket] = useState<WebSocket | null>(
-        null
-    )
+    const [otherUserName, setOtherUserName] = useState("")
 
-    // Incoming call states
-    const [incomingCall, setIncomingCall] = useState<{
-        callerId: number | string
-        callerName: string
-        sessionId: string
-    } | null>(null)
-    const [showIncomingCallModal, setShowIncomingCallModal] = useState(false)
+    // Grid layout states
+    const [layouts, setLayouts] = useState({
+        lg: [
+            { i: "remote-video", x: 0, y: 0, w: 8, h: 8, minW: 4, minH: 4 },
+            { i: "local-video", x: 8, y: 0, w: 4, h: 4, minW: 2, minH: 2 },
+            { i: "chat", x: 8, y: 4, w: 4, h: 8, minW: 3, minH: 4 },
+            { i: "whiteboard", x: 0, y: 8, w: 8, h: 6, minW: 4, minH: 4 },
+            { i: "controls", x: 0, y: 14, w: 12, h: 2, minW: 8, minH: 2 },
+        ],
+        md: [
+            { i: "remote-video", x: 0, y: 0, w: 6, h: 6, minW: 4, minH: 4 },
+            { i: "local-video", x: 6, y: 0, w: 4, h: 3, minW: 2, minH: 2 },
+            { i: "chat", x: 6, y: 3, w: 4, h: 7, minW: 3, minH: 4 },
+            { i: "whiteboard", x: 0, y: 6, w: 6, h: 6, minW: 4, minH: 4 },
+            { i: "controls", x: 0, y: 12, w: 10, h: 2, minW: 6, minH: 2 },
+        ],
+        sm: [
+            { i: "remote-video", x: 0, y: 0, w: 6, h: 5, minW: 3, minH: 3 },
+            { i: "local-video", x: 0, y: 5, w: 3, h: 3, minW: 2, minH: 2 },
+            { i: "chat", x: 3, y: 5, w: 3, h: 5, minW: 2, minH: 4 },
+            { i: "whiteboard", x: 0, y: 8, w: 6, h: 5, minW: 3, minH: 4 },
+            { i: "controls", x: 0, y: 13, w: 6, h: 2, minW: 4, minH: 2 },
+        ],
+    })
 
-    // Refs
+    // Video refs and WebRTC states
     const localVideoRef = useRef<HTMLVideoElement>(null)
     const remoteVideoRef = useRef<HTMLVideoElement>(null)
     const socketRef = useRef<WebSocket | null>(null)
@@ -68,100 +89,66 @@ export default function VideoCallPage() {
     const isInCallRef = useRef<boolean>(false)
     const whiteboardSocketRef = useRef<WebSocket | null>(null)
 
-    // Get participant info from URL params
-    const [otherUserName, setOtherUserName] = useState("User")
+    // Additional states for session management
     const [otherUserId, setOtherUserId] = useState(0)
     const [userRole, setUserRole] = useState<string>("")
     const [waitingForTutor, setWaitingForTutor] = useState(false)
     const [tutorReady, setTutorReady] = useState(false)
 
+    // Yjs document for collaborative whiteboard
+    const yjsDocRef = useRef<Y.Doc | null>(null)
+    const [excalidrawAPI, setExcalidrawAPI] = useState<any>(null)
+
+    // Incoming call state
+    const [incomingCall, setIncomingCall] = useState<any>(null)
+    const [showIncomingCallModal, setShowIncomingCallModal] = useState(false)
+
+    // Initialize video call and get participant info
     useEffect(() => {
         // Get participant info from URL search params
         const urlParams = new URLSearchParams(window.location.search)
+        const tutorIdParam = urlParams.get("tutorId")
+        const tutorNameParam = urlParams.get("tutorName")
         const role = urlParams.get("role")
         const waitingParam = urlParams.get("waitingForTutor")
-        const notifyStudentParam = urlParams.get("notifyStudent")
 
         console.log("🔍 Video call page initialization:")
         console.log(
             "- Auth user:",
             user?.firstName,
             user?.lastName,
+            "ID:",
+            user?.id,
             "Role:",
             user?.role
         )
-        console.log("- URL role param:", role)
-        console.log("- Session ID: [HIDDEN]")
+        console.log(
+            "- URL params - tutorId:",
+            tutorIdParam,
+            "tutorName:",
+            tutorNameParam,
+            "role:",
+            role
+        )
 
-        // Extract tutor and student IDs from sessionId if it follows the pattern
-        let extractedTutorId: number | null = null
-        let extractedStudentId: number | null = null
-
-        const sessionIdMatch = sessionId.match(/tutor_(\d+)_student_(\d+)_\d+/)
-        if (sessionIdMatch) {
-            extractedTutorId = parseInt(sessionIdMatch[1])
-            extractedStudentId = parseInt(sessionIdMatch[2])
-            console.log(
-                "📋 Extracted from sessionId - Tutor ID:",
-                extractedTutorId,
-                "Student ID:",
-                extractedStudentId
-            )
+        if (tutorIdParam) {
+            setOtherUserId(parseInt(tutorIdParam))
         }
 
-        if (waitingParam === "true") {
-            setWaitingForTutor(true)
-        }
-
-        if (role === "tutor" || user?.role === "TUTOR") {
-            // Tutor view - get student info
-            const studentIdParam = urlParams.get("studentId")
-            const studentNameParam = urlParams.get("studentName")
-            const doubtIdParam = urlParams.get("doubtId")
-
-            // Use URL param if available, otherwise use extracted ID
-            const studentIdToUse = studentIdParam
-                ? parseInt(studentIdParam)
-                : extractedStudentId
-            if (studentIdToUse) {
-                setOtherUserId(studentIdToUse)
-                console.log(
-                    "👨‍🏫 Tutor - other user (student) ID:",
-                    studentIdToUse
-                )
-            }
-
-            if (studentNameParam) {
-                setOtherUserName(decodeURIComponent(studentNameParam))
-            } else {
-                setOtherUserName("Student") // Default name
+        if (user?.role === "TUTOR") {
+            // Extract student ID from session ID format: tutor_X_student_Y_timestamp
+            const sessionParts = sessionId.split("_")
+            if (sessionParts.length >= 4 && sessionParts[2] === "student") {
+                const studentId = parseInt(sessionParts[3])
+                setOtherUserId(studentId)
+                setOtherUserName("Student")
             }
             setUserRole("tutor")
-            setTutorReady(true) // Tutor is ready when they join
-
-            // If tutor should notify student, we'll do it after WebSocket connects
-            if (notifyStudentParam === "true" && doubtIdParam) {
-                // Store the doubt ID for later notification
-                sessionStorage.setItem("notifyStudentDoubtId", doubtIdParam)
-            }
         } else {
-            // Student view - get tutor info
-            const tutorIdParam = urlParams.get("tutorId")
-            const tutorNameParam = urlParams.get("tutorName")
-
-            // Use URL param if available, otherwise use extracted ID
-            const tutorIdToUse = tutorIdParam
-                ? parseInt(tutorIdParam)
-                : extractedTutorId
-            if (tutorIdToUse) {
-                setOtherUserId(tutorIdToUse)
-                console.log("👨‍🎓 Student - other user (tutor) ID:", tutorIdToUse)
-            }
-
             if (tutorNameParam) {
                 setOtherUserName(decodeURIComponent(tutorNameParam))
             } else {
-                setOtherUserName("Tutor") // Default name
+                setOtherUserName("Tutor")
             }
             setUserRole("student")
         }
@@ -169,164 +156,27 @@ export default function VideoCallPage() {
         // Initialize video call
         initializeVideoCall()
 
-        // Initialize whiteboard socket - Use the correct endpoint for canvas updates
-        const initializeWhiteboardSocket = () => {
-            try {
-                const serverUrl =
-                    process.env.NEXT_PUBLIC_API_URL?.replace("http", "ws") ||
-                    "ws://localhost:8080"
-                const wsUrl = `${serverUrl}/ws/session?userId=${user?.id}&sessionId=${sessionId}`
-
-                console.log("🎨 Connecting to whiteboard socket:", wsUrl)
-                const newSocket = new WebSocket(wsUrl)
-                whiteboardSocketRef.current = newSocket
-
-                newSocket.onopen = () => {
-                    console.log("🎨 Whiteboard socket connected to /ws/session")
-                    setWhiteboardSocket(newSocket) // Update state when connected
-
-                    // Wait a moment to ensure connection is fully established
-                    setTimeout(() => {
-                        if (
-                            newSocket.readyState === WebSocket.OPEN &&
-                            user?.id &&
-                            sessionId
-                        ) {
-                            const subscribeMessage = {
-                                type: "subscribe",
-                                userId: user.id,
-                                sessionId: sessionId,
-                            }
-                            console.log(
-                                "📤 Sending subscribe message:",
-                                subscribeMessage
-                            )
-                            try {
-                                newSocket.send(JSON.stringify(subscribeMessage))
-                                console.log(
-                                    "✅ Subscribe message sent successfully"
-                                )
-                            } catch (error) {
-                                console.error(
-                                    "❌ Error sending subscribe message:",
-                                    error
-                                )
-                            }
-                        } else {
-                            console.warn(
-                                "⚠️ WebSocket not ready for subscription"
-                            )
-                        }
-                    }, 100) // Wait 100ms for connection to stabilize
-                }
-
-                newSocket.onmessage = (event) => {
-                    try {
-                        const message = JSON.parse(event.data)
-                        console.log(
-                            "📨 Whiteboard message received:",
-                            message.type,
-                            message
-                        )
-
-                        // Forward ALL messages to Canvas component for processing
-                        window.dispatchEvent(
-                            new CustomEvent("whiteboardUpdate", {
-                                detail: message,
-                            })
-                        )
-
-                        // Handle video call page specific messages
-                        if (message.type === "whiteboard_enabled") {
-                            // Auto-enable whiteboard when other user enables it
-                            if (!showWhiteboard) {
-                                setShowWhiteboard(true)
-                                toast.success(
-                                    `${
-                                        message.userName || "Other user"
-                                    } enabled the whiteboard`
-                                )
-                            }
-                        } else if (message.type === "subscribed") {
-                            console.log(
-                                "✅ Successfully subscribed to whiteboard session"
-                            )
-                        } else if (message.type === "connection_established") {
-                            console.log("✅ Whiteboard connection established")
-                        }
-                    } catch (error) {
-                        console.error(
-                            "Error parsing whiteboard message:",
-                            error
-                        )
-                    }
-                }
-
-                newSocket.onerror = (err) => {
-                    console.error("❌ Whiteboard socket error:", err)
-                    setWhiteboardSocket(null)
-                }
-
-                newSocket.onclose = (event) => {
-                    console.log(
-                        "🔌 Whiteboard socket closed:",
-                        event.code,
-                        event.reason
-                    )
-                    setWhiteboardSocket(null)
-                    whiteboardSocketRef.current = null
-
-                    // Attempt to reconnect after a delay if not intentionally closed
-                    if (event.code !== 1000 && user?.id && sessionId) {
-                        console.log(
-                            "🔄 Attempting to reconnect whiteboard socket in 3 seconds..."
-                        )
-                        setTimeout(() => {
-                            if (
-                                !whiteboardSocketRef.current ||
-                                whiteboardSocketRef.current.readyState ===
-                                    WebSocket.CLOSED
-                            ) {
-                                initializeWhiteboardSocket()
-                            }
-                        }, 3000)
-                    }
-                }
-            } catch (error) {
-                console.error("❌ Error initializing whiteboard socket:", error)
-            }
+        return () => {
+            cleanupConnection()
         }
+    }, [sessionId, user])
 
-        // Initialize the whiteboard socket
-        initializeWhiteboardSocket()
+    // Initialize Yjs document for collaborative whiteboard
+    useEffect(() => {
+        if (!yjsDocRef.current) {
+            yjsDocRef.current = new Y.Doc()
+            console.log(
+                "🎨 Yjs document initialized for collaborative whiteboard"
+            )
+        }
 
         return () => {
-            console.log("Component unmounting, cleaning up...")
-            cleanupConnection()
-            // Unsubscribe from whiteboard session before closing socket
-            if (
-                whiteboardSocketRef.current &&
-                whiteboardSocketRef.current.readyState === WebSocket.OPEN &&
-                user?.id &&
-                sessionId
-            ) {
-                whiteboardSocketRef.current.send(
-                    JSON.stringify({
-                        type: "unsubscribe",
-                        userId: user.id,
-                        sessionId: sessionId,
-                    })
-                )
+            if (yjsDocRef.current) {
+                yjsDocRef.current.destroy()
+                yjsDocRef.current = null
             }
-            if (
-                whiteboardSocketRef.current &&
-                whiteboardSocketRef.current.readyState === WebSocket.OPEN
-            ) {
-                whiteboardSocketRef.current.close()
-            }
-            whiteboardSocketRef.current = null
         }
-    }, [sessionId])
+    }, [])
 
     // Add cleanup on page unload
     useEffect(() => {
@@ -340,16 +190,16 @@ export default function VideoCallPage() {
         }
     }, [])
 
-    // Removed auto-connect - users now manually start calls
-
     const initializeVideoCall = async () => {
         try {
             setStatus("Setting up video call...")
+            setCallStatus("Idle") // Ensure call status is Idle during initialization
             await setupLocalStream()
             await connectToSignalingServer()
         } catch (error) {
             console.error("Error initializing video call:", error)
             setStatus("Failed to initialize video call")
+            setCallStatus("Idle")
         }
     }
 
@@ -357,8 +207,17 @@ export default function VideoCallPage() {
         try {
             setStatus("Accessing camera and microphone...")
             const stream = await navigator.mediaDevices.getUserMedia({
-                video: true,
-                audio: true,
+                video: {
+                    width: { ideal: 1280, max: 1920 },
+                    height: { ideal: 720, max: 1080 },
+                    frameRate: { ideal: 30, max: 60 },
+                    facingMode: "user",
+                },
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true,
+                },
             })
 
             localStreamRef.current = stream
@@ -368,6 +227,10 @@ export default function VideoCallPage() {
             }
 
             setStatus("Ready to call")
+            // Ensure call status remains Idle after setup
+            if (callStatus !== "Calling..." && callStatus !== "Connected") {
+                setCallStatus("Idle")
+            }
         } catch (error: any) {
             console.error("Error accessing media devices:", error)
             setStatus(`Media error: ${error.message}`)
@@ -383,97 +246,9 @@ export default function VideoCallPage() {
 
             socketRef.current = new WebSocket(wsUrl)
 
-            socketRef.current.onopen = async () => {
+            socketRef.current.onopen = () => {
                 setStatus("Connected")
                 isConnectedRef.current = true
-
-                // Create session in backend - both students and tutors can now create sessions
-                try {
-                    console.log("🔄 Creating session: [HIDDEN]")
-                    console.log(
-                        "Auth user role:",
-                        user?.role,
-                        "URL role:",
-                        userRole,
-                        "User ID:",
-                        user?.id,
-                        "Other user ID:",
-                        otherUserId
-                    )
-
-                    let parameterToPass
-                    let parameterDescription
-
-                    if (user?.role === "STUDENT") {
-                        // Student creating session - pass tutor ID
-                        parameterToPass = otherUserId
-                        parameterDescription = "tutor ID"
-                        console.log(
-                            "👨‍🎓 Student creating session with tutor ID:",
-                            parameterToPass
-                        )
-                    } else if (user?.role === "TUTOR") {
-                        // Tutor creating session - pass student ID
-                        parameterToPass = otherUserId
-                        parameterDescription = "student ID"
-                        console.log(
-                            "👨‍🏫 Tutor creating session with student ID:",
-                            parameterToPass
-                        )
-                    } else {
-                        console.warn("⚠️ Unknown user role:", user?.role)
-                        return
-                    }
-
-                    if (!parameterToPass || parameterToPass === 0) {
-                        console.warn(
-                            "⚠️ No valid other user ID found, skipping session creation"
-                        )
-                        console.warn(
-                            "Debug info - sessionId: [HIDDEN]",
-                            "userRole:",
-                            user?.role,
-                            "otherUserId:",
-                            otherUserId
-                        )
-                        return
-                    }
-
-                    console.log(
-                        `📤 API call: POST /api/sessions/call?tutorId=${parameterToPass}&sessionId=[HIDDEN]`
-                    )
-                    console.log(
-                        `📝 Parameter explanation: tutorId=${parameterToPass} (${parameterDescription})`
-                    )
-
-                    const response = await api.post(
-                        `/api/sessions/call?tutorId=${parameterToPass}&sessionId=${sessionId}`
-                    )
-                    console.log(
-                        "✅ Session created successfully:",
-                        response.data
-                    )
-                } catch (error: any) {
-                    console.error("❌ Error creating session:", error)
-                    console.error("Error status:", error.response?.status)
-                    console.error("Error details:", error.response?.data)
-                    console.error("Full error response:", error.response)
-
-                    // Show user-friendly error message
-                    if (error.response?.status === 400) {
-                        console.error(
-                            `Session creation failed: ${
-                                error.response?.data || "Bad request"
-                            }`
-                        )
-                        // Don't show toast to reduce notification spam
-                    } else {
-                        console.log(
-                            "Session creation failed, continuing anyway"
-                        )
-                        // Don't show toast to reduce notification spam
-                    }
-                }
 
                 // Wait a bit to ensure WebSocket is fully ready
                 setTimeout(() => {
@@ -492,80 +267,13 @@ export default function VideoCallPage() {
                                 timestamp: Date.now(),
                             })
                         )
-
-                        // If tutor is joining, notify the student that tutor is ready
-                        if (userRole === "tutor") {
-                            // Wait a bit more for the join to be processed
-                            setTimeout(() => {
-                                if (
-                                    socketRef.current &&
-                                    socketRef.current.readyState ===
-                                        WebSocket.OPEN
-                                ) {
-                                    socketRef.current.send(
-                                        JSON.stringify({
-                                            type: "tutor_joined",
-                                            to: otherUserId.toString(),
-                                            from: user?.id.toString(),
-                                            sessionId: sessionId,
-                                            tutorName: `${user?.firstName} ${user?.lastName}`,
-                                            timestamp: Date.now(),
-                                        })
-                                    )
-
-                                    // Check if we need to notify student that tutor is waiting for call
-                                    const notifyDoubtId =
-                                        sessionStorage.getItem(
-                                            "notifyStudentDoubtId"
-                                        )
-                                    if (notifyDoubtId) {
-                                        console.log(
-                                            "Sending tutor_waiting_for_call notification to student"
-                                        )
-                                        socketRef.current.send(
-                                            JSON.stringify({
-                                                type: "tutor_waiting_for_call",
-                                                to: otherUserId.toString(),
-                                                from: user?.id.toString(),
-                                                doubtId:
-                                                    parseInt(notifyDoubtId),
-                                                sessionId: sessionId,
-                                                tutorName: `${user?.firstName} ${user?.lastName}`,
-                                                timestamp: Date.now(),
-                                            })
-                                        )
-                                        // Clear the flag
-                                        sessionStorage.removeItem(
-                                            "notifyStudentDoubtId"
-                                        )
-                                        toast.success(
-                                            "Student has been notified! Waiting for them to join..."
-                                        )
-                                    }
-                                }
-                            }, 1000)
-                        }
                     }
-                }, 100)
+                }, 500)
             }
 
             socketRef.current.onmessage = handleWebSocketMessage
             socketRef.current.onclose = () => {
                 setStatus("Disconnected")
-                // Notify other user that this user is leaving
-                if (
-                    isInCallRef.current &&
-                    socketRef.current &&
-                    socketRef.current.readyState === WebSocket.OPEN
-                ) {
-                    socketRef.current.send(
-                        JSON.stringify({
-                            type: "user-disconnect",
-                            userId: user?.id.toString(),
-                            sessionId: sessionId,
-                        })
-                    )
-                }
                 cleanupConnection()
             }
             socketRef.current.onerror = (error) => {
@@ -577,12 +285,46 @@ export default function VideoCallPage() {
         }
     }
 
+    const cleanupConnection = () => {
+        if (localStreamRef.current) {
+            localStreamRef.current.getTracks().forEach((track) => track.stop())
+        }
+        if (screenStreamRef.current) {
+            screenStreamRef.current.getTracks().forEach((track) => track.stop())
+        }
+        if (peerConnectionRef.current) {
+            peerConnectionRef.current.close()
+        }
+        if (socketRef.current) {
+            socketRef.current.close()
+        }
+        if (whiteboardSocketRef.current) {
+            whiteboardSocketRef.current.close()
+        }
+    }
+
     const handleWebSocketMessage = async (event: MessageEvent) => {
         try {
             const message = JSON.parse(event.data)
-            // Process received message
+            console.log("📨 Received WebSocket message:", message.type)
 
             switch (message.type) {
+                case "incoming_call":
+                    setIncomingCall({
+                        callerId: message.from,
+                        callerName: message.callerName,
+                        sessionId: message.sessionId,
+                    })
+                    setShowIncomingCallModal(true)
+                    break
+                case "call_accepted":
+                    setCallStatus("Calling...")
+                    toast.success("Call accepted!")
+                    break
+                case "call_declined":
+                    setCallStatus("Idle")
+                    toast.error("Call declined")
+                    break
                 case "offer":
                     await handleOffer(message)
                     break
@@ -592,183 +334,15 @@ export default function VideoCallPage() {
                 case "ice-candidate":
                     await handleIceCandidate(message)
                     break
-                case "user-joined":
-                    // User joined
-                    break
-                case "tutor_joined":
-                    if (userRole === "student") {
-                        // Tutor joined
-                        setTutorReady(true)
-                        setWaitingForTutor(false)
-                        toast.success(
-                            `${message.tutorName} has joined! You can now start the call.`
-                        )
-                    }
-                    break
-                case "user-left":
-                    console.log(`User ${message.userId} left`)
-                    if (isInCallRef.current) {
-                        endCall()
-                    }
-                    break
-                case "tutor_busy":
-                    if (message.to === user?.id.toString()) {
-                        console.log("Tutor is busy:", message.tutorName)
-                        toast.error(
-                            `${
-                                message.tutorName || "Tutor"
-                            } is currently in another call. Please try again later.`,
-                            { duration: 5000 }
-                        )
-                        setCallStatus("Tutor is busy")
-                        // Reset call state
-                        if (peerConnectionRef.current) {
-                            peerConnectionRef.current.close()
-                            peerConnectionRef.current = null
-                        }
-                        isInCallRef.current = false
-                    }
-                    break
                 case "user-disconnect":
-                    // User disconnected
-                    if (isInCallRef.current) {
-                        // Don't show toast for disconnections
-
-                        // End the session in the backend when other user disconnects
-                        try {
-                            const response = await api.put(
-                                `/api/sessions/call/${sessionId}/end`
-                            )
-                            console.log(
-                                "✅ Session ended due to disconnect:",
-                                response.data
-                            )
-
-                            if (
-                                response.data.durationMinutes &&
-                                response.data.tutorEarnings
-                            ) {
-                                const duration = response.data.durationMinutes
-                                const earnings = response.data.tutorEarnings
-                                const cost = response.data.cost
-
-                                toast.success(
-                                    `Session completed! Duration: ${duration} min, ${
-                                        user?.role === "TUTOR"
-                                            ? `Earnings: ₹${Math.round(
-                                                  earnings * 83
-                                              )}`
-                                            : `Cost: ₹${Math.round(cost * 83)}`
-                                    }`,
-                                    { duration: 5000 }
-                                )
-                            }
-                        } catch (error) {
-                            // Silently handle session ending errors
-                        }
-
-                        // Clean up the call state
-                        setCallStatus("Disconnected")
-                        if (peerConnectionRef.current) {
-                            peerConnectionRef.current.close()
-                            peerConnectionRef.current = null
-                        }
-                        isInCallRef.current = false
-
-                        // Reload page after disconnect for students to clear WebSocket errors
-                        if (user?.role === "STUDENT") {
-                            toast.loading("Returning to browse tutors...")
-                            setTimeout(() => {
-                                window.location.href = "/browse-tutors"
-                            }, 2000)
-                        } else {
-                            // For tutors, just go back and reload
-                            setTimeout(() => {
-                                router.back()
-                                setTimeout(() => window.location.reload(), 500)
-                            }, 1500)
-                        }
-                    }
-                    break
-                case "incoming_call":
-                    // Handle incoming call from either party
-                    if (message.to === user?.id.toString()) {
-                        console.log(
-                            "Received incoming call from:",
-                            message.callerName
-                        )
-
-                        // Show incoming call notification popup
-                        setIncomingCall({
-                            callerId: message.from,
-                            callerName: message.callerName,
-                            sessionId: message.sessionId,
-                        })
-                        setShowIncomingCallModal(true)
-
-                        toast.success(
-                            `📞 Incoming call from ${message.callerName}`
-                        )
-                    }
-                    break
-                case "call_accepted":
-                    if (message.to === user?.id.toString()) {
-                        console.log("Call accepted by:", message.accepterName)
-                        toast.success(
-                            `${message.accepterName} accepted your call!`
-                        )
-                        setCallStatus("Call accepted, connecting...")
-                    }
-                    break
-                case "call_declined":
-                    if (message.to === user?.id.toString()) {
-                        console.log("Call declined by:", message.declinerName)
-                        toast.error(
-                            `${message.declinerName} declined your call`
-                        )
-                        setCallStatus("Call declined")
-                        // Reset call state
-                        if (peerConnectionRef.current) {
-                            peerConnectionRef.current.close()
-                            peerConnectionRef.current = null
-                        }
-                        isInCallRef.current = false
-                    }
-                    break
-                case "error":
-                    console.error("WebSocket error:", message.message)
-                    if (
-                        message.message &&
-                        message.message.includes("Unknown message type")
-                    ) {
-                        console.warn(
-                            "Server doesn't recognize this message type:",
-                            message
-                        )
-                    } else {
-                        const userFriendlyMessage = getWebSocketErrorMessage(
-                            message.message || "Unknown error"
-                        )
-                        toast.error(userFriendlyMessage)
-                    }
-                    break
-                case "canvas_update":
-                case "subscribe":
-                case "unsubscribe":
-                    // These are handled by the Canvas component, ignore here
+                    setCallStatus("Idle")
+                    toast("Other user disconnected")
                     break
                 default:
-                    // Log unknown message types but don't show error to user
-                    console.warn(
-                        "Unknown WebSocket message type:",
-                        message.type,
-                        message
-                    )
-                    break
+                    console.log("Unknown message type:", message.type)
             }
-        } catch (error: any) {
-            console.error("Error parsing WebSocket message:", error)
-            // Don't show toast for message parsing errors to avoid spam
+        } catch (error) {
+            console.error("Error handling WebSocket message:", error)
         }
     }
 
@@ -797,328 +371,127 @@ export default function VideoCallPage() {
         }
 
         peerConnectionRef.current.ontrack = (event) => {
-            // Received remote track
             if (remoteVideoRef.current) {
                 remoteVideoRef.current.srcObject = event.streams[0]
             }
-            setCallStatus("Connected")
+            // Only set to Connected if we're actually in a call
+            if (isInCallRef.current) {
+                setCallStatus("Connected")
+            }
         }
 
         peerConnectionRef.current.onconnectionstatechange = () => {
-            if (peerConnectionRef.current) {
-                // Only end call on failed state after multiple attempts
-                if (peerConnectionRef.current.connectionState === "failed") {
-                    // Don't show toast for connection failures to avoid spam
-                    // User can see connection status in the UI
-                }
-
-                // Update call status based on connection state
-                if (peerConnectionRef.current.connectionState === "connected") {
-                    setCallStatus("Connected")
-                } else if (
-                    peerConnectionRef.current.connectionState === "connecting"
-                ) {
-                    setCallStatus("Connecting...")
-                } else if (
-                    peerConnectionRef.current.connectionState === "disconnected"
-                ) {
-                    setCallStatus("Reconnecting...")
-                }
-            }
-        }
-    }
-
-    const startCall = async () => {
-        if (!isConnectedRef.current) return
-
-        try {
-            setCallStatus("Calling...")
-
-            // Start the session in the backend to track start time
-            try {
-                const response = await api.put(
-                    `/api/sessions/call/${sessionId}/start`
-                )
-            } catch (error: any) {
-                // If session doesn't exist, try to create it first
-                if (error.response?.status === 400) {
-                    try {
-                        let parameterToPass
-                        if (user?.role === "STUDENT") {
-                            parameterToPass = otherUserId // Student passes tutor ID
-                        } else if (user?.role === "TUTOR") {
-                            parameterToPass = otherUserId // Tutor passes student ID
-                        } else {
-                            throw new Error("Unknown user role: " + user?.role)
-                        }
-
-                        const createResponse = await api.post(
-                            `/api/sessions/call?tutorId=${parameterToPass}&sessionId=${sessionId}`
-                        )
-
-                        // Now try to start it again
-                        const retryResponse = await api.put(
-                            `/api/sessions/call/${sessionId}/start`
-                        )
-                    } catch (retryError: any) {
-                        // Silently handle errors - session tracking is optional
-                    }
-                }
-            }
-
-            createPeerConnection()
-
-            if (localStreamRef.current && peerConnectionRef.current) {
-                localStreamRef.current.getTracks().forEach((track) => {
-                    if (peerConnectionRef.current && localStreamRef.current) {
-                        peerConnectionRef.current.addTrack(
-                            track,
-                            localStreamRef.current
-                        )
-                    }
-                })
-            }
-
-            // Send incoming call notification to other user with retry mechanism
-            if (socketRef.current) {
-                let attempts = 0
-                const maxAttempts = 3
-
-                const sendCallMessage = () => {
-                    if (!socketRef.current || attempts >= maxAttempts) return
-
-                    attempts++
-
-                    socketRef.current.send(
-                        JSON.stringify({
-                            type: "incoming_call",
-                            to: otherUserId.toString(),
-                            from: user?.id.toString(),
-                            callerName: `${user?.firstName} ${user?.lastName}`,
-                            callerId: user?.id,
-                            sessionId: sessionId,
-                            timestamp: Date.now(),
-                        })
-                    )
-                }
-
-                // Send initial call
-                sendCallMessage()
-
-                // Set up retry logic for recipient offline errors
-                const handleCallResponse = (event: MessageEvent) => {
-                    try {
-                        const response = JSON.parse(event.data)
-                        if (
-                            response.type === "error" &&
-                            response.message &&
-                            response.message.includes("Recipient offline")
-                        ) {
-                            if (attempts < maxAttempts) {
-                                toast(
-                                    `Other user not ready, retrying... (${attempts}/${maxAttempts})`
-                                )
-                                setTimeout(sendCallMessage, 2000)
-                            } else {
-                                toast.error(
-                                    "Other user is not available. Please try again later."
-                                )
-                                socketRef.current?.removeEventListener(
-                                    "message",
-                                    handleCallResponse
-                                )
-                                setCallStatus("Failed to connect")
-                            }
-                        } else if (
-                            response.type === "call_accepted" ||
-                            response.type === "call_declined"
-                        ) {
-                            // Call was responded to, stop retrying
-                            socketRef.current?.removeEventListener(
-                                "message",
-                                handleCallResponse
-                            )
-                        }
-                    } catch (e) {
-                        // Ignore parsing errors for this handler
-                    }
-                }
-
-                socketRef.current.addEventListener(
-                    "message",
-                    handleCallResponse
-                )
-
-                // Clean up event listener after 30 seconds
-                setTimeout(() => {
-                    socketRef.current?.removeEventListener(
-                        "message",
-                        handleCallResponse
-                    )
-                }, 30000)
-
-                toast.success(`Calling ${otherUserName}...`)
-            }
-
-            if (peerConnectionRef.current) {
-                const offer = await peerConnectionRef.current.createOffer()
-                await peerConnectionRef.current.setLocalDescription(offer)
-
-                if (socketRef.current) {
-                    socketRef.current.send(
-                        JSON.stringify({
-                            type: "offer",
-                            to: otherUserId.toString(),
-                            from: user?.id.toString(),
-                            sessionId: sessionId,
-                            data: offer,
-                        })
-                    )
-                }
-            }
-
-            isInCallRef.current = true
-        } catch (error: any) {
-            console.error("Error starting call:", error)
-            setCallStatus(`Error: ${error.message}`)
-        }
-    }
-
-    const endCall = async () => {
-        // Send disconnect message to other user before ending call
-        if (
-            isInCallRef.current &&
-            socketRef.current &&
-            socketRef.current.readyState === WebSocket.OPEN
-        ) {
-            socketRef.current.send(
-                JSON.stringify({
-                    type: "user-disconnect",
-                    userId: user?.id.toString(),
-                    sessionId: sessionId,
-                })
+            console.log(
+                "Connection state:",
+                peerConnectionRef.current?.connectionState
             )
         }
+    }
 
-        if (isInCallRef.current) {
-            setCallStatus("Idle")
+    const handleOffer = async (message: any) => {
+        try {
+            if (!peerConnectionRef.current) {
+                createPeerConnection()
 
-            if (peerConnectionRef.current) {
-                peerConnectionRef.current.close()
-                peerConnectionRef.current = null
-            }
-
-            if (remoteVideoRef.current && remoteVideoRef.current.srcObject) {
-                const stream = remoteVideoRef.current.srcObject as MediaStream
-                stream.getTracks().forEach((track) => track.stop())
-                remoteVideoRef.current.srcObject = null
-            }
-
-            isInCallRef.current = false
-
-            // End the session in the backend to calculate duration and earnings
-            try {
-                console.log("🔚 Ending session in backend: [HIDDEN]")
-                const response = await api.put(
-                    `/api/sessions/call/${sessionId}/end`
-                )
-                console.log("✅ Session ended successfully:", response.data)
-
-                if (
-                    response.data.durationMinutes &&
-                    response.data.tutorEarnings
-                ) {
-                    const duration = response.data.durationMinutes
-                    const earnings = response.data.tutorEarnings
-                    const cost = response.data.cost
-
-                    toast.success(
-                        `Session completed! Duration: ${duration} min, ${
-                            user?.role === "TUTOR"
-                                ? `Earnings: ₹${Math.round(earnings * 83)}`
-                                : `Cost: ₹${Math.round(cost * 83)}`
-                        }`,
-                        { duration: 5000 }
-                    )
-                } else {
-                    toast.success("Session ended successfully!")
+                if (localStreamRef.current) {
+                    localStreamRef.current.getTracks().forEach((track) => {
+                        if (
+                            peerConnectionRef.current &&
+                            localStreamRef.current
+                        ) {
+                            peerConnectionRef.current.addTrack(
+                                track,
+                                localStreamRef.current
+                            )
+                        }
+                    })
                 }
-            } catch (error) {
-                console.error("❌ Error ending session:", error)
-                toast.error(
-                    "Session ended but failed to save duration. Please contact support."
+            }
+
+            await peerConnectionRef.current!.setRemoteDescription(
+                new RTCSessionDescription(message.data)
+            )
+            const answer = await peerConnectionRef.current!.createAnswer()
+            await peerConnectionRef.current!.setLocalDescription(answer)
+
+            if (socketRef.current) {
+                socketRef.current.send(
+                    JSON.stringify({
+                        type: "answer",
+                        to: message.from,
+                        from: user?.id.toString(),
+                        sessionId: sessionId,
+                        data: answer,
+                    })
                 )
             }
-        }
-
-        // Show end call message and reload page for students to clear WebSocket errors
-        if (user?.role === "STUDENT") {
-            toast.success("Call ended. Returning to browse tutors...")
-            setTimeout(() => {
-                window.location.href = "/browse-tutors"
-            }, 1500)
-        } else {
-            // For tutors, navigate back to previous page
-            router.back()
-
-            // Refresh page for tutors after call ends
-            setTimeout(() => {
-                window.location.reload()
-            }, 500)
+        } catch (error) {
+            console.error("Error handling offer:", error)
         }
     }
 
-    const cleanupConnection = () => {
-        if (isInCallRef.current) {
-            endCall()
-        }
-
-        if (localStreamRef.current) {
-            localStreamRef.current.getTracks().forEach((track) => track.stop())
-            if (localVideoRef.current) {
-                localVideoRef.current.srcObject = null
+    const handleAnswer = async (message: any) => {
+        try {
+            if (peerConnectionRef.current) {
+                await peerConnectionRef.current.setRemoteDescription(
+                    new RTCSessionDescription(message.data)
+                )
             }
-            localStreamRef.current = null
+        } catch (error) {
+            console.error("Error handling answer:", error)
         }
-
-        if (screenStreamRef.current) {
-            screenStreamRef.current.getTracks().forEach((track) => track.stop())
-            screenStreamRef.current = null
-        }
-
-        if (
-            socketRef.current &&
-            socketRef.current.readyState === WebSocket.OPEN
-        ) {
-            socketRef.current.close()
-        }
-
-        socketRef.current = null
-        isConnectedRef.current = false
-        setIsScreenSharing(false)
     }
 
-    const toggleAudio = () => {
+    const handleIceCandidate = async (message: any) => {
+        try {
+            if (peerConnectionRef.current) {
+                await peerConnectionRef.current.addIceCandidate(
+                    new RTCIceCandidate(message.data)
+                )
+            }
+        } catch (error) {
+            console.error("Error handling ICE candidate:", error)
+        }
+    }
+
+    // Grid layout handlers
+    const onLayoutChange = useCallback((layout: any, layouts: any) => {
+        setLayouts(layouts)
+    }, [])
+
+    const onBreakpointChange = useCallback((breakpoint: string) => {
+        console.log("Breakpoint changed:", breakpoint)
+    }, [])
+
+    // Toggle functions
+    const toggleWhiteboard = useCallback(() => {
+        setShowWhiteboard((prev) => !prev)
+        toast(showWhiteboard ? "Whiteboard closed" : "Whiteboard opened")
+    }, [showWhiteboard])
+
+    const toggleAudio = useCallback(() => {
         if (localStreamRef.current) {
             const audioTrack = localStreamRef.current.getAudioTracks()[0]
             if (audioTrack) {
-                audioTrack.enabled = !audioTrack.enabled
-                setIsAudioEnabled(audioTrack.enabled)
+                audioTrack.enabled = !isAudioEnabled
+                setIsAudioEnabled(!isAudioEnabled)
+                toast(isAudioEnabled ? "Audio muted" : "Audio unmuted")
             }
         }
-    }
+    }, [isAudioEnabled])
 
-    const toggleVideo = () => {
+    const toggleVideo = useCallback(() => {
         if (localStreamRef.current) {
             const videoTrack = localStreamRef.current.getVideoTracks()[0]
             if (videoTrack) {
-                videoTrack.enabled = !videoTrack.enabled
-                setIsVideoEnabled(videoTrack.enabled)
+                videoTrack.enabled = !isVideoEnabled
+                setIsVideoEnabled(!isVideoEnabled)
+                toast(isVideoEnabled ? "Video disabled" : "Video enabled")
             }
         }
-    }
+    }, [isVideoEnabled])
 
-    const toggleScreenShare = async () => {
+    const toggleScreenShare = useCallback(async () => {
         try {
             if (!isScreenSharing) {
                 const screenStream =
@@ -1154,9 +527,10 @@ export default function VideoCallPage() {
                 stopScreenShare()
             }
         } catch (error: any) {
-            console.error("Screen sharing error:", error)
+            console.error("Error toggling screen share:", error)
+            toast.error("Error with screen sharing")
         }
-    }
+    }, [isScreenSharing])
 
     const stopScreenShare = async () => {
         try {
@@ -1183,163 +557,190 @@ export default function VideoCallPage() {
             }
 
             setIsScreenSharing(false)
-            toast("Screen sharing stopped", { icon: "ℹ️" })
+            toast("Screen sharing stopped")
         } catch (error: any) {
             console.error("Error stopping screen share:", error)
             toast.error("Error stopping screen share")
         }
     }
 
-    const handleOffer = async (message: any) => {
+    const startCall = useCallback(async () => {
         try {
-            if (!peerConnectionRef.current) {
-                createPeerConnection()
+            setCallStatus("Calling...")
 
-                if (localStreamRef.current) {
-                    localStreamRef.current.getTracks().forEach((track) => {
-                        if (
-                            peerConnectionRef.current &&
-                            localStreamRef.current
-                        ) {
-                            peerConnectionRef.current.addTrack(
-                                track,
-                                localStreamRef.current
-                            )
-                        }
-                    })
+            // Create session in backend
+            try {
+                let parameterToPass
+                if (user?.role === "STUDENT") {
+                    parameterToPass = otherUserId
+                } else if (user?.role === "TUTOR") {
+                    parameterToPass = otherUserId
+                } else {
+                    throw new Error("Unknown user role: " + user?.role)
                 }
-            }
 
-            if (peerConnectionRef.current) {
-                await peerConnectionRef.current.setRemoteDescription(
-                    new RTCSessionDescription(message.data)
-                )
-
-                const answer = await peerConnectionRef.current.createAnswer()
-                await peerConnectionRef.current.setLocalDescription(answer)
-
-                if (socketRef.current) {
-                    socketRef.current.send(
-                        JSON.stringify({
-                            type: "answer",
-                            to: message.from,
-                            from: user?.id.toString(),
-                            sessionId: message.sessionId,
-                            data: answer,
-                        })
+                if (!parameterToPass || parameterToPass === 0) {
+                    console.warn(
+                        "⚠️ No valid other user ID found, skipping session creation"
                     )
+                    return
                 }
-            }
 
-            isInCallRef.current = true
-            setCallStatus("Connected")
-        } catch (error: any) {
-            console.error("Error handling offer:", error)
-            setCallStatus(`Error: ${error.message}`)
-        }
-    }
-
-    const handleAnswer = async (message: any) => {
-        try {
-            if (peerConnectionRef.current) {
-                await peerConnectionRef.current.setRemoteDescription(
-                    new RTCSessionDescription(message.data)
+                const response = await api.post(
+                    `/api/sessions/call?tutorId=${parameterToPass}&sessionId=${sessionId}`
+                )
+                console.log("✅ Session created successfully:", response.data)
+            } catch (error: any) {
+                console.warn(
+                    "Session creation failed, continuing with call:",
+                    error.message
                 )
             }
-            setCallStatus("Connected")
-        } catch (error: any) {
-            console.error("Error handling answer:", error)
-            setCallStatus(`Error: ${error.message}`)
-        }
-    }
 
-    const handleIceCandidate = async (message: any) => {
-        try {
-            if (message.data && peerConnectionRef.current) {
-                await peerConnectionRef.current.addIceCandidate(
-                    new RTCIceCandidate(message.data)
+            // Start session tracking
+            try {
+                await api.put(`/api/sessions/call/${sessionId}/start`)
+            } catch (error: any) {
+                console.warn(
+                    "Session start failed, continuing with call:",
+                    error.message
                 )
             }
-        } catch (error: any) {
-            console.error("Error handling ICE candidate:", error)
-        }
-    }
 
-    const handleIncomingCall = async (message: any) => {
-        try {
-            console.log("Handling incoming call from:", message.callerName)
-            // Since both parties are already in the video call interface, auto-accept
-            setCallStatus("Incoming call...")
+            createPeerConnection()
 
-            // Create peer connection if not exists
-            if (!peerConnectionRef.current) {
-                createPeerConnection()
-
-                if (localStreamRef.current && peerConnectionRef.current) {
-                    localStreamRef.current.getTracks().forEach((track) => {
-                        if (
-                            peerConnectionRef.current &&
+            if (localStreamRef.current && peerConnectionRef.current) {
+                localStreamRef.current.getTracks().forEach((track) => {
+                    if (peerConnectionRef.current && localStreamRef.current) {
+                        peerConnectionRef.current.addTrack(
+                            track,
                             localStreamRef.current
-                        ) {
-                            peerConnectionRef.current.addTrack(
-                                track,
-                                localStreamRef.current
-                            )
-                        }
-                    })
-                }
+                        )
+                    }
+                })
             }
 
-            isInCallRef.current = true
-            setCallStatus("Connected")
-            toast.success(`Call connected with ${message.callerName}`)
-        } catch (error: any) {
-            console.error("Error handling incoming call:", error)
-            setCallStatus(`Error: ${error.message}`)
-        }
-    }
-
-    const handleAcceptCall = async () => {
-        if (!incomingCall) return
-
-        try {
-            console.log("Accepting call from:", incomingCall.callerName)
-            setShowIncomingCallModal(false)
-
-            // Send acceptance message back to caller
+            // Send incoming call notification to other user
             if (socketRef.current) {
                 socketRef.current.send(
                     JSON.stringify({
-                        type: "call_accepted",
-                        to: incomingCall.callerId.toString(),
+                        type: "incoming_call",
+                        to: otherUserId.toString(),
                         from: user?.id.toString(),
-                        sessionId: incomingCall.sessionId,
-                        accepterName: `${user?.firstName} ${user?.lastName}`,
+                        callerName: `${user?.firstName} ${user?.lastName}`,
+                        callerId: user?.id,
+                        sessionId: sessionId,
+                        timestamp: Date.now(),
                     })
                 )
             }
 
-            // Set up the call
-            await handleIncomingCall({
-                callerName: incomingCall.callerName,
-                from: incomingCall.callerId,
-            })
+            // Create and send offer
+            const offer = await peerConnectionRef.current!.createOffer()
+            await peerConnectionRef.current!.setLocalDescription(offer)
 
-            setIncomingCall(null)
+            if (socketRef.current) {
+                socketRef.current.send(
+                    JSON.stringify({
+                        type: "offer",
+                        to: otherUserId.toString(),
+                        from: user?.id.toString(),
+                        sessionId: sessionId,
+                        data: offer,
+                    })
+                )
+            }
+
+            isInCallRef.current = true
+            toast.success("Call initiated!")
         } catch (error: any) {
-            console.error("Error accepting call:", error)
-            toast.error("Failed to accept call")
+            console.error("Error starting call:", error)
+            setCallStatus("Idle")
+            toast.error("Failed to start call")
         }
-    }
+    }, [user, otherUserId, sessionId])
 
-    const handleDeclineCall = () => {
-        if (!incomingCall) return
+    const endCall = useCallback(async () => {
+        try {
+            setCallStatus("Idle")
+            isInCallRef.current = false
 
-        console.log("Declining call from:", incomingCall.callerName)
+            // End the session in the backend to calculate duration and earnings
+            try {
+                const response = await api.put(
+                    `/api/sessions/call/${sessionId}/end`
+                )
+                console.log("✅ Session ended successfully:", response.data)
+
+                if (
+                    response.data.durationMinutes &&
+                    response.data.tutorEarnings
+                ) {
+                    const duration = response.data.durationMinutes
+                    const earnings = response.data.tutorEarnings
+                    const cost = response.data.cost
+
+                    toast.success(
+                        `Session completed! Duration: ${duration} min, ${
+                            user?.role === "TUTOR"
+                                ? `Earnings: ₹${Math.round(earnings * 83)}`
+                                : `Cost: ₹${Math.round(cost * 83)}`
+                        }`,
+                        { duration: 5000 }
+                    )
+                } else {
+                    toast.success("Session ended successfully!")
+                }
+            } catch (error) {
+                console.warn("Session end failed:", error)
+                toast.success("Call ended")
+            }
+
+            // Notify other user
+            if (socketRef.current) {
+                socketRef.current.send(
+                    JSON.stringify({
+                        type: "user-disconnect",
+                        userId: user?.id.toString(),
+                        sessionId: sessionId,
+                    })
+                )
+            }
+
+            cleanupConnection()
+
+            // Navigate back after a delay
+            setTimeout(() => {
+                router.push("/dashboard")
+            }, 2000)
+        } catch (error: any) {
+            console.error("Error ending call:", error)
+            toast.error("Error ending call")
+        }
+    }, [user, sessionId, router])
+
+    const handleAcceptCall = useCallback(() => {
+        setShowIncomingCallModal(false)
+        setCallStatus("Calling...")
+
+        if (socketRef.current && incomingCall) {
+            socketRef.current.send(
+                JSON.stringify({
+                    type: "call_accepted",
+                    to: incomingCall.callerId.toString(),
+                    from: user?.id.toString(),
+                    sessionId: incomingCall.sessionId,
+                })
+            )
+        }
+
+        toast.success("Call accepted")
+    }, [incomingCall, user])
+
+    const handleDeclineCall = useCallback(() => {
         setShowIncomingCallModal(false)
 
-        // Send decline message back to caller
-        if (socketRef.current) {
+        if (socketRef.current && incomingCall) {
             socketRef.current.send(
                 JSON.stringify({
                     type: "call_declined",
@@ -1351,14 +752,14 @@ export default function VideoCallPage() {
             )
         }
 
-        toast.error(`Call declined from ${incomingCall.callerName}`)
         setIncomingCall(null)
-    }
+        toast.error("Call declined")
+    }, [incomingCall, user])
 
     if (!user) {
         return (
-            <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-                <p className="text-white">
+            <div className="min-h-screen bg-orange-100 flex items-center justify-center">
+                <p className="text-black font-bold uppercase tracking-wide">
                     Please log in to join the video call.
                 </p>
             </div>
@@ -1366,432 +767,447 @@ export default function VideoCallPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 text-gray-800 relative overflow-hidden">
-            {/* Main Video Area */}
-            <div className="flex h-screen">
-                {/* Left Side - Main Video */}
-                <div className="flex-1 relative">
-                    {/* Remote Video (Tutor) - Full size when not using whiteboard */}
-                    {!showWhiteboard && (
-                        <div className="w-full h-full relative bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
-                            <video
-                                ref={remoteVideoRef}
-                                autoPlay
-                                playsInline
-                                className="w-full h-full object-contain rounded-2xl bg-black"
-                                style={{ aspectRatio: "16/9" }}
-                            />
-                            {callStatus !== "Connected" && (
-                                <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center rounded-2xl">
-                                    <div className="text-center">
-                                        <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                                            <span className="text-3xl font-semibold text-white">
-                                                {otherUserName.charAt(0)}
-                                            </span>
-                                        </div>
-                                        <p className="text-lg text-gray-700 font-medium">
-                                            {callStatus === "Idle"
-                                                ? "Waiting to connect..."
-                                                : callStatus}
-                                        </p>
-                                    </div>
+        <div className="min-h-screen bg-orange-100 text-black relative overflow-hidden">
+            {/* Grid Layout Container */}
+            <div className="h-screen p-4 pb-24 overflow-hidden">
+                <ResponsiveGridLayout
+                    className="layout"
+                    layouts={layouts}
+                    onLayoutChange={onLayoutChange}
+                    onBreakpointChange={onBreakpointChange}
+                    breakpoints={{
+                        lg: 1200,
+                        md: 996,
+                        sm: 768,
+                        xs: 480,
+                        xxs: 0,
+                    }}
+                    cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+                    rowHeight={50}
+                    compactType="vertical"
+                    preventCollision={false}
+                    isDraggable={true}
+                    isResizable={true}
+                    margin={[8, 8]}
+                    containerPadding={[8, 8]}
+                >
+                    {/* Remote Video Card */}
+                    <div
+                        key="remote-video"
+                        className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_black] overflow-hidden"
+                    >
+                        <div className="h-full flex flex-col">
+                            <div className="bg-black text-white p-2 flex items-center justify-between border-b-4 border-black">
+                                <div className="flex items-center space-x-2">
+                                    <Users className="h-4 w-4" />
+                                    <span className="font-black uppercase tracking-wide text-sm">
+                                        {otherUserName || "Remote User"}
+                                    </span>
                                 </div>
-                            )}
-                            <div className="absolute bottom-4 left-4 bg-black/60 text-white px-3 py-1 rounded backdrop-blur-sm">
-                                {otherUserName}
+                                <div
+                                    className={`px-2 py-1 text-xs font-black uppercase tracking-wide border-2 border-white ${
+                                        callStatus === "Connected"
+                                            ? "bg-green-400 text-black"
+                                            : "bg-red-400 text-black"
+                                    }`}
+                                >
+                                    {callStatus}
+                                </div>
                             </div>
-                        </div>
-                    )}
-
-                    {/* Whiteboard */}
-                    {showWhiteboard && (
-                        <div className="w-full h-full bg-white relative">
-                            <Canvas
-                                sessionId={sessionId}
-                                user={user}
-                                socket={whiteboardSocket}
-                                onCanvasUpdate={(data) => {
-                                    // Handle canvas updates safely
-                                    try {
-                                        console.log(
-                                            "Canvas updated successfully"
-                                        )
-                                    } catch (error) {
-                                        console.error(
-                                            "Canvas update error:",
-                                            error
-                                        )
-                                    }
-                                }}
-                            />
-
-                            {/* Remote Video - Small overlay when whiteboard is active */}
-                            <div className="absolute top-4 left-4 w-64 h-48 bg-white rounded-xl overflow-hidden shadow-xl border-2 border-gray-200 z-10">
+                            <div className="flex-1 relative bg-black overflow-hidden">
                                 <video
                                     ref={remoteVideoRef}
                                     autoPlay
                                     playsInline
-                                    className="w-full h-full object-contain bg-black"
-                                    style={{ aspectRatio: "16/9" }}
+                                    className="w-full h-full object-cover"
+                                    style={{ minHeight: "200px" }}
                                 />
-                                {remoteVideoRef.current &&
-                                    !remoteVideoRef.current.srcObject && (
-                                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 z-20">
-                                            <svg
-                                                className="animate-spin h-8 w-8 text-gray-400 mb-2"
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                            >
-                                                <circle
-                                                    className="opacity-25"
-                                                    cx="12"
-                                                    cy="12"
-                                                    r="10"
-                                                    stroke="currentColor"
-                                                    strokeWidth="4"
-                                                ></circle>
-                                                <path
-                                                    className="opacity-75"
-                                                    fill="currentColor"
-                                                    d="M4 12a8 8 0 018-8v8z"
-                                                ></path>
-                                            </svg>
-                                            <span className="text-gray-600">
-                                                Waiting for tutor video...
-                                            </span>
-                                        </div>
-                                    )}
                                 {callStatus !== "Connected" && (
-                                    <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center rounded-xl">
+                                    <div className="absolute inset-0 bg-cyan-100 flex items-center justify-center">
                                         <div className="text-center">
-                                            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-2 shadow-lg">
-                                                <span className="text-lg font-semibold text-white">
-                                                    {otherUserName.charAt(0)}
+                                            <div className="w-16 h-16 bg-black border-3 border-black shadow-[4px_4px_0px_0px_black] flex items-center justify-center mx-auto mb-4">
+                                                <span className="text-2xl font-black text-white">
+                                                    {otherUserName?.charAt(0) ||
+                                                        "U"}
                                                 </span>
                                             </div>
-                                            <p className="text-sm text-gray-700 font-medium">
+                                            <p className="text-lg text-black font-black uppercase tracking-wide">
                                                 {callStatus === "Idle"
-                                                    ? "Waiting..."
+                                                    ? "Click Start Call to begin"
+                                                    : callStatus ===
+                                                      "Calling..."
+                                                    ? "Connecting..."
+                                                    : callStatus === "Connected"
+                                                    ? "Call in progress"
                                                     : callStatus}
                                             </p>
                                         </div>
                                     </div>
                                 )}
-                                <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
-                                    {otherUserName}
-                                </div>
                             </div>
-                        </div>
-                    )}
-
-                    {/* Local Video (Student) - Small overlay */}
-                    <div
-                        className={`absolute w-64 h-48 bg-white rounded-xl overflow-hidden shadow-xl border-2 border-gray-200 z-20 ${
-                            showWhiteboard ? "top-4 right-4" : "top-6 right-6"
-                        }`}
-                    >
-                        <video
-                            ref={localVideoRef}
-                            autoPlay
-                            muted
-                            playsInline
-                            className="w-full h-full object-contain bg-black"
-                            style={{ aspectRatio: "16/9" }}
-                        />
-                        {!isVideoEnabled && (
-                            <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                                <div className="text-center text-gray-600">
-                                    <VideoOff className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                                    <p className="text-sm opacity-75">
-                                        Video is off
-                                    </p>
-                                </div>
-                            </div>
-                        )}
-                        <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
-                            You {!isAudioEnabled && "(Muted)"}
                         </div>
                     </div>
-                </div>
 
-                {/* Right Side - Chat Panel */}
-                {showChat && (
-                    <ChatPanel
-                        sessionId={sessionId}
-                        isOpen={showChat}
-                        onClose={() => setShowChat(false)}
-                        socket={socketRef.current}
-                    />
-                )}
+                    {/* Local Video Card */}
+                    <div
+                        key="local-video"
+                        className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_black] overflow-hidden"
+                    >
+                        <div className="h-full flex flex-col">
+                            <div className="bg-pink-300 text-black p-2 flex items-center justify-between border-b-4 border-black">
+                                <div className="flex items-center space-x-2">
+                                    <Video className="h-4 w-4" />
+                                    <span className="font-black uppercase tracking-wide text-sm">
+                                        You ({user?.firstName})
+                                    </span>
+                                </div>
+                                <div
+                                    className={`px-2 py-1 text-xs font-black uppercase tracking-wide border-2 border-black ${
+                                        isVideoEnabled
+                                            ? "bg-green-300 text-black"
+                                            : "bg-red-300 text-black"
+                                    }`}
+                                >
+                                    {isVideoEnabled ? "Video On" : "Video Off"}
+                                </div>
+                            </div>
+                            <div className="flex-1 relative bg-black overflow-hidden">
+                                <video
+                                    ref={localVideoRef}
+                                    autoPlay
+                                    playsInline
+                                    muted
+                                    className="w-full h-full object-cover scale-x-[-1]"
+                                    style={{ minHeight: "150px" }}
+                                />
+                                {!isVideoEnabled && (
+                                    <div className="absolute inset-0 bg-pink-100 flex items-center justify-center">
+                                        <div className="text-center">
+                                            <div className="w-16 h-16 bg-black border-3 border-black shadow-[4px_4px_0px_0px_black] flex items-center justify-center mx-auto mb-4">
+                                                <span className="text-2xl font-black text-white">
+                                                    {user?.firstName?.charAt(
+                                                        0
+                                                    ) || "Y"}
+                                                </span>
+                                            </div>
+                                            <p className="text-lg text-black font-black uppercase tracking-wide">
+                                                Video Disabled
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Whiteboard Card */}
+                    <div
+                        key="whiteboard"
+                        className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_black] overflow-hidden"
+                    >
+                        <div className="h-full flex flex-col">
+                            <div className="bg-green-300 text-black p-2 flex items-center justify-between border-b-4 border-black">
+                                <div className="flex items-center space-x-2">
+                                    <PenTool className="h-4 w-4" />
+                                    <span className="font-black uppercase tracking-wide text-sm">
+                                        Collaborative Whiteboard
+                                    </span>
+                                </div>
+                                <Button
+                                    onClick={toggleWhiteboard}
+                                    className={`px-2 py-1 text-xs border-2 border-black font-black uppercase tracking-wide ${
+                                        showWhiteboard
+                                            ? "bg-red-300 hover:bg-red-400 text-black"
+                                            : "bg-blue-300 hover:bg-blue-400 text-black"
+                                    }`}
+                                >
+                                    {showWhiteboard ? "Close" : "Open"}
+                                </Button>
+                            </div>
+                            <div className="flex-1 relative">
+                                {showWhiteboard ? (
+                                    <Excalidraw
+                                        ref={(api) => setExcalidrawAPI(api)}
+                                        theme="light"
+                                        initialData={{
+                                            elements: [],
+                                            appState: {
+                                                viewBackgroundColor: "#ffffff",
+                                                currentItemFontFamily: 1,
+                                            },
+                                        }}
+                                        UIOptions={{
+                                            canvasActions: {
+                                                loadScene: false,
+                                                export: false,
+                                                saveToActiveFile: false,
+                                                toggleTheme: false,
+                                            },
+                                        }}
+                                    />
+                                ) : (
+                                    <div className="flex items-center justify-center h-full bg-green-100">
+                                        <div className="text-center">
+                                            <PenTool className="h-12 w-12 mx-auto mb-2 text-gray-600" />
+                                            <p className="text-black font-black uppercase tracking-wide">
+                                                Click "Open" to start whiteboard
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Chat Card */}
+                    <div
+                        key="chat"
+                        className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_black] overflow-hidden"
+                    >
+                        <div className="h-full flex flex-col">
+                            <div className="bg-yellow-300 text-black p-2 flex items-center justify-between border-b-4 border-black">
+                                <div className="flex items-center space-x-2">
+                                    <MessageSquare className="h-4 w-4" />
+                                    <span className="font-black uppercase tracking-wide text-sm">
+                                        Chat
+                                    </span>
+                                </div>
+                                <Button
+                                    onClick={() => setShowChat(!showChat)}
+                                    className={`px-2 py-1 text-xs border-2 border-black font-black uppercase tracking-wide ${
+                                        showChat
+                                            ? "bg-red-300 hover:bg-red-400 text-black"
+                                            : "bg-blue-300 hover:bg-blue-400 text-black"
+                                    }`}
+                                >
+                                    {showChat ? "Close" : "Open"}
+                                </Button>
+                            </div>
+                            <div className="flex-1">
+                                {showChat ? (
+                                    <ChatPanel
+                                        sessionId={sessionId}
+                                        user={user}
+                                        socket={socketRef.current}
+                                    />
+                                ) : (
+                                    <div className="flex items-center justify-center h-full bg-yellow-100">
+                                        <div className="text-center">
+                                            <MessageSquare className="h-12 w-12 mx-auto mb-2 text-gray-600" />
+                                            <p className="text-black font-black uppercase tracking-wide">
+                                                Click "Open" to start chat
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Controls Card */}
+                    <div
+                        key="controls"
+                        className="bg-black border-4 border-black shadow-[8px_8px_0px_0px_black] overflow-hidden"
+                    >
+                        <div className="h-full flex items-center justify-center">
+                            <div className="flex items-center space-x-4">
+                                {/* Audio Toggle */}
+                                <Button
+                                    onClick={toggleAudio}
+                                    className={`p-3 border-3 border-white shadow-[4px_4px_0px_0px_white] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_white] transition-all font-black ${
+                                        isAudioEnabled
+                                            ? "bg-green-400 hover:bg-green-500 text-black"
+                                            : "bg-red-400 hover:bg-red-500 text-black"
+                                    }`}
+                                >
+                                    {isAudioEnabled ? (
+                                        <Mic className="h-5 w-5" />
+                                    ) : (
+                                        <MicOff className="h-5 w-5" />
+                                    )}
+                                </Button>
+
+                                {/* Video Toggle */}
+                                <Button
+                                    onClick={toggleVideo}
+                                    className={`p-3 border-3 border-white shadow-[4px_4px_0px_0px_white] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_white] transition-all font-black ${
+                                        isVideoEnabled
+                                            ? "bg-green-400 hover:bg-green-500 text-black"
+                                            : "bg-red-400 hover:bg-red-500 text-black"
+                                    }`}
+                                >
+                                    {isVideoEnabled ? (
+                                        <Video className="h-5 w-5" />
+                                    ) : (
+                                        <VideoOff className="h-5 w-5" />
+                                    )}
+                                </Button>
+
+                                {/* Screen Share Toggle */}
+                                <Button
+                                    onClick={toggleScreenShare}
+                                    className={`p-3 border-3 border-white shadow-[4px_4px_0px_0px_white] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_white] transition-all font-black ${
+                                        isScreenSharing
+                                            ? "bg-blue-400 hover:bg-blue-500 text-black"
+                                            : "bg-gray-400 hover:bg-gray-500 text-black"
+                                    }`}
+                                >
+                                    {isScreenSharing ? (
+                                        <MonitorOff className="h-5 w-5" />
+                                    ) : (
+                                        <Monitor className="h-5 w-5" />
+                                    )}
+                                </Button>
+
+                                {/* Whiteboard Toggle */}
+                                <Button
+                                    onClick={toggleWhiteboard}
+                                    className={`p-3 border-3 border-white shadow-[4px_4px_0px_0px_white] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_white] transition-all font-black ${
+                                        showWhiteboard
+                                            ? "bg-green-400 hover:bg-green-500 text-black"
+                                            : "bg-gray-400 hover:bg-gray-500 text-black"
+                                    }`}
+                                >
+                                    <PenTool className="h-5 w-5" />
+                                </Button>
+
+                                {/* Chat Toggle */}
+                                <Button
+                                    onClick={() => setShowChat(!showChat)}
+                                    className={`p-3 border-3 border-white shadow-[4px_4px_0px_0px_white] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_white] transition-all font-black ${
+                                        showChat
+                                            ? "bg-yellow-400 hover:bg-yellow-500 text-black"
+                                            : "bg-gray-400 hover:bg-gray-500 text-black"
+                                    }`}
+                                >
+                                    <MessageSquare className="h-5 w-5" />
+                                </Button>
+
+                                {/* Start/End Call */}
+                                {callStatus === "Idle" ? (
+                                    <Button
+                                        onClick={startCall}
+                                        className="p-3 bg-green-500 hover:bg-green-600 text-white border-3 border-white shadow-[4px_4px_0px_0px_white] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_white] transition-all font-black"
+                                    >
+                                        <Phone className="h-5 w-5" />
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        onClick={endCall}
+                                        className="p-3 bg-red-500 hover:bg-red-600 text-white border-3 border-white shadow-[4px_4px_0px_0px_white] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_white] transition-all font-black"
+                                    >
+                                        <PhoneOff className="h-5 w-5" />
+                                    </Button>
+                                )}
+
+                                {/* Call Status */}
+                                <div className="ml-4 px-4 py-2 bg-white text-black border-3 border-white shadow-[4px_4px_0px_0px_white] font-black uppercase tracking-wide">
+                                    {status}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </ResponsiveGridLayout>
             </div>
 
-            {/* Bottom Controls */}
-            <div className="absolute bottom-0 left-0 right-0 bg-white/98 backdrop-blur-md border-t border-gray-200 shadow-2xl">
-                <div className="flex items-center justify-between px-4 sm:px-6 py-4">
-                    {/* Left Controls */}
-                    <div className="flex items-center space-x-2 sm:space-x-3">
-                        {/* Audio Toggle */}
-                        <Button
-                            variant={
-                                isAudioEnabled ? "secondary" : "destructive"
-                            }
-                            size="lg"
-                            onClick={toggleAudio}
-                            className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full transition-all shadow-lg hover:shadow-xl transform hover:scale-105 ${
-                                isAudioEnabled
-                                    ? "bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 hover:border-gray-400"
-                                    : "bg-red-500 hover:bg-red-600 text-white shadow-red-300 animate-pulse"
-                            }`}
-                        >
-                            {isAudioEnabled ? (
-                                <Mic className="h-5 w-5 sm:h-6 sm:w-6" />
-                            ) : (
-                                <MicOff className="h-5 w-5 sm:h-6 sm:w-6" />
-                            )}
-                        </Button>
-
-                        {/* Video Toggle */}
-                        <Button
-                            variant={
-                                isVideoEnabled ? "secondary" : "destructive"
-                            }
-                            size="lg"
-                            onClick={toggleVideo}
-                            className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full transition-all shadow-lg hover:shadow-xl transform hover:scale-105 ${
-                                isVideoEnabled
-                                    ? "bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 hover:border-gray-400"
-                                    : "bg-red-500 hover:bg-red-600 text-white shadow-red-300 animate-pulse"
-                            }`}
-                        >
-                            {isVideoEnabled ? (
-                                <Video className="h-5 w-5 sm:h-6 sm:w-6" />
-                            ) : (
-                                <VideoOff className="h-5 w-5 sm:h-6 sm:w-6" />
-                            )}
-                        </Button>
-
-                        {/* Screen Share Toggle */}
-                        <Button
-                            variant={isScreenSharing ? "default" : "secondary"}
-                            size="lg"
-                            onClick={toggleScreenShare}
-                            className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full transition-all shadow-lg hover:shadow-xl transform hover:scale-105 ${
-                                isScreenSharing
-                                    ? "bg-blue-500 hover:bg-blue-600 text-white shadow-blue-300 animate-pulse"
-                                    : "bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 hover:border-blue-400"
-                            }`}
-                        >
-                            {isScreenSharing ? (
-                                <MonitorOff className="h-5 w-5 sm:h-6 sm:w-6" />
-                            ) : (
-                                <Monitor className="h-5 w-5 sm:h-6 sm:w-6" />
-                            )}
-                        </Button>
-
-                        {/* Whiteboard Toggle */}
-                        <Button
-                            variant={showWhiteboard ? "default" : "secondary"}
-                            size="lg"
-                            onClick={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-
-                                try {
-                                    const newState = !showWhiteboard
-                                    setShowWhiteboard(newState)
-
-                                    // Notify other users when whiteboard is enabled
-                                    if (
-                                        newState &&
-                                        whiteboardSocket &&
-                                        whiteboardSocket.readyState ===
-                                            WebSocket.OPEN
-                                    ) {
-                                        try {
-                                            whiteboardSocket.send(
-                                                JSON.stringify({
-                                                    type: "whiteboard_enabled",
-                                                    sessionId: sessionId,
-                                                    userId: user?.id,
-                                                    userName: `${user?.firstName} ${user?.lastName}`,
-                                                    enabled: true,
-                                                })
-                                            )
-                                            toast.success(
-                                                "🎨 Whiteboard opened - Draw and collaborate!"
-                                            )
-                                            console.log(
-                                                "🎨 Whiteboard enabled, notified other users"
-                                            )
-                                        } catch (error) {
-                                            console.error(
-                                                "❌ Error notifying whiteboard enabled:",
-                                                error
-                                            )
-                                            toast.success(
-                                                "🎨 Whiteboard opened"
-                                            )
-                                        }
-                                    } else if (!newState) {
-                                        // Optionally notify when disabled
-                                        if (
-                                            whiteboardSocket &&
-                                            whiteboardSocket.readyState ===
-                                                WebSocket.OPEN
-                                        ) {
-                                            try {
-                                                whiteboardSocket.send(
-                                                    JSON.stringify({
-                                                        type: "whiteboard_disabled",
-                                                        sessionId: sessionId,
-                                                        userId: user?.id,
-                                                        userName: `${user?.firstName} ${user?.lastName}`,
-                                                        enabled: false,
-                                                    })
-                                                )
-                                            } catch (error) {
-                                                console.error(
-                                                    "❌ Error notifying whiteboard disabled:",
-                                                    error
-                                                )
-                                            }
-                                        }
-                                        toast("Whiteboard closed")
-                                        console.log("🎨 Whiteboard disabled")
-                                    } else if (newState && !whiteboardSocket) {
-                                        toast.success(
-                                            "🎨 Whiteboard opened (connecting...)"
-                                        )
-                                        console.log(
-                                            "🎨 Whiteboard enabled but socket not ready"
-                                        )
-                                    }
-                                } catch (error) {
-                                    console.error(
-                                        "Error toggling whiteboard:",
-                                        error
-                                    )
-                                    toast.error("Failed to toggle whiteboard")
-                                }
-                            }}
-                            className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full transition-all shadow-lg hover:shadow-xl transform hover:scale-105 ${
-                                showWhiteboard
-                                    ? "bg-green-500 hover:bg-green-600 text-white shadow-green-300 animate-pulse"
-                                    : "bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 hover:border-green-400"
-                            }`}
-                        >
-                            <PenTool className="h-5 w-5 sm:h-6 sm:w-6" />
-                        </Button>
-                    </div>
-
-                    {/* Center - Call Controls */}
-                    <div className="flex flex-col items-start justify-center flex-1 pl-8">
-                        {/* Status Messages */}
-                        {waitingForTutor &&
-                            userRole === "student" &&
-                            !tutorReady && (
-                                <div className="mb-4 text-blue-700 bg-blue-100 border border-blue-300 rounded px-4 py-2 text-center animate-pulse">
-                                    🎓 Waiting for {otherUserName} to join...
-                                    <br />
-                                    Your tutor will start the call when ready.
-                                </div>
-                            )}
-                        {userRole === "tutor" && callStatus === "Idle" && (
-                            <div className="mb-4 text-green-700 bg-green-100 border border-green-300 rounded px-4 py-2 text-center">
-                                👨‍🏫 Waiting for {otherUserName} to join
-                                <br />
-                                Student will see "Join Now" button when you're
-                                ready.
-                            </div>
-                        )}
-
-                        {callStatus === "Idle" ? (
-                            <Button
-                                onClick={startCall}
-                                disabled={
-                                    !isConnectedRef.current ||
-                                    (status !== "Ready to call" &&
-                                        status !== "Connected") ||
-                                    (userRole === "student" &&
-                                        waitingForTutor &&
-                                        !tutorReady)
-                                }
-                                className={`px-8 py-4 rounded-full font-bold shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:transform-none ${
-                                    userRole === "student" &&
-                                    waitingForTutor &&
-                                    !tutorReady
-                                        ? "bg-gray-400 cursor-not-allowed"
-                                        : "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white animate-pulse"
-                                }`}
-                                size="lg"
-                            >
-                                <Phone className="h-6 w-6 mr-3" />
-                                {userRole === "student" &&
-                                waitingForTutor &&
-                                !tutorReady
-                                    ? "⏳ Waiting for tutor..."
-                                    : !isConnectedRef.current
-                                    ? "⏳ Connecting..."
-                                    : status === "Ready to call" ||
-                                      status === "Connected"
-                                    ? "🚀 Start Call"
-                                    : "⏳ Connecting..."}
-                            </Button>
+            {/* Fixed Bottom Controls Bar */}
+            <div className="fixed bottom-0 left-0 right-0 bg-black border-t-4 border-black shadow-[0px_-8px_0px_0px_black] z-50">
+                <div className="flex items-center justify-center p-4 space-x-4">
+                    {/* Audio Toggle */}
+                    <Button
+                        onClick={toggleAudio}
+                        className={`p-3 border-3 border-white shadow-[4px_4px_0px_0px_white] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_white] transition-all font-black ${
+                            isAudioEnabled
+                                ? "bg-green-400 hover:bg-green-500 text-black"
+                                : "bg-red-400 hover:bg-red-500 text-black"
+                        }`}
+                    >
+                        {isAudioEnabled ? (
+                            <Mic className="h-5 w-5" />
                         ) : (
-                            <Button
-                                onClick={endCall}
-                                className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-8 py-4 rounded-full font-bold shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 animate-pulse"
-                                size="lg"
-                            >
-                                <PhoneOff className="h-6 w-6 mr-3" />
-                                📞 End Call
-                            </Button>
+                            <MicOff className="h-5 w-5" />
                         )}
-                    </div>
+                    </Button>
 
-                    {/* Right Controls */}
-                    <div className="flex items-center space-x-3">
-                        {/* Chat Toggle */}
+                    {/* Video Toggle */}
+                    <Button
+                        onClick={toggleVideo}
+                        className={`p-3 border-3 border-white shadow-[4px_4px_0px_0px_white] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_white] transition-all font-black ${
+                            isVideoEnabled
+                                ? "bg-green-400 hover:bg-green-500 text-black"
+                                : "bg-red-400 hover:bg-red-500 text-black"
+                        }`}
+                    >
+                        {isVideoEnabled ? (
+                            <Video className="h-5 w-5" />
+                        ) : (
+                            <VideoOff className="h-5 w-5" />
+                        )}
+                    </Button>
+
+                    {/* Screen Share Toggle */}
+                    <Button
+                        onClick={toggleScreenShare}
+                        className={`p-3 border-3 border-white shadow-[4px_4px_0px_0px_white] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_white] transition-all font-black ${
+                            isScreenSharing
+                                ? "bg-blue-400 hover:bg-blue-500 text-black"
+                                : "bg-gray-400 hover:bg-gray-500 text-black"
+                        }`}
+                    >
+                        {isScreenSharing ? (
+                            <MonitorOff className="h-5 w-5" />
+                        ) : (
+                            <Monitor className="h-5 w-5" />
+                        )}
+                    </Button>
+
+                    {/* Whiteboard Toggle */}
+                    <Button
+                        onClick={toggleWhiteboard}
+                        className={`p-3 border-3 border-white shadow-[4px_4px_0px_0px_white] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_white] transition-all font-black ${
+                            showWhiteboard
+                                ? "bg-green-400 hover:bg-green-500 text-black"
+                                : "bg-gray-400 hover:bg-gray-500 text-black"
+                        }`}
+                    >
+                        <PenTool className="h-5 w-5" />
+                    </Button>
+
+                    {/* Chat Toggle */}
+                    <Button
+                        onClick={() => setShowChat(!showChat)}
+                        className={`p-3 border-3 border-white shadow-[4px_4px_0px_0px_white] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_white] transition-all font-black ${
+                            showChat
+                                ? "bg-yellow-400 hover:bg-yellow-500 text-black"
+                                : "bg-gray-400 hover:bg-gray-500 text-black"
+                        }`}
+                    >
+                        <MessageSquare className="h-5 w-5" />
+                    </Button>
+
+                    {/* Start/End Call */}
+                    {callStatus === "Idle" ? (
                         <Button
-                            variant={showChat ? "default" : "secondary"}
-                            size="lg"
-                            onClick={() => {
-                                setShowChat(!showChat)
-                                if (!showChat) {
-                                    toast("💬 Chat opened")
-                                } else {
-                                    toast("💬 Chat closed")
-                                }
-                            }}
-                            className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full transition-all shadow-lg hover:shadow-xl transform hover:scale-105 ${
-                                showChat
-                                    ? "bg-blue-500 hover:bg-blue-600 text-white shadow-blue-300 animate-pulse"
-                                    : "bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 hover:border-blue-400"
-                            }`}
+                            onClick={startCall}
+                            className="p-4 bg-green-500 hover:bg-green-600 text-white border-3 border-white shadow-[4px_4px_0px_0px_white] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_white] transition-all font-black text-lg"
+                            title="Start Call"
                         >
-                            <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6" />
+                            <Phone className="h-6 w-6" />
                         </Button>
-                    </div>
-                </div>
+                    ) : (
+                        <Button
+                            onClick={endCall}
+                            className="p-4 bg-red-500 hover:bg-red-600 text-white border-3 border-white shadow-[4px_4px_0px_0px_white] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_white] transition-all font-black text-lg"
+                            title="End Call"
+                        >
+                            <PhoneOff className="h-6 w-6" />
+                        </Button>
+                    )}
 
-                {/* Status Bar */}
-                <div className="px-6 pb-3">
-                    <div className="flex items-center justify-center space-x-4 text-sm text-gray-600">
-                        <div className="flex items-center space-x-2">
-                            <div
-                                className={`w-2 h-2 rounded-full ${
-                                    callStatus === "Connected"
-                                        ? "bg-green-500 animate-pulse"
-                                        : callStatus === "Calling..."
-                                        ? "bg-yellow-500 animate-pulse"
-                                        : "bg-gray-400"
-                                }`}
-                            />
-                            <span className="font-medium">{callStatus}</span>
-                        </div>
-                        <span className="text-gray-400">•</span>
-                        <span>{status}</span>
+                    {/* Call Status */}
+                    <div className="ml-4 px-4 py-2 bg-white text-black border-3 border-white shadow-[4px_4px_0px_0px_white] font-black uppercase tracking-wide">
+                        {callStatus === "Idle" ? "Ready to Call" : callStatus} (
+                        {callStatus})
                     </div>
                 </div>
             </div>
@@ -1805,7 +1221,7 @@ export default function VideoCallPage() {
                     callerName={incomingCall.callerName}
                     callerId={incomingCall.callerId}
                     sessionId={incomingCall.sessionId}
-                    callerRole={userRole === "student" ? "TUTOR" : "STUDENT"}
+                    callerRole="TUTOR"
                 />
             )}
         </div>
