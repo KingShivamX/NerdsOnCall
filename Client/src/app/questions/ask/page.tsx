@@ -163,7 +163,7 @@ export default function AskQuestionPage() {
         if (!user) {
             console.log("No user found, redirecting to login")
             toast.error("You must be logged in to ask a question")
-            router.push("/login")
+            router.push("/auth/login")
             return
         }
 
@@ -226,7 +226,7 @@ export default function AskQuestionPage() {
 
             // Handle specific cases that need redirection
             if (error.response?.status === 401) {
-                setTimeout(() => router.push("/login"), 2000)
+                setTimeout(() => router.push("/auth/login"), 2000)
             }
         } finally {
             setIsSubmitting(false)

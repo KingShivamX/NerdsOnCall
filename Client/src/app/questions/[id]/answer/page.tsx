@@ -58,7 +58,7 @@ export default function SubmitSolutionPage() {
                     toast.error(
                         "Your session has expired. Please log in again."
                     )
-                    router.push("/login")
+                    router.push("/auth/login")
                 } else {
                     toast.error("Failed to load question details")
                     router.push("/questions")
@@ -107,7 +107,7 @@ export default function SubmitSolutionPage() {
 
         if (!user) {
             toast.error("You must be logged in to submit a solution")
-            router.push("/login")
+            router.push("/auth/login")
             return
         }
 
@@ -150,7 +150,7 @@ export default function SubmitSolutionPage() {
 
             // Handle specific cases that need redirection
             if (error.response?.status === 401) {
-                router.push("/login")
+                router.push("/auth/login")
             }
         } finally {
             setIsSubmitting(false)

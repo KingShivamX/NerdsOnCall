@@ -25,7 +25,7 @@ export function IncomingCallModal({
     callerId,
     sessionId,
     onAccept,
-    onDecline
+    onDecline,
 }: IncomingCallModalProps) {
     const [isResponding, setIsResponding] = useState(false)
 
@@ -62,16 +62,9 @@ export function IncomingCallModal({
                                 {callerName}
                             </h3>
                             <p className="text-sm text-gray-600">
-                                wants to start a video call
+                                Student requesting help
                             </p>
                         </div>
-                    </div>
-
-                    {/* Session Info */}
-                    <div className="bg-gray-50 rounded-lg p-3">
-                        <p className="text-xs text-gray-600">
-                            Session: {sessionId}
-                        </p>
                     </div>
 
                     {/* Action Buttons */}

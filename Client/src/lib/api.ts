@@ -39,12 +39,19 @@ api.interceptors.response.use(
         // Handle 401 errors by clearing invalid tokens
         if (error.response?.status === 401) {
             console.log("401 error detected for URL:", error.config?.url)
-            console.log("Current pathname:", typeof window !== "undefined" ? window.location.pathname : "server")
+            console.log(
+                "Current pathname:",
+                typeof window !== "undefined"
+                    ? window.location.pathname
+                    : "server"
+            )
 
             // Only clear tokens and redirect for auth-related endpoints
             // For other endpoints, let components handle the error
-            if (error.config?.url?.includes('/auth/')) {
-                console.log("Auth endpoint 401, clearing tokens and redirecting...")
+            if (error.config?.url?.includes("/auth/")) {
+                console.log(
+                    "Auth endpoint 401, clearing tokens and redirecting..."
+                )
                 localStorage.removeItem("token")
                 document.cookie =
                     "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
@@ -54,10 +61,12 @@ api.interceptors.response.use(
                     !window.location.pathname.includes("/auth/") &&
                     !window.location.pathname.includes("/login")
                 ) {
-                    window.location.href = "/login"
+                    window.location.href = "/auth/login"
                 }
             } else {
-                console.log("Non-auth endpoint 401, letting component handle it...")
+                console.log(
+                    "Non-auth endpoint 401, letting component handle it..."
+                )
                 // Don't clear tokens for non-auth endpoints, let components decide
             }
         }
