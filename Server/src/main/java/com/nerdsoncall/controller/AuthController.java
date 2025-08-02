@@ -58,16 +58,12 @@ public class AuthController {
                 System.out.println("Validating tutor fields...");
                 System.out.println("Bio: " + request.getBio());
                 System.out.println("Subjects: " + request.getSubjects());
-                System.out.println("Hourly Rate: " + request.getHourlyRate());
-                
+
                 if (request.getBio() == null || request.getBio().trim().isEmpty()) {
                     return ResponseEntity.badRequest().body("Bio is required for tutors");
                 }
                 if (request.getSubjects() == null || request.getSubjects().isEmpty()) {
                     return ResponseEntity.badRequest().body("At least one subject is required for tutors");
-                }
-                if (request.getHourlyRate() == null || request.getHourlyRate() <= 0) {
-                    return ResponseEntity.badRequest().body("Valid hourly rate is required for tutors");
                 }
             }
 
@@ -82,7 +78,8 @@ public class AuthController {
             if (request.getRole() == User.Role.TUTOR) {
                 user.setBio(request.getBio());
                 user.setSubjects(request.getSubjects());
-                user.setHourlyRate(request.getHourlyRate());
+                // Set fixed hourly rate for all tutors
+                user.setHourlyRate(50.0);
             }
 
             User savedUser = authService.register(user);
