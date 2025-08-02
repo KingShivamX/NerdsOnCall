@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 import { useAuth } from "@/context/AuthContext"
 import { api } from "@/lib/api"
 import { Navbar } from "@/components/layout/Navbar"
+import { Footer } from "@/components/layout/Footer"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { Card, CardContent } from "@/components/ui/card"
@@ -28,6 +29,7 @@ import {
 import { Subject, User } from "@/types"
 import toast from "react-hot-toast"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 
 const subjectsList: Subject[] = [
     "MATHEMATICS",
@@ -389,10 +391,14 @@ export default function BrowseTutorsPage() {
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center space-x-2">
-                                                    <h3 className="font-semibold text-slate-800 truncate">
-                                                        {tutor.firstName}{" "}
-                                                        {tutor.lastName}
-                                                    </h3>
+                                                    <Link
+                                                        href={`/profile/${tutor.id}`}
+                                                    >
+                                                        <h3 className="font-semibold text-slate-800 truncate hover:text-blue-600 cursor-pointer transition-colors">
+                                                            {tutor.firstName}{" "}
+                                                            {tutor.lastName}
+                                                        </h3>
+                                                    </Link>
                                                     {tutor.isOnline && (
                                                         <div className="w-2 h-2 bg-emerald-500 rounded-full flex-shrink-0"></div>
                                                     )}
@@ -464,34 +470,11 @@ export default function BrowseTutorsPage() {
                                             onClick={() =>
                                                 handleConnectTutor(tutor)
                                             }
-                                            disabled={
-                                                loadingSession ||
-                                                (sessionStatus &&
-                                                    !sessionStatus.hasActiveSubscription) ||
-                                                (sessionStatus &&
-                                                    !sessionStatus.canAskDoubt)
-                                            }
-                                            className={`w-full font-semibold shadow-lg transition-all ${
-                                                loadingSession ||
-                                                (sessionStatus &&
-                                                    !sessionStatus.hasActiveSubscription) ||
-                                                (sessionStatus &&
-                                                    !sessionStatus.canAskDoubt)
-                                                    ? "bg-gray-400 text-gray-600 cursor-not-allowed"
-                                                    : "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white hover:shadow-xl transform hover:scale-105"
-                                            }`}
+                                            className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
                                             size="sm"
                                         >
                                             <Video className="h-4 w-4 mr-2" />
-                                            {loadingSession
-                                                ? "Loading..."
-                                                : sessionStatus &&
-                                                  !sessionStatus.hasActiveSubscription
-                                                ? "🔒 Subscription Required"
-                                                : sessionStatus &&
-                                                  !sessionStatus.canAskDoubt
-                                                ? "🚫 Daily Limit Reached"
-                                                : "🚀 Start Video Call"}
+                                            🚀 Start Video Call
                                         </Button>
                                     </CardContent>
                                 </Card>
@@ -539,6 +522,7 @@ export default function BrowseTutorsPage() {
                     }_${Date.now()}`}
                 />
             )}
+            <Footer />
         </div>
     )
 }

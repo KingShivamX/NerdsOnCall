@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { BlockLoader } from "@/components/ui/Loader"
 import {
     Users,
     Clock,
@@ -110,17 +111,20 @@ export default function MyStudentsPage() {
 
     if (!user || user.role !== "TUTOR") {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50">
-                <Card className="max-w-md mx-auto">
+            <div className="min-h-screen flex items-center justify-center bg-purple-100">
+                <Card className="max-w-md mx-auto bg-white border-3 border-black shadow-[4px_4px_0px_0px_black]">
                     <CardContent className="p-6 text-center">
-                        <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-                        <h2 className="text-xl font-semibold text-slate-800 mb-2">
+                        <AlertCircle className="h-12 w-12 text-black mx-auto mb-4" />
+                        <h2 className="text-xl font-black text-black mb-2 uppercase tracking-wide">
                             Access Denied
                         </h2>
-                        <p className="text-slate-600 mb-4">
+                        <p className="text-black font-bold mb-4">
                             This page is only available to tutors.
                         </p>
-                        <Button onClick={() => router.push("/dashboard")}>
+                        <Button
+                            onClick={() => router.push("/dashboard")}
+                            className="bg-red-50 border-3 border-black text-black font-black uppercase tracking-wide hover:bg-red-100 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_black] shadow-[2px_2px_0px_0px_black] transition-all duration-100"
+                        >
                             Go to Dashboard
                         </Button>
                     </CardContent>
@@ -130,7 +134,7 @@ export default function MyStudentsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-purple-100">
             <Navbar />
             <div className="pt-20 pb-10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -138,7 +142,11 @@ export default function MyStudentsPage() {
                     <div className="mb-8">
                         <div className="flex items-center mb-4">
                             <Link href="/dashboard">
-                                <Button variant="ghost" size="sm" className="mr-4">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="mr-4 bg-white border-3 border-black hover:bg-gray-100 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_black] shadow-[2px_2px_0px_0px_black] transition-all duration-100"
+                                >
                                     <ArrowLeft className="h-4 w-4 mr-2" />
                                     Back to Dashboard
                                 </Button>
@@ -146,29 +154,29 @@ export default function MyStudentsPage() {
                         </div>
                         <div className="flex items-center justify-between">
                             <div>
-                                <h1 className="text-3xl font-bold text-slate-800 mb-2">
+                                <h1 className="text-3xl font-black text-black mb-2 uppercase tracking-wide">
                                     My Students
                                 </h1>
-                                <p className="text-slate-600">
+                                <p className="text-black font-bold">
                                     Manage student doubts and provide solutions
                                 </p>
                             </div>
                         </div>
                     </div>
 
-                    {/* Stats Cards */}
+                    {/* Stats Cards - In one row */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                        <Card>
+                        <Card className="bg-cyan-200 border-3 border-black shadow-[4px_4px_0px_0px_black]">
                             <CardContent className="p-6">
                                 <div className="flex items-center">
-                                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                                        <MessageCircle className="h-6 w-6 text-blue-600" />
+                                    <div className="w-12 h-12 bg-black border-2 border-black flex items-center justify-center">
+                                        <MessageCircle className="h-6 w-6 text-white" />
                                     </div>
-                                    <div className="ml-4">
-                                        <p className="text-sm font-medium text-slate-600">
+                                    <div className="ml-4 flex-1">
+                                        <p className="text-sm font-black text-black uppercase tracking-wide">
                                             Total Doubts
                                         </p>
-                                        <p className="text-2xl font-bold text-slate-900">
+                                        <p className="text-2xl font-black text-black">
                                             {doubts.length}
                                         </p>
                                     </div>
@@ -176,36 +184,49 @@ export default function MyStudentsPage() {
                             </CardContent>
                         </Card>
 
-                        <Card>
+                        <Card className="bg-pink-200 border-3 border-black shadow-[4px_4px_0px_0px_black]">
                             <CardContent className="p-6">
                                 <div className="flex items-center">
-                                    <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                                        <Clock className="h-6 w-6 text-orange-600" />
+                                    <div className="w-12 h-12 bg-black border-2 border-black flex items-center justify-center">
+                                        <Clock className="h-6 w-6 text-white" />
                                     </div>
-                                    <div className="ml-4">
-                                        <p className="text-sm font-medium text-slate-600">
+                                    <div className="ml-4 flex-1">
+                                        <p className="text-sm font-black text-black uppercase tracking-wide">
                                             Pending
                                         </p>
-                                        <p className="text-2xl font-bold text-slate-900">
-                                            {doubts.filter(d => ["OPEN", "ASSIGNED", "IN_PROGRESS"].includes(d.status)).length}
+                                        <p className="text-2xl font-black text-black">
+                                            {
+                                                doubts.filter((d) =>
+                                                    [
+                                                        "OPEN",
+                                                        "ASSIGNED",
+                                                        "IN_PROGRESS",
+                                                    ].includes(d.status)
+                                                ).length
+                                            }
                                         </p>
                                     </div>
                                 </div>
                             </CardContent>
                         </Card>
 
-                        <Card>
+                        <Card className="bg-green-200 border-3 border-black shadow-[4px_4px_0px_0px_black]">
                             <CardContent className="p-6">
                                 <div className="flex items-center">
-                                    <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                                        <CheckCircle className="h-6 w-6 text-green-600" />
+                                    <div className="w-12 h-12 bg-black border-2 border-black flex items-center justify-center">
+                                        <CheckCircle className="h-6 w-6 text-white" />
                                     </div>
-                                    <div className="ml-4">
-                                        <p className="text-sm font-medium text-slate-600">
+                                    <div className="ml-4 flex-1">
+                                        <p className="text-sm font-black text-black uppercase tracking-wide">
                                             Resolved
                                         </p>
-                                        <p className="text-2xl font-bold text-slate-900">
-                                            {doubts.filter(d => d.status === "RESOLVED").length}
+                                        <p className="text-2xl font-black text-black">
+                                            {
+                                                doubts.filter(
+                                                    (d) =>
+                                                        d.status === "RESOLVED"
+                                                ).length
+                                            }
                                         </p>
                                     </div>
                                 </div>
@@ -214,77 +235,146 @@ export default function MyStudentsPage() {
                     </div>
 
                     {/* Tabs */}
-                    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-                        <TabsList className="grid w-full grid-cols-2">
-                            <TabsTrigger value="pending">
-                                Pending ({doubts.filter(d => ["OPEN", "ASSIGNED", "IN_PROGRESS"].includes(d.status)).length})
+                    <Tabs
+                        value={activeTab}
+                        onValueChange={setActiveTab}
+                        className="space-y-6"
+                    >
+                        <TabsList className="grid w-full grid-cols-2 bg-white border-3 border-black shadow-[2px_2px_0px_0px_black]">
+                            <TabsTrigger
+                                value="pending"
+                                className="font-black uppercase tracking-wide data-[state=active]:bg-yellow-50 data-[state=active]:border-2 data-[state=active]:border-black"
+                            >
+                                Pending (
+                                {
+                                    doubts.filter((d) =>
+                                        [
+                                            "OPEN",
+                                            "ASSIGNED",
+                                            "IN_PROGRESS",
+                                        ].includes(d.status)
+                                    ).length
+                                }
+                                )
                             </TabsTrigger>
-                            <TabsTrigger value="resolved">
-                                Resolved ({doubts.filter(d => d.status === "RESOLVED").length})
+                            <TabsTrigger
+                                value="resolved"
+                                className="font-black uppercase tracking-wide data-[state=active]:bg-green-50 data-[state=active]:border-2 data-[state=active]:border-black"
+                            >
+                                Resolved (
+                                {
+                                    doubts.filter(
+                                        (d) => d.status === "RESOLVED"
+                                    ).length
+                                }
+                                )
                             </TabsTrigger>
                         </TabsList>
 
                         {/* Doubts List */}
                         <TabsContent value={activeTab} className="space-y-4">
                             {loading ? (
-                                <Card>
+                                <Card className="bg-white border-3 border-black shadow-[4px_4px_0px_0px_black]">
                                     <CardContent className="p-12 text-center">
-                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-600 mx-auto"></div>
-                                        <p className="mt-4 text-slate-600">Loading doubts...</p>
+                                        <BlockLoader
+                                            size="lg"
+                                            className="mx-auto"
+                                        />
+                                        <p className="mt-4 text-black font-bold uppercase tracking-wide">
+                                            Loading doubts...
+                                        </p>
                                     </CardContent>
                                 </Card>
                             ) : filteredDoubts.length > 0 ? (
                                 filteredDoubts.map((doubt) => (
-                                    <Card key={doubt.id} className="hover:shadow-md transition-shadow">
+                                    <Card
+                                        key={doubt.id}
+                                        className="bg-white border-3 border-black shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] transition-all duration-100"
+                                    >
                                         <CardContent className="p-6">
                                             <div className="flex items-start justify-between">
-                                                <div className="flex-1">
-                                                    <div className="flex items-center space-x-2 mb-2">
-                                                        <Badge variant="outline" className="text-xs">
-                                                            {doubt.subject.replace(/_/g, " ")}
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex flex-wrap items-center gap-2 mb-3">
+                                                        <Badge
+                                                            variant="outline"
+                                                            className="text-xs font-black border-2 border-black bg-blue-50 text-black uppercase tracking-wide"
+                                                        >
+                                                            {doubt.subject.replace(
+                                                                /_/g,
+                                                                " "
+                                                            )}
                                                         </Badge>
-                                                        <Badge className={`text-xs border ${getPriorityColor(doubt.priority)}`}>
+                                                        <Badge
+                                                            className={`text-xs font-black border-2 border-black uppercase tracking-wide ${getPriorityColor(
+                                                                doubt.priority
+                                                            )}`}
+                                                        >
                                                             {doubt.priority}
                                                         </Badge>
-                                                        <Badge className={`text-xs border ${getStatusColor(doubt.status)}`}>
+                                                        <Badge
+                                                            className={`text-xs font-black border-2 border-black uppercase tracking-wide ${getStatusColor(
+                                                                doubt.status
+                                                            )}`}
+                                                        >
                                                             {doubt.status}
                                                         </Badge>
                                                     </div>
-                                                    
-                                                    <h3 className="font-semibold text-slate-800 mb-2">
+
+                                                    <h3 className="font-black text-black mb-2 text-lg uppercase tracking-wide break-words">
                                                         {doubt.title}
                                                     </h3>
-                                                    
-                                                    <p className="text-slate-600 text-sm mb-4 line-clamp-2">
+
+                                                    <p className="text-black text-sm mb-4 font-bold break-words">
                                                         {doubt.description}
                                                     </p>
 
-                                                    <div className="flex items-center space-x-4 text-xs text-slate-500">
+                                                    <div className="flex items-center space-x-4 text-xs text-black font-bold">
                                                         <div className="flex items-center space-x-1">
                                                             <User className="h-3 w-3" />
-                                                            <span>
-                                                                {doubt.student.firstName} {doubt.student.lastName}
-                                                            </span>
+                                                            <Link
+                                                                href={`/profile/${doubt.student.id}`}
+                                                            >
+                                                                <span className="hover:text-blue-600 cursor-pointer transition-colors uppercase tracking-wide">
+                                                                    {
+                                                                        doubt
+                                                                            .student
+                                                                            .firstName
+                                                                    }{" "}
+                                                                    {
+                                                                        doubt
+                                                                            .student
+                                                                            .lastName
+                                                                    }
+                                                                </span>
+                                                            </Link>
                                                         </div>
                                                         <div className="flex items-center space-x-1">
                                                             <Calendar className="h-3 w-3" />
-                                                            <span>
-                                                                {new Date(doubt.createdAt).toLocaleDateString()}
+                                                            <span className="uppercase tracking-wide">
+                                                                {new Date(
+                                                                    doubt.createdAt
+                                                                ).toLocaleDateString()}
                                                             </span>
                                                         </div>
                                                     </div>
                                                 </div>
-                                                
-                                                <div className="ml-4">
-                                                    {doubt.status !== "RESOLVED" ? (
-                                                        <Link href={`/doubts/${doubt.id}/solve`}>
-                                                            <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+
+                                                <div className="ml-4 flex-shrink-0">
+                                                    {doubt.status !==
+                                                    "RESOLVED" ? (
+                                                        <Link
+                                                            href={`/doubts/${doubt.id}/solve`}
+                                                        >
+                                                            <Button
+                                                                size="sm"
+                                                                className="bg-blue-50 border-3 border-black text-black font-black uppercase tracking-wide hover:bg-blue-100 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_black] shadow-[2px_2px_0px_0px_black] transition-all duration-100"
+                                                            >
                                                                 <BookOpen className="h-4 w-4 mr-2" />
-                                                                Provide Solution
+                                                                Solve
                                                             </Button>
                                                         </Link>
                                                     ) : (
-                                                        <Badge className="bg-green-100 text-green-800">
+                                                        <Badge className="bg-green-50 text-black border-2 border-black font-black uppercase tracking-wide">
                                                             ✓ Solved
                                                         </Badge>
                                                     )}
@@ -294,14 +384,14 @@ export default function MyStudentsPage() {
                                     </Card>
                                 ))
                             ) : (
-                                <Card>
+                                <Card className="bg-white border-3 border-black shadow-[4px_4px_0px_0px_black]">
                                     <CardContent className="p-12 text-center">
-                                        <Users className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                                        <h3 className="text-lg font-semibold text-slate-800 mb-2">
+                                        <Users className="h-12 w-12 text-black mx-auto mb-4" />
+                                        <h3 className="text-lg font-black text-black mb-2 uppercase tracking-wide">
                                             No {activeTab} doubts
                                         </h3>
-                                        <p className="text-slate-600">
-                                            {activeTab === "pending" 
+                                        <p className="text-black font-bold">
+                                            {activeTab === "pending"
                                                 ? "No pending doubts from your students yet."
                                                 : "No resolved doubts yet."}
                                         </p>

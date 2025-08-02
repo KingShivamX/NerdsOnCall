@@ -2,12 +2,14 @@ package com.nerdsoncall.controller;
 
 import com.nerdsoncall.entity.User;
 import com.nerdsoncall.service.UserService;
+import com.nerdsoncall.service.DashboardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
@@ -16,6 +18,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private DashboardService dashboardService;
 
     @GetMapping("/profile")
     public ResponseEntity<?> getUserProfile(Authentication authentication) {
@@ -112,4 +117,45 @@ public class UserController {
             return ResponseEntity.badRequest().body("Failed to update online status: " + e.getMessage());
         }
     }
-} 
+
+
+
+    // Get user stats
+    @GetMapping("/{id}/stats")
+    public ResponseEntity<?> getUserStats(@PathVariable Long id) {
+        try {
+            User user = userService.findById(id)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            Map<String, Object> stats;
+            if (user.getRole() == User.Role.TUTOR) {
+                stats = dashboardService.getTutorDashboardStats(id);
+            } else {
+                stats = dashboardService.getStudentDashboardStats(id);
+            }
+
+            return ResponseEntity.ok(stats);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Failed to get user stats: " + e.getMessage());
+        }
+    }
+
+    // Get user reviews (for tutors)
+    @GetMapping("/{id}/reviews")
+    public ResponseEntity<?> getUserReviews(@PathVariable Long id) {
+        try {
+            User user = userService.findById(id)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // If user is not a tutor, return empty array instead of error
+            if (user.getRole() != User.Role.TUTOR) {
+                return ResponseEntity.ok(new java.util.ArrayList<>());
+            }
+
+            // For now, return empty array - you can implement review service later
+            return ResponseEntity.ok(new java.util.ArrayList<>());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Failed to get user reviews: " + e.getMessage());
+        }
+    }
+}

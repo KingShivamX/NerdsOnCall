@@ -23,30 +23,30 @@ export function Navbar() {
     }
 
     return (
-        <nav className="w-full border-b border-white/30 bg-gradient-to-r from-blue-100/95 via-purple-100/95 to-indigo-100/95 backdrop-blur-md sticky top-0 z-50 shadow-md">
+        <nav className="w-full border-b-3 py-1.5 border-black bg-yellow-300 sticky top-0 z-50 shadow-[0_3px_0px_0px_black]">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between items-center h-14 sm:h-16">
+                <div className="flex justify-between items-center h-12 sm:h-14">
                     {/* Logo */}
                     <Link
                         href={user ? "/dashboard" : "/"}
-                        className="flex items-center space-x-2"
+                        className="flex items-center space-x-2 hover:translate-x-[-1px] hover:translate-y-[-1px] transition-transform duration-100"
                     >
-                        <div className="w-7 h-7 sm:w-8 sm:h-8 bg-[#1D293D] rounded-lg flex items-center justify-center shadow-sm">
-                            <span className="text-white font-bold text-sm sm:text-base">
+                        <div className="w-8 h-8 sm:w-9 sm:h-9 bg-black border-2 border-black shadow-[3px_3px_0px_0px_black] flex items-center justify-center">
+                            <span className="text-white font-black text-sm sm:text-base">
                                 N
                             </span>
                         </div>
-                        <span className="text-lg sm:text-xl font-bold text-slate-800">
+                        <span className="text-lg sm:text-xl font-black text-black uppercase tracking-wide">
                             NerdsOnCall
                         </span>
                     </Link>
 
                     {/* Desktop Navigation */}
-                    <div className="hidden md:flex items-center space-x-6 lg:space-x-8">
+                    <div className="hidden md:flex items-center space-x-2 lg:space-x-3">
                         {!user && (
                             <Link
                                 href="/"
-                                className="text-slate-700 hover:text-slate-800 focus:text-slate-900 font-medium transition-colors duration-200 text-sm"
+                                className="text-black font-bold text-xs uppercase tracking-wide px-2 py-1 border-2 border-black bg-white shadow-[2px_2px_0px_0px_black] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_black] transition-all duration-100"
                             >
                                 Home
                             </Link>
@@ -54,7 +54,7 @@ export function Navbar() {
                         {user && (
                             <Link
                                 href="/dashboard"
-                                className="text-slate-700 hover:text-slate-800 focus:text-slate-900 font-medium transition-colors duration-200 text-sm"
+                                className="text-black font-bold text-xs uppercase tracking-wide px-2 py-1 border-2 border-black bg-white shadow-[2px_2px_0px_0px_black] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_black] transition-all duration-100"
                             >
                                 Dashboard
                             </Link>
@@ -62,57 +62,57 @@ export function Navbar() {
                         {user && (
                             <Link
                                 href="/questions"
-                                className="text-slate-700 hover:text-slate-800 focus:text-slate-900 font-medium transition-colors duration-200 text-sm"
+                                className="text-black font-bold text-xs uppercase tracking-wide px-2 py-1 border-2 border-black bg-white shadow-[2px_2px_0px_0px_black] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_black] transition-all duration-100"
                             >
                                 Explore
                             </Link>
                         )}
                         <Link
                             href="/chat"
-                            className="text-slate-700 hover:text-slate-800 focus:text-slate-900 font-medium transition-colors duration-200 text-sm"
+                            className="text-black font-bold text-xs uppercase tracking-wide px-2 py-1 border-2 border-black bg-cyan-400 shadow-[2px_2px_0px_0px_black] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_black] transition-all duration-100"
                         >
                             AI Assistant
                         </Link>
                         <Link
                             href="/features"
-                            className="text-slate-700 hover:text-slate-800 focus:text-slate-900 font-medium transition-colors duration-200 text-sm"
+                            className="text-black font-bold text-xs uppercase tracking-wide px-2 py-1 border-2 border-black bg-white shadow-[2px_2px_0px_0px_black] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_black] transition-all duration-100"
                         >
                             Features
                         </Link>
                         {(!user || user.role === "STUDENT") && (
                             <Link
                                 href="/pricing"
-                                className="text-slate-700 hover:text-slate-800 focus:text-slate-900 font-medium transition-colors duration-200 text-sm"
+                                className="text-black font-bold text-xs uppercase tracking-wide px-2 py-1 border-2 border-black bg-white shadow-[2px_2px_0px_0px_black] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_black] transition-all duration-100"
                             >
                                 Pricing
                             </Link>
                         )}
                         <Link
                             href="/about"
-                            className="text-slate-700 hover:text-slate-800 focus:text-slate-900 font-medium transition-colors duration-200 text-sm"
+                            className="text-black font-bold text-xs uppercase tracking-wide px-2 py-1 border-2 border-black bg-white shadow-[2px_2px_0px_0px_black] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_black] transition-all duration-100"
                         >
                             About
                         </Link>
                     </div>
 
                     {/* Desktop Auth Buttons */}
-                    <div className="hidden md:flex items-center space-x-3">
+                    <div className="hidden md:flex items-center space-x-2">
                         {user ? (
                             // Logged in user - show user info and sign out
                             <>
                                 <Link
-                                    href="/dashboard"
-                                    className="flex items-center space-x-2 text-sm text-slate-700"
+                                    href={`/profile/${user.id}`}
+                                    className="flex items-center space-x-1 text-xs font-bold text-black bg-pink-300 px-2 py-1 border-2 border-black shadow-[2px_2px_0px_0px_black] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_black] transition-all duration-100"
                                 >
-                                    <User className="h-4 w-4" />
+                                    <User className="h-3 w-3" />
                                     <span>Hi, {user.firstName}</span>
                                 </Link>
                                 <Button
-                                    variant="ghost"
+                                    variant="destructive"
                                     onClick={handleSignOut}
-                                    className="text-slate-700 hover:text-slate-800 focus:text-slate-900 hover:bg-slate-100 focus:bg-slate-200 active:bg-slate-300 px-3 py-1.5 text-sm font-medium h-8 focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
+                                    className="text-xs px-2 py-1 h-auto"
                                 >
-                                    <LogOut className="h-4 w-4 mr-1" />
+                                    <LogOut className="h-3 w-3 mr-1" />
                                     Sign Out
                                 </Button>
                             </>
@@ -121,14 +121,17 @@ export function Navbar() {
                             <>
                                 <Link href="/auth/login">
                                     <Button
-                                        variant="ghost"
-                                        className="text-slate-700 hover:text-slate-800 focus:text-slate-900 hover:bg-slate-100 focus:bg-slate-200 active:bg-slate-300 px-3 py-1.5 text-sm font-medium h-8 focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
+                                        variant="outline"
+                                        className="text-xs px-2 py-1 h-auto"
                                     >
                                         Sign In
                                     </Button>
                                 </Link>
                                 <Link href="/auth/register">
-                                    <Button className="bg-slate-800 hover:bg-slate-900 focus:bg-slate-900 active:bg-slate-950 text-white px-4 py-1.5 text-sm font-medium h-8 shadow-sm hover:shadow-md transition-all duration-200 focus:ring-2 focus:ring-slate-400 focus:ring-offset-2">
+                                    <Button
+                                        variant="default"
+                                        className="text-xs px-2 py-1 h-auto"
+                                    >
                                         Get Started
                                     </Button>
                                 </Link>
@@ -139,15 +142,14 @@ export function Navbar() {
                     {/* Mobile Menu Button */}
                     <div className="md:hidden">
                         <Button
-                            variant="ghost"
-                            size="sm"
+                            variant="outline"
+                            size="icon"
                             onClick={toggleMenu}
-                            className="text-slate-700 hover:text-slate-800 focus:text-slate-900 hover:bg-slate-100 focus:bg-slate-200 active:bg-slate-300 p-2 h-8 w-8 focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
                         >
                             {isMenuOpen ? (
-                                <X className="h-4 w-4" />
+                                <X className="h-5 w-5" />
                             ) : (
-                                <Menu className="h-4 w-4" />
+                                <Menu className="h-5 w-5" />
                             )}
                         </Button>
                     </div>
@@ -156,12 +158,12 @@ export function Navbar() {
 
             {/* Mobile Menu */}
             {isMenuOpen && (
-                <div className="md:hidden border-t border-white/30 bg-gradient-to-r from-blue-100/98 via-purple-100/98 to-indigo-100/98 backdrop-blur-md">
+                <div className="md:hidden border-t-4 border-black bg-orange-200">
                     <div className="px-4 py-4 space-y-3">
                         {!user && (
                             <Link
                                 href="/"
-                                className="block text-slate-700 hover:text-slate-800 focus:text-slate-900 font-medium py-2 px-3 rounded-md hover:bg-slate-100 focus:bg-slate-200 transition-colors duration-200 text-sm"
+                                className="block text-black font-bold text-sm uppercase tracking-wide py-3 px-4 border-2 border-black bg-white shadow-[2px_2px_0px_0px_black] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_black] transition-all duration-100"
                                 onClick={toggleMenu}
                             >
                                 Home
@@ -170,7 +172,7 @@ export function Navbar() {
                         {user && (
                             <Link
                                 href="/dashboard"
-                                className="block text-slate-700 hover:text-slate-800 focus:text-slate-900 font-medium py-2 px-3 rounded-md hover:bg-slate-100 focus:bg-slate-200 transition-colors duration-200 text-sm"
+                                className="block text-black font-bold text-sm uppercase tracking-wide py-3 px-4 border-2 border-black bg-white shadow-[2px_2px_0px_0px_black] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_black] transition-all duration-100"
                                 onClick={toggleMenu}
                             >
                                 Dashboard
@@ -178,8 +180,8 @@ export function Navbar() {
                         )}
                         {user && (
                             <Link
-                                href="/profile"
-                                className="block text-slate-700 hover:text-slate-800 focus:text-slate-900 font-medium py-2 px-3 rounded-md hover:bg-slate-100 focus:bg-slate-200 transition-colors duration-200 text-sm"
+                                href={`/profile/${user.id}`}
+                                className="block text-black font-bold text-sm uppercase tracking-wide py-3 px-4 border-2 border-black bg-pink-300 shadow-[2px_2px_0px_0px_black] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_black] transition-all duration-100"
                                 onClick={toggleMenu}
                             >
                                 Profile
@@ -188,7 +190,7 @@ export function Navbar() {
                         {user && (
                             <Link
                                 href="/questions"
-                                className="block text-slate-700 hover:text-slate-800 focus:text-slate-900 font-medium py-2 px-3 rounded-md hover:bg-slate-100 focus:bg-slate-200 transition-colors duration-200 text-sm"
+                                className="block text-black font-bold text-sm uppercase tracking-wide py-3 px-4 border-2 border-black bg-white shadow-[2px_2px_0px_0px_black] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_black] transition-all duration-100"
                                 onClick={toggleMenu}
                             >
                                 Explore
@@ -196,14 +198,14 @@ export function Navbar() {
                         )}
                         <Link
                             href="/chat"
-                            className="block text-slate-700 hover:text-slate-800 focus:text-slate-900 font-medium py-2 px-3 rounded-md hover:bg-slate-100 focus:bg-slate-200 transition-colors duration-200 text-sm"
+                            className="block text-black font-bold text-sm uppercase tracking-wide py-3 px-4 border-2 border-black bg-cyan-400 shadow-[2px_2px_0px_0px_black] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_black] transition-all duration-100"
                             onClick={toggleMenu}
                         >
                             AI Assistant
                         </Link>
                         <Link
                             href="/features"
-                            className="block text-slate-700 hover:text-slate-800 focus:text-slate-900 font-medium py-2 px-3 rounded-md hover:bg-slate-100 focus:bg-slate-200 transition-colors duration-200 text-sm"
+                            className="block text-black font-bold text-sm uppercase tracking-wide py-3 px-4 border-2 border-black bg-white shadow-[2px_2px_0px_0px_black] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_black] transition-all duration-100"
                             onClick={toggleMenu}
                         >
                             Features
@@ -211,7 +213,7 @@ export function Navbar() {
                         {(!user || user.role === "STUDENT") && (
                             <Link
                                 href="/pricing"
-                                className="block text-slate-700 hover:text-slate-800 focus:text-slate-900 font-medium py-2 px-3 rounded-md hover:bg-slate-100 focus:bg-slate-200 transition-colors duration-200 text-sm"
+                                className="block text-black font-bold text-sm uppercase tracking-wide py-3 px-4 border-2 border-black bg-white shadow-[2px_2px_0px_0px_black] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_black] transition-all duration-100"
                                 onClick={toggleMenu}
                             >
                                 Pricing
@@ -219,24 +221,20 @@ export function Navbar() {
                         )}
                         <Link
                             href="/about"
-                            className="block text-slate-700 hover:text-slate-800 focus:text-slate-900 font-medium py-2 px-3 rounded-md hover:bg-slate-100 focus:bg-slate-200 transition-colors duration-200 text-sm"
+                            className="block text-black font-bold text-sm uppercase tracking-wide py-3 px-4 border-2 border-black bg-white shadow-[2px_2px_0px_0px_black] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_black] transition-all duration-100"
                             onClick={toggleMenu}
                         >
                             About
                         </Link>
-                        <hr className="border-slate-200 my-3" />
-                        <div className="space-y-2">
+                        <div className="border-t-3 border-black my-4" />
+                        <div className="space-y-3">
                             {user ? (
                                 // Logged in user - show user info and sign out
                                 <>
-                                    <div className="flex items-center space-x-2 px-3 py-2 text-sm text-slate-700">
-                                        <User className="h-4 w-4" />
-                                        <span>Hi, {user.firstName}</span>
-                                    </div>
                                     <Button
-                                        variant="ghost"
+                                        variant="destructive"
                                         onClick={handleSignOut}
-                                        className="w-full justify-start text-slate-700 hover:text-slate-800 focus:text-slate-900 hover:bg-slate-100 focus:bg-slate-200 active:bg-slate-300 px-3 py-2 text-sm font-medium h-9 focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
+                                        className="w-full"
                                     >
                                         <LogOut className="h-4 w-4 mr-2" />
                                         Sign Out
@@ -247,8 +245,8 @@ export function Navbar() {
                                 <>
                                     <Link href="/auth/login">
                                         <Button
-                                            variant="ghost"
-                                            className="w-full justify-start text-slate-700 hover:text-slate-800 focus:text-slate-900 hover:bg-slate-100 focus:bg-slate-200 active:bg-slate-300 px-3 py-2 text-sm font-medium h-9 focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
+                                            variant="outline"
+                                            className="w-full"
                                             onClick={toggleMenu}
                                         >
                                             Sign In
@@ -256,7 +254,8 @@ export function Navbar() {
                                     </Link>
                                     <Link href="/auth/register">
                                         <Button
-                                            className="w-full bg-slate-800 hover:bg-slate-900 focus:bg-slate-900 active:bg-slate-950 text-white px-3 py-2 text-sm font-medium h-9 shadow-sm hover:shadow-md transition-all duration-200 focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
+                                            variant="default"
+                                            className="w-full"
                                             onClick={toggleMenu}
                                         >
                                             Get Started

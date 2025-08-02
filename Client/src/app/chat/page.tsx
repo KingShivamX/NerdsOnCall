@@ -65,29 +65,31 @@ export default function ChatPage() {
     ]
 
     return (
-        <div className="h-screen flex flex-col bg-slate-50">
+        <div className="h-screen flex flex-col bg-orange-100">
             <Navbar />
 
             {/* Chat Container */}
             <div className="flex-1 flex flex-col">
                 {/* Chat Header */}
-                <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-3 shadow-sm">
+                <div className="bg-black border-b-4 border-black px-4 py-4">
                     <div className="max-w-4xl mx-auto flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                                <Bot className="w-4 h-4 text-white" />
+                        <div className="flex items-center space-x-4">
+                            <div className="w-12 h-12 bg-cyan-300 border-3 border-black shadow-[4px_4px_0px_0px_black] flex items-center justify-center">
+                                <Bot className="w-6 h-6 text-black" />
                             </div>
                             <div>
-                                <h1 className="text-white font-medium text-base">
+                                <h1 className="text-white font-black text-xl uppercase tracking-wide">
                                     NerdsOnCall AI Assistant
                                 </h1>
-                                <div className="flex items-center space-x-2 text-xs text-white/80">
-                                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                                    <span>Online</span>
+                                <div className="flex items-center space-x-3 text-sm text-white font-bold">
+                                    <div className="w-3 h-3 bg-green-400 border border-black"></div>
+                                    <span className="uppercase tracking-wide">
+                                        Online
+                                    </span>
                                     {user && (
                                         <>
                                             <span>•</span>
-                                            <span>
+                                            <span className="uppercase tracking-wide">
                                                 {user.role === "STUDENT"
                                                     ? "Student"
                                                     : "Tutor"}{" "}
@@ -101,19 +103,17 @@ export default function ChatPage() {
 
                         <Button
                             onClick={handleClearChat}
-                            variant="ghost"
-                            size="sm"
-                            className="text-white hover:bg-white/20 transition-colors"
+                            className="bg-red-400 hover:bg-red-500 text-black border-3 border-black shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] transition-all font-black uppercase tracking-wide"
                             disabled={messages.length === 0}
                         >
-                            <Trash2 className="w-4 h-4 mr-1" />
-                            Clear
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Clear Chat
                         </Button>
                     </div>
                 </div>
 
                 {/* Messages Area */}
-                <div className="flex-1 overflow-hidden bg-white">
+                <div className="flex-1 overflow-hidden bg-yellow-100 border-4 border-black">
                     <div className="h-full max-w-4xl mx-auto flex flex-col">
                         <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
                             {messages.map((message) => (
@@ -124,15 +124,15 @@ export default function ChatPage() {
                             ))}
 
                             {isLoading && (
-                                <div className="flex items-start space-x-3">
-                                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center">
-                                        <Bot className="w-4 h-4 text-white" />
+                                <div className="flex items-start space-x-4">
+                                    <div className="flex-shrink-0 w-12 h-12 bg-black border-3 border-black shadow-[4px_4px_0px_0px_black] flex items-center justify-center">
+                                        <Bot className="w-6 h-6 text-cyan-300" />
                                     </div>
                                     <div className="flex-1">
-                                        <div className="inline-block p-3 rounded-xl bg-slate-100">
-                                            <div className="flex items-center space-x-2">
-                                                <Loader2 className="w-4 h-4 animate-spin text-slate-600" />
-                                                <span className="text-slate-600 text-sm">
+                                        <div className="inline-block p-4 bg-white border-3 border-black shadow-[4px_4px_0px_0px_black]">
+                                            <div className="flex items-center space-x-3">
+                                                <Loader2 className="w-5 h-5 animate-spin text-black" />
+                                                <span className="text-black text-sm font-bold uppercase tracking-wide">
                                                     AI is thinking...
                                                 </span>
                                             </div>
@@ -146,23 +146,22 @@ export default function ChatPage() {
 
                         {/* Quick Prompts */}
                         {messages.length === 0 && !isLoading && (
-                            <div className="px-6 py-4 border-t border-slate-200">
-                                <p className="text-sm text-slate-600 mb-3 font-medium">
-                                    Quick start prompts:
+                            <div className="px-6 py-6 border-t-4 border-black bg-pink-100">
+                                <p className="text-lg text-black mb-4 font-black uppercase tracking-wide">
+                                    Quick Start Prompts:
                                 </p>
-                                <div className="grid grid-cols-2 gap-2">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     {quickPrompts.map((prompt, index) => (
                                         <Button
                                             key={index}
                                             onClick={() =>
                                                 sendMessage(prompt.prompt)
                                             }
-                                            variant="ghost"
-                                            className="justify-start h-auto p-3 text-left hover:bg-slate-50 transition-colors border border-slate-200 rounded-lg"
+                                            className="justify-start h-auto p-4 text-left bg-white hover:bg-gray-100 border-3 border-black shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] transition-all"
                                             disabled={isLoading}
                                         >
-                                            <prompt.icon className="w-4 h-4 mr-2 text-blue-600 flex-shrink-0" />
-                                            <span className="text-sm text-slate-700">
+                                            <prompt.icon className="w-5 h-5 mr-3 text-black flex-shrink-0" />
+                                            <span className="text-sm text-black font-bold">
                                                 {prompt.text}
                                             </span>
                                         </Button>
@@ -172,7 +171,7 @@ export default function ChatPage() {
                         )}
 
                         {/* Input Area */}
-                        <div className="border-t border-slate-200 px-6">
+                        <div className="border-t-4 border-black px-6 bg-green-100">
                             <ChatInput
                                 onSendMessage={sendMessage}
                                 isLoading={isLoading}
