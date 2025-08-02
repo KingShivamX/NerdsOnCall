@@ -61,6 +61,10 @@ export default function DashboardPage() {
     const [subscription, setSubscription] = useState<Subscription | null>(null)
     const [subscriptionLoading, setSubscriptionLoading] = useState(false)
 
+    // User role checks
+    const isStudent = user?.role === "STUDENT"
+    const isTutor = user?.role === "TUTOR"
+
     // Fetch dashboard data for students
     const {
         dashboardData,
@@ -215,9 +219,6 @@ export default function DashboardPage() {
             </div>
         )
     }
-
-    const isStudent = user.role === "STUDENT"
-    const isTutor = user.role === "TUTOR"
 
     // Get subscription display text
     const getSubscriptionDisplay = () => {
@@ -427,24 +428,24 @@ export default function DashboardPage() {
 
                     {/* Tutor Stats - Real data from database */}
                     {isTutor && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8 lg:mb-10">
-                            <Card className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-lg group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 lg:mb-10">
+                            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 shadow-lg group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6">
-                                    <CardTitle className="text-sm font-medium text-slate-600">
+                                    <CardTitle className="text-sm font-medium text-blue-700">
                                         Sessions Taught
                                     </CardTitle>
-                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center">
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
                                         <Video className="h-5 w-5 text-white" />
                                     </div>
                                 </CardHeader>
                                 <CardContent className="px-4 sm:px-6">
-                                    <div className="text-2xl font-bold text-slate-800">
+                                    <div className="text-2xl font-bold text-blue-800">
                                         {tutorDashboardLoading
                                             ? "..."
                                             : tutorDashboardData?.sessionsTaught ||
                                               0}
                                     </div>
-                                    <p className="text-xs text-slate-600 mt-1">
+                                    <p className="text-xs text-blue-600 mt-1">
                                         <span
                                             className={`${
                                                 (tutorDashboardData
@@ -467,23 +468,23 @@ export default function DashboardPage() {
                                 </CardContent>
                             </Card>
 
-                            <Card className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-lg group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                            <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-200 shadow-lg group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6">
-                                    <CardTitle className="text-sm font-medium text-slate-600">
+                                    <CardTitle className="text-sm font-medium text-purple-700">
                                         Hours Taught
                                     </CardTitle>
-                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center">
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
                                         <Clock className="h-5 w-5 text-white" />
                                     </div>
                                 </CardHeader>
                                 <CardContent className="px-4 sm:px-6">
-                                    <div className="text-2xl font-bold text-slate-800">
+                                    <div className="text-2xl font-bold text-purple-800">
                                         {tutorDashboardLoading
                                             ? "..."
                                             : tutorDashboardData?.hoursTaught ||
                                               0}
                                     </div>
-                                    <p className="text-xs text-slate-600 mt-1">
+                                    <p className="text-xs text-purple-600 mt-1">
                                         <span
                                             className={`${
                                                 (tutorDashboardData
@@ -506,9 +507,9 @@ export default function DashboardPage() {
                                 </CardContent>
                             </Card>
 
-                            <Card className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-lg group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                            <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 border-2 border-emerald-200 shadow-lg group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6">
-                                    <CardTitle className="text-sm font-medium text-slate-600">
+                                    <CardTitle className="text-sm font-medium text-emerald-700">
                                         Total Earnings
                                     </CardTitle>
                                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center">
@@ -516,7 +517,7 @@ export default function DashboardPage() {
                                     </div>
                                 </CardHeader>
                                 <CardContent className="px-4 sm:px-6">
-                                    <div className="text-2xl font-bold text-slate-800">
+                                    <div className="text-2xl font-bold text-emerald-800">
                                         ₹
                                         {tutorDashboardLoading
                                             ? "..."
@@ -525,7 +526,7 @@ export default function DashboardPage() {
                                                       0
                                               )}
                                     </div>
-                                    <p className="text-xs text-slate-600 mt-1">
+                                    <p className="text-xs text-emerald-600 mt-1">
                                         <span
                                             className={`${
                                                 (tutorDashboardData
@@ -551,11 +552,21 @@ export default function DashboardPage() {
                     )}
 
                     {/* Main Content with improved mobile layout */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-                        {/* Left Column */}
-                        <div className="lg:col-span-2 space-y-6 lg:space-y-8">
+                    <div
+                        className={`${
+                            isTutor
+                                ? "grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8"
+                                : "space-y-6 lg:space-y-8"
+                        }`}
+                    >
+                        {/* Quick Actions Section */}
+                        <div
+                            className={`${
+                                isTutor ? "" : "space-y-6 lg:space-y-8"
+                            }`}
+                        >
                             {/* Quick Actions with mobile optimization */}
-                            <Card className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-lg">
+                            <Card className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-lg h-full">
                                 <CardHeader className="px-4 sm:px-6">
                                     <CardTitle className="flex items-center text-slate-800">
                                         <Zap className="w-5 h-5 mr-2 text-amber-500" />
@@ -566,41 +577,38 @@ export default function DashboardPage() {
                                     <div className="space-y-4">
                                         {isStudent ? (
                                             <>
-                                                {/* 2x2 Grid Layout */}
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                {/* 2x2 Grid Layout - Fixed 2x2 matrix */}
+                                                <div className="grid grid-cols-2 gap-3 sm:gap-4">
                                                     <Link href="/select-tutor">
                                                         <Button
                                                             variant="outline"
-                                                            className="bg-cyan-200 border-3 border-black text-black hover:bg-cyan-300 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_black] h-auto p-6 flex-col w-full group shadow-[2px_2px_0px_0px_black] transition-all duration-100"
+                                                            className="bg-cyan-200 border-3 border-black text-black hover:bg-cyan-300 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_black] h-auto p-2 sm:p-3 flex-col w-full group shadow-[2px_2px_0px_0px_black] transition-all duration-100 min-h-[120px] sm:min-h-[140px] max-h-[120px] sm:max-h-[140px] overflow-hidden"
                                                         >
-                                                            <div className="w-12 h-12 bg-black border-2 border-black flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                                                                <PlusCircle className="h-6 w-6 text-white group-hover:rotate-90 transition-transform" />
+                                                            <div className="w-10 h-10 bg-black border-2 border-black flex items-center justify-center mb-2 group-hover:scale-110 transition-transform flex-shrink-0">
+                                                                <PlusCircle className="h-5 w-5 text-white group-hover:rotate-90 transition-transform" />
                                                             </div>
-                                                            <span className="font-black text-lg text-black uppercase tracking-wide">
+                                                            <span className="font-black text-sm text-black uppercase tracking-wide mb-1 text-center">
                                                                 Ask a Doubt
                                                             </span>
-                                                            <span className="text-sm text-black font-bold">
+                                                            <span className="text-xs text-black font-bold text-center leading-tight px-1 line-clamp-2">
                                                                 Select a tutor
-                                                                and get
-                                                                personalized
-                                                                help
+                                                                and get help
                                                             </span>
                                                         </Button>
                                                     </Link>
                                                     <Link href="/my-questions">
                                                         <Button
                                                             variant="outline"
-                                                            className="bg-pink-200 border-3 border-black text-black hover:bg-pink-300 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_black] h-auto p-6 flex-col w-full group shadow-[2px_2px_0px_0px_black] transition-all duration-100"
+                                                            className="bg-pink-200 border-3 border-black text-black hover:bg-pink-300 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_black] h-auto p-2 sm:p-3 flex-col w-full group shadow-[2px_2px_0px_0px_black] transition-all duration-100 min-h-[120px] sm:min-h-[140px] max-h-[120px] sm:max-h-[140px] overflow-hidden"
                                                         >
-                                                            <div className="w-12 h-12 bg-black border-2 border-black flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                                                                <MessageCircle className="h-6 w-6 text-white group-hover:scale-110 transition-transform" />
+                                                            <div className="w-10 h-10 bg-black border-2 border-black flex items-center justify-center mb-2 group-hover:scale-110 transition-transform flex-shrink-0">
+                                                                <MessageCircle className="h-5 w-5 text-white group-hover:scale-110 transition-transform" />
                                                             </div>
-                                                            <span className="font-black text-lg text-black uppercase tracking-wide">
+                                                            <span className="font-black text-sm text-black uppercase tracking-wide mb-1 text-center">
                                                                 My Questions
                                                             </span>
-                                                            <span className="text-sm text-black font-bold">
+                                                            <span className="text-xs text-black font-bold text-center leading-tight px-1 line-clamp-2">
                                                                 Track your
-                                                                question
                                                                 progress
                                                             </span>
                                                         </Button>
@@ -608,35 +616,33 @@ export default function DashboardPage() {
                                                     <Link href="/browse-tutors">
                                                         <Button
                                                             variant="outline"
-                                                            className="bg-yellow-200 border-3 border-black text-black hover:bg-yellow-300 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_black] h-auto p-6 flex-col w-full group shadow-[2px_2px_0px_0px_black] transition-all duration-100"
+                                                            className="bg-yellow-200 border-3 border-black text-black hover:bg-yellow-300 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_black] h-auto p-2 sm:p-3 flex-col w-full group shadow-[2px_2px_0px_0px_black] transition-all duration-100 min-h-[120px] sm:min-h-[140px] max-h-[120px] sm:max-h-[140px] overflow-hidden"
                                                         >
-                                                            <div className="w-12 h-12 bg-black border-2 border-black flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                                                                <Users className="h-6 w-6 text-white group-hover:scale-110 transition-transform" />
+                                                            <div className="w-10 h-10 bg-black border-2 border-black flex items-center justify-center mb-2 group-hover:scale-110 transition-transform flex-shrink-0">
+                                                                <Users className="h-5 w-5 text-white group-hover:scale-110 transition-transform" />
                                                             </div>
-                                                            <span className="font-black text-lg text-black uppercase tracking-wide">
+                                                            <span className="font-black text-sm text-black uppercase tracking-wide mb-1 text-center">
                                                                 Find Tutors
                                                             </span>
-                                                            <span className="text-sm text-black font-bold">
+                                                            <span className="text-xs text-black font-bold text-center leading-tight px-1 line-clamp-2">
                                                                 Discover expert
-                                                                tutors in your
-                                                                subject
+                                                                tutors
                                                             </span>
                                                         </Button>
                                                     </Link>
                                                     <Link href="/my-sessions">
                                                         <Button
                                                             variant="outline"
-                                                            className="bg-green-200 border-3 border-black text-black hover:bg-green-300 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_black] h-auto p-6 flex-col w-full group shadow-[2px_2px_0px_0px_black] transition-all duration-100"
+                                                            className="bg-green-200 border-3 border-black text-black hover:bg-green-300 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_black] h-auto p-2 sm:p-3 flex-col w-full group shadow-[2px_2px_0px_0px_black] transition-all duration-100 min-h-[120px] sm:min-h-[140px] max-h-[120px] sm:max-h-[140px] overflow-hidden"
                                                         >
-                                                            <div className="w-12 h-12 bg-black border-2 border-black flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                                                                <Video className="h-6 w-6 text-white group-hover:scale-110 transition-transform" />
+                                                            <div className="w-10 h-10 bg-black border-2 border-black flex items-center justify-center mb-2 group-hover:scale-110 transition-transform flex-shrink-0">
+                                                                <Video className="h-5 w-5 text-white group-hover:scale-110 transition-transform" />
                                                             </div>
-                                                            <span className="font-black text-lg text-black uppercase tracking-wide">
+                                                            <span className="font-black text-sm text-black uppercase tracking-wide mb-1 text-center">
                                                                 My Sessions
                                                             </span>
-                                                            <span className="text-sm text-black font-bold">
-                                                                View your
-                                                                learning
+                                                            <span className="text-xs text-black font-bold text-center leading-tight px-1 line-clamp-2">
+                                                                View learning
                                                                 sessions
                                                             </span>
                                                         </Button>
@@ -661,163 +667,12 @@ export default function DashboardPage() {
                                     </div>
                                 </CardContent>
                             </Card>
-
-                            {/* Recent Activity with mobile optimization */}
-                            <Card className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-lg">
-                                <CardHeader className="px-4 sm:px-6">
-                                    <div className="flex items-center justify-between">
-                                        <CardTitle className="flex items-center text-slate-800">
-                                            <Clock className="w-5 h-5 mr-2 text-slate-600" />
-                                            Recent Activity
-                                        </CardTitle>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="text-slate-600 hover:text-slate-800"
-                                            onClick={
-                                                isStudent
-                                                    ? refetch
-                                                    : tutorRefetch
-                                            }
-                                            disabled={
-                                                isStudent
-                                                    ? dashboardLoading
-                                                    : tutorDashboardLoading
-                                            }
-                                        >
-                                            <RefreshCw
-                                                className={`w-4 h-4 mr-1 ${
-                                                    (
-                                                        isStudent
-                                                            ? dashboardLoading
-                                                            : tutorDashboardLoading
-                                                    )
-                                                        ? "animate-spin"
-                                                        : ""
-                                                }`}
-                                            />
-                                            Refresh
-                                        </Button>
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="px-4 sm:px-6">
-                                    <div className="space-y-4">
-                                        {(
-                                            isStudent
-                                                ? dashboardLoading
-                                                : tutorDashboardLoading
-                                        ) ? (
-                                            <div className="flex items-center justify-center py-8">
-                                                <BlockLoader
-                                                    size="sm"
-                                                    className="mr-2"
-                                                />
-                                                <span className="text-black font-bold uppercase tracking-wide">
-                                                    Loading activities...
-                                                </span>
-                                            </div>
-                                        ) : (
-                                              isStudent
-                                                  ? dashboardError
-                                                  : tutorDashboardError
-                                          ) ? (
-                                            <div className="text-center py-8">
-                                                <p className="text-slate-500 mb-2">
-                                                    Failed to load recent
-                                                    activities
-                                                </p>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={
-                                                        isStudent
-                                                            ? refetch
-                                                            : tutorRefetch
-                                                    }
-                                                    className="text-xs"
-                                                >
-                                                    <RefreshCw className="w-3 h-3 mr-1" />
-                                                    Retry
-                                                </Button>
-                                            </div>
-                                        ) : isStudent &&
-                                          (!dashboardData?.recentActivities ||
-                                              dashboardData.recentActivities
-                                                  .length === 0) ? (
-                                            <div className="text-center py-8">
-                                                <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-2" />
-                                                <p className="text-slate-500 text-sm">
-                                                    No recent activities
-                                                </p>
-                                                <p className="text-slate-400 text-xs">
-                                                    Start a session to see your
-                                                    activity here
-                                                </p>
-                                            </div>
-                                        ) : isTutor &&
-                                          (!tutorDashboardData?.recentActivities ||
-                                              tutorDashboardData
-                                                  .recentActivities.length ===
-                                                  0) ? (
-                                            <div className="text-center py-8">
-                                                <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-2" />
-                                                <p className="text-slate-500 text-sm">
-                                                    No recent activities
-                                                </p>
-                                                <p className="text-slate-400 text-xs">
-                                                    Teach a session to see your
-                                                    activity here
-                                                </p>
-                                            </div>
-                                        ) : (
-                                            (isStudent
-                                                ? dashboardData?.recentActivities
-                                                : tutorDashboardData?.recentActivities
-                                            )?.map((activity, index) => {
-                                                const IconComponent =
-                                                    getIconComponent(
-                                                        activity.icon
-                                                    )
-                                                return (
-                                                    <div
-                                                        key={index}
-                                                        className="flex items-start space-x-3 p-3 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer group"
-                                                    >
-                                                        <div
-                                                            className={`w-10 h-10 rounded-full ${activity.bg} flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}
-                                                        >
-                                                            <IconComponent
-                                                                className={`h-5 w-5 ${activity.color}`}
-                                                            />
-                                                        </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <p className="text-sm font-medium text-slate-800">
-                                                                {activity.title}
-                                                            </p>
-                                                            <p className="text-sm text-slate-600">
-                                                                {
-                                                                    activity.subtitle
-                                                                }
-                                                            </p>
-                                                            <p className="text-xs text-slate-500 mt-1">
-                                                                {activity.time}
-                                                            </p>
-                                                        </div>
-                                                        <ArrowRight className="w-4 h-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                                    </div>
-                                                )
-                                            })
-                                        )}
-                                    </div>
-                                </CardContent>
-                            </Card>
                         </div>
 
-                        {/* Right Column with mobile optimization */}
-                        <div className="space-y-6 lg:space-y-8">
-                            {/* Tutor Manage Profile */}
-                            {isTutor && (
-                                <Card className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-lg">
+                        {/* Manage Profile Section - Second Column for Tutors */}
+                        {isTutor && (
+                            <div>
+                                <Card className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-lg h-full">
                                     <CardHeader className="px-4 sm:px-6">
                                         <CardTitle className="flex items-center text-slate-800">
                                             <Settings className="w-5 h-5 mr-2 text-slate-600" />
@@ -906,9 +761,159 @@ export default function DashboardPage() {
                                         </div>
                                     </CardContent>
                                 </Card>
-                            )}
-                            {/* Tutor Student Requests Overview */}
-                        </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Recent Activity Section - Full Width */}
+                    <div className="mt-6 lg:mt-8">
+                        {/* Recent Activity with mobile optimization */}
+                        <Card className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-lg">
+                            <CardHeader className="px-4 sm:px-6">
+                                <div className="flex items-center justify-between">
+                                    <CardTitle className="flex items-center text-slate-800">
+                                        <Clock className="w-5 h-5 mr-2 text-slate-600" />
+                                        Recent Activity
+                                    </CardTitle>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="text-slate-600 hover:text-slate-800"
+                                        onClick={
+                                            isStudent ? refetch : tutorRefetch
+                                        }
+                                        disabled={
+                                            isStudent
+                                                ? dashboardLoading
+                                                : tutorDashboardLoading
+                                        }
+                                    >
+                                        <RefreshCw
+                                            className={`w-4 h-4 mr-1 ${
+                                                (
+                                                    isStudent
+                                                        ? dashboardLoading
+                                                        : tutorDashboardLoading
+                                                )
+                                                    ? "animate-spin"
+                                                    : ""
+                                            }`}
+                                        />
+                                        Refresh
+                                    </Button>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="px-4 sm:px-6">
+                                <div className="space-y-4">
+                                    {(
+                                        isStudent
+                                            ? dashboardLoading
+                                            : tutorDashboardLoading
+                                    ) ? (
+                                        <div className="flex items-center justify-center py-8">
+                                            <BlockLoader
+                                                size="sm"
+                                                className="mr-2"
+                                            />
+                                            <span className="text-black font-bold uppercase tracking-wide">
+                                                Loading activities...
+                                            </span>
+                                        </div>
+                                    ) : (
+                                          isStudent
+                                              ? dashboardError
+                                              : tutorDashboardError
+                                      ) ? (
+                                        <div className="text-center py-8">
+                                            <p className="text-slate-500 mb-2">
+                                                Failed to load recent activities
+                                            </p>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={
+                                                    isStudent
+                                                        ? refetch
+                                                        : tutorRefetch
+                                                }
+                                                className="text-xs"
+                                            >
+                                                <RefreshCw className="w-3 h-3 mr-1" />
+                                                Retry
+                                            </Button>
+                                        </div>
+                                    ) : isStudent &&
+                                      (!dashboardData?.recentActivities ||
+                                          dashboardData.recentActivities
+                                              .length === 0) ? (
+                                        <div className="text-center py-8">
+                                            <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-2" />
+                                            <p className="text-slate-500 text-sm">
+                                                No recent activities
+                                            </p>
+                                            <p className="text-slate-400 text-xs">
+                                                Start a session to see your
+                                                activity here
+                                            </p>
+                                        </div>
+                                    ) : isTutor &&
+                                      (!tutorDashboardData?.recentActivities ||
+                                          tutorDashboardData.recentActivities
+                                              .length === 0) ? (
+                                        <div className="text-center py-8">
+                                            <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-2" />
+                                            <p className="text-slate-500 text-sm">
+                                                No recent activities
+                                            </p>
+                                            <p className="text-slate-400 text-xs">
+                                                Teach a session to see your
+                                                activity here
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        (isStudent
+                                            ? dashboardData?.recentActivities
+                                            : tutorDashboardData?.recentActivities
+                                        )
+                                            ?.slice(0, 3)
+                                            .map((activity, index) => {
+                                                const IconComponent =
+                                                    getIconComponent(
+                                                        activity.icon
+                                                    )
+                                                return (
+                                                    <div
+                                                        key={index}
+                                                        className="flex items-start space-x-3 p-3 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer group"
+                                                    >
+                                                        <div
+                                                            className={`w-10 h-10 rounded-full ${activity.bg} flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}
+                                                        >
+                                                            <IconComponent
+                                                                className={`h-5 w-5 ${activity.color}`}
+                                                            />
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-sm font-medium text-slate-800">
+                                                                {activity.title}
+                                                            </p>
+                                                            <p className="text-sm text-slate-600">
+                                                                {
+                                                                    activity.subtitle
+                                                                }
+                                                            </p>
+                                                            <p className="text-xs text-slate-500 mt-1">
+                                                                {activity.time}
+                                                            </p>
+                                                        </div>
+                                                        <ArrowRight className="w-4 h-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                    </div>
+                                                )
+                                            })
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
                 </div>
             </div>

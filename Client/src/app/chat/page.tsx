@@ -71,8 +71,8 @@ export default function ChatPage() {
             {/* Chat Container */}
             <div className="flex-1 flex flex-col">
                 {/* Chat Header */}
-                <div className="bg-black border-b-4 border-black px-4 py-4">
-                    <div className="max-w-4xl mx-auto flex items-center justify-between">
+                <div className="bg-black border-b-4 border-black px-4 sm:px-6 lg:px-8 py-4">
+                    <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
                             <div className="w-12 h-12 bg-cyan-300 border-3 border-black shadow-[4px_4px_0px_0px_black] flex items-center justify-center">
                                 <Bot className="w-6 h-6 text-black" />
@@ -113,9 +113,9 @@ export default function ChatPage() {
                 </div>
 
                 {/* Messages Area */}
-                <div className="flex-1 overflow-hidden bg-yellow-100 border-4 border-black">
-                    <div className="h-full max-w-4xl mx-auto flex flex-col">
-                        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
+                <div className="flex-1 overflow-hidden bg-yellow-100 border-4 border-black mx-4 sm:mx-6 lg:mx-8 rounded-lg">
+                    <div className="h-full flex flex-col">
+                        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-6">
                             {messages.map((message) => (
                                 <ChatMessage
                                     key={message.id}
@@ -146,18 +146,18 @@ export default function ChatPage() {
 
                         {/* Quick Prompts */}
                         {messages.length === 0 && !isLoading && (
-                            <div className="px-6 py-6 border-t-4 border-black bg-pink-100">
-                                <p className="text-lg text-black mb-4 font-black uppercase tracking-wide">
+                            <div className="px-4 sm:px-6 py-4 border-t-4 border-black bg-pink-100">
+                                <p className="text-lg text-black mb-3 font-black uppercase tracking-wide text-center">
                                     Quick Start Prompts:
                                 </p>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     {quickPrompts.map((prompt, index) => (
                                         <Button
                                             key={index}
                                             onClick={() =>
                                                 sendMessage(prompt.prompt)
                                             }
-                                            className="justify-start h-auto p-4 text-left bg-white hover:bg-gray-100 border-3 border-black shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] transition-all"
+                                            className="justify-start h-auto p-3 text-left bg-white hover:bg-gray-100 border-3 border-black shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] transition-all"
                                             disabled={isLoading}
                                         >
                                             <prompt.icon className="w-5 h-5 mr-3 text-black flex-shrink-0" />
@@ -171,7 +171,7 @@ export default function ChatPage() {
                         )}
 
                         {/* Input Area */}
-                        <div className="border-t-4 border-black px-6 bg-green-100">
+                        <div className="border-t-4 border-black px-4 sm:px-6 bg-green-100">
                             <ChatInput
                                 onSendMessage={sendMessage}
                                 isLoading={isLoading}

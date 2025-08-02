@@ -28,7 +28,7 @@ export function Hero() {
 
                 {/* Subheading with reduced spacing */}
                 <div className="mb-10 sm:mb-12 lg:mb-16">
-                    <p className="text-lg sm:text-xl lg:text-2xl text-black font-bold max-w-4xl mx-auto leading-relaxed bg-white px-6 py-4 border-4 border-black shadow-[6px_6px_0px_0px_black] transform rotate-[1deg]">
+                    <p className="text-lg sm:text-xl lg:text-2xl text-black font-bold max-w-4xl mx-auto leading-relaxed bg-white px-6 py-4 border-4 border-black shadow-[6px_6px_0px_0px_black] transform rotate-[1deg] text-center">
                         Connect with elite tutors instantly for personalized
                         learning sessions featuring live video calls,
                         interactive whiteboards, and premium tools for academic

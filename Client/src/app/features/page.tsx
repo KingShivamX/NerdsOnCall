@@ -201,7 +201,7 @@ export default function FeaturesPage() {
                         Powerful Features for
                         <span className="text-black"> Modern Learning</span>
                     </h1>
-                    <p className="text-xl text-black max-w-3xl mx-auto mb-8 leading-relaxed font-bold">
+                    <p className="text-xl text-black max-w-3xl mx-auto mb-8 leading-relaxed font-bold text-center">
                         Discover how NerdsOnCall revolutionizes education with
                         cutting-edge technology, expert tutors, and innovative
                         learning tools designed for your success.

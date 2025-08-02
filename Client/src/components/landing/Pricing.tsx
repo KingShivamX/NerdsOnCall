@@ -215,7 +215,7 @@ export function Pricing() {
                     <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-black mb-3 sm:mb-4 lg:mb-6 leading-tight tracking-wide uppercase">
                         Simple, Transparent Pricing
                     </h2>
-                    <p className="text-base sm:text-lg text-black max-w-3xl mx-auto leading-relaxed font-bold">
+                    <p className="text-base sm:text-lg text-black max-w-3xl mx-auto leading-relaxed font-bold text-center">
                         Choose the perfect plan for your learning journey. All
                         plans include our core features with no hidden fees.
                     </p>
@@ -347,7 +347,7 @@ export function Pricing() {
                         <h3 className="text-lg sm:text-xl lg:text-2xl font-black text-black mb-3 sm:mb-4 uppercase tracking-wide">
                             Ready to Start Teaching?
                         </h3>
-                        <p className="text-black mb-6 sm:mb-8 text-sm sm:text-base lg:text-lg leading-relaxed max-w-xl mx-auto font-bold">
+                        <p className="text-black mb-6 sm:mb-8 text-sm sm:text-base lg:text-lg leading-relaxed max-w-xl mx-auto font-bold text-center">
                             Join our community of expert tutors and start
                             earning premium rates for your expertise.
                         </p>

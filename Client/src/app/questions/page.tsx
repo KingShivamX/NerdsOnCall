@@ -34,7 +34,7 @@ export default function QuestionsPage() {
                             <h1 className="text-4xl md:text-5xl font-black mb-6 uppercase tracking-wide">
                                 Community Questions
                             </h1>
-                            <p className="text-xl text-white font-bold mb-8 max-w-2xl mx-auto uppercase tracking-wide">
+                            <p className="text-xl text-white font-bold mb-8 max-w-2xl mx-auto uppercase tracking-wide text-center">
                                 {isTutor
                                     ? "Share your expertise and help students succeed by answering their questions"
                                     : "Get instant help from our community of expert tutors and fellow students"}

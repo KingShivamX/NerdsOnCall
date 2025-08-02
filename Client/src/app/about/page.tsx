@@ -106,7 +106,7 @@ export default function AboutPage() {
                                 One Student at a Time
                             </span>
                         </h1>
-                        <p className="text-xl text-black max-w-4xl mx-auto mb-8 leading-relaxed font-bold">
+                        <p className="text-xl text-black max-w-4xl mx-auto mb-8 leading-relaxed font-bold text-center">
                             We're on a mission to make quality education
                             accessible to every student, anywhere in the world.
                             Through innovative technology and expert tutors,

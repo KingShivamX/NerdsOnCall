@@ -51,7 +51,14 @@ export default function VideoCallPage() {
     const [isScreenSharing, setIsScreenSharing] = useState(false)
     const [showWhiteboard, setShowWhiteboard] = useState(false)
     const [showChat, setShowChat] = useState(false)
+    const [chatMessages, setChatMessages] = useState<any[]>([])
     const [otherUserName, setOtherUserName] = useState("")
+
+    // Focus mode states
+    const [focusMode, setFocusMode] = useState<"none" | "video" | "whiteboard">(
+        "none"
+    )
+    const [originalLayouts, setOriginalLayouts] = useState<any>(null)
 
     // Grid layout states
     const [layouts, setLayouts] = useState({
@@ -60,21 +67,30 @@ export default function VideoCallPage() {
             { i: "local-video", x: 8, y: 0, w: 4, h: 4, minW: 2, minH: 2 },
             { i: "chat", x: 8, y: 4, w: 4, h: 8, minW: 3, minH: 4 },
             { i: "whiteboard", x: 0, y: 8, w: 8, h: 6, minW: 4, minH: 4 },
-            { i: "controls", x: 0, y: 14, w: 12, h: 2, minW: 8, minH: 2 },
         ],
         md: [
             { i: "remote-video", x: 0, y: 0, w: 6, h: 6, minW: 4, minH: 4 },
             { i: "local-video", x: 6, y: 0, w: 4, h: 3, minW: 2, minH: 2 },
             { i: "chat", x: 6, y: 3, w: 4, h: 7, minW: 3, minH: 4 },
             { i: "whiteboard", x: 0, y: 6, w: 6, h: 6, minW: 4, minH: 4 },
-            { i: "controls", x: 0, y: 12, w: 10, h: 2, minW: 6, minH: 2 },
         ],
         sm: [
             { i: "remote-video", x: 0, y: 0, w: 6, h: 5, minW: 3, minH: 3 },
             { i: "local-video", x: 0, y: 5, w: 3, h: 3, minW: 2, minH: 2 },
             { i: "chat", x: 3, y: 5, w: 3, h: 5, minW: 2, minH: 4 },
-            { i: "whiteboard", x: 0, y: 8, w: 6, h: 5, minW: 3, minH: 4 },
-            { i: "controls", x: 0, y: 13, w: 6, h: 2, minW: 4, minH: 2 },
+            { i: "whiteboard", x: 0, y: 10, w: 6, h: 5, minW: 3, minH: 4 },
+        ],
+        xs: [
+            { i: "remote-video", x: 0, y: 0, w: 4, h: 4, minW: 2, minH: 2 },
+            { i: "local-video", x: 0, y: 4, w: 2, h: 2, minW: 1, minH: 1 },
+            { i: "chat", x: 2, y: 4, w: 2, h: 4, minW: 1, minH: 3 },
+            { i: "whiteboard", x: 0, y: 8, w: 4, h: 4, minW: 2, minH: 3 },
+        ],
+        xxs: [
+            { i: "remote-video", x: 0, y: 0, w: 2, h: 3, minW: 1, minH: 2 },
+            { i: "local-video", x: 0, y: 3, w: 1, h: 2, minW: 1, minH: 1 },
+            { i: "chat", x: 1, y: 3, w: 1, h: 3, minW: 1, minH: 2 },
+            { i: "whiteboard", x: 0, y: 6, w: 2, h: 3, minW: 1, minH: 2 },
         ],
     })
 
@@ -399,6 +415,13 @@ export default function VideoCallPage() {
         setIsAudioEnabled(false)
         setIsScreenSharing(false)
         setCallStatus("Idle")
+        setChatMessages([]) // Clear chat messages
+
+        // Reset focus mode
+        if (focusMode !== "none") {
+            exitFocusMode()
+        }
+
         isInCallRef.current = false
 
         // Update page title to indicate call ended
@@ -447,11 +470,473 @@ export default function VideoCallPage() {
                     console.log("📞 Other user left the call")
                     handleOtherUserEndCall()
                     break
+                case "chat_message":
+                    console.log("💬 Received chat message:", message.message)
+                    const chatMessage = {
+                        id: message.id || Date.now().toString(),
+                        userId: message.userId,
+                        userName: message.userName,
+                        message: message.message,
+                        timestamp: new Date(message.timestamp),
+                        type: "text",
+                    }
+                    setChatMessages((prev) => [...prev, chatMessage])
+                    break
+                case "user_typing":
+                    console.log("⌨️ User typing:", message.userName)
+                    // Typing indicators are handled by the ChatPanel component
+                    break
+                case "user-joined":
+                    console.log(
+                        "👋 User joined the session:",
+                        message.userName || message.from
+                    )
+                    // Handle user joined event if needed
+                    break
                 default:
                     console.log("Unknown message type:", message.type)
             }
         } catch (error) {
             console.error("Error handling WebSocket message:", error)
+        }
+    }
+
+    const sendChatMessage = (messageText: string) => {
+        if (!socketRef.current || !user) {
+            console.log("❌ Cannot send chat message: no socket or user")
+            return
+        }
+
+        const message = {
+            type: "chat_message",
+            sessionId,
+            userId: user.id,
+            userName: `${user.firstName} ${user.lastName}`,
+            message: messageText,
+            timestamp: new Date().toISOString(),
+            id: Date.now().toString(),
+        }
+
+        console.log("📤 Sending chat message from main component:", message)
+        socketRef.current.send(JSON.stringify(message))
+    }
+
+    // Focus mode functions
+    const enterFocusMode = (mode: "video" | "whiteboard") => {
+        if (focusMode === "none") {
+            // Save current layouts
+            setOriginalLayouts(layouts)
+        }
+
+        setFocusMode(mode)
+        console.log(`🎯 Entering ${mode} focus mode`)
+
+        // Create focus layouts
+        const focusLayouts = {
+            lg:
+                mode === "video"
+                    ? [
+                          {
+                              i: "remote-video",
+                              x: 0,
+                              y: 0,
+                              w: 9,
+                              h: 12,
+                              minW: 6,
+                              minH: 8,
+                          },
+                          {
+                              i: "local-video",
+                              x: 9,
+                              y: 0,
+                              w: 3,
+                              h: 3,
+                              minW: 2,
+                              minH: 2,
+                          },
+                          {
+                              i: "chat",
+                              x: 9,
+                              y: 3,
+                              w: 3,
+                              h: 5,
+                              minW: 2,
+                              minH: 4,
+                          },
+                          {
+                              i: "whiteboard",
+                              x: 9,
+                              y: 8,
+                              w: 3,
+                              h: 4,
+                              minW: 2,
+                              minH: 3,
+                          },
+                      ]
+                    : [
+                          {
+                              i: "whiteboard",
+                              x: 0,
+                              y: 0,
+                              w: 9,
+                              h: 12,
+                              minW: 6,
+                              minH: 8,
+                          },
+                          {
+                              i: "remote-video",
+                              x: 9,
+                              y: 0,
+                              w: 3,
+                              h: 4,
+                              minW: 2,
+                              minH: 3,
+                          },
+                          {
+                              i: "local-video",
+                              x: 9,
+                              y: 4,
+                              w: 3,
+                              h: 3,
+                              minW: 2,
+                              minH: 2,
+                          },
+                          {
+                              i: "chat",
+                              x: 9,
+                              y: 7,
+                              w: 3,
+                              h: 5,
+                              minW: 2,
+                              minH: 4,
+                          },
+                      ],
+            md:
+                mode === "video"
+                    ? [
+                          {
+                              i: "remote-video",
+                              x: 0,
+                              y: 0,
+                              w: 7,
+                              h: 10,
+                              minW: 5,
+                              minH: 6,
+                          },
+                          {
+                              i: "local-video",
+                              x: 7,
+                              y: 0,
+                              w: 3,
+                              h: 3,
+                              minW: 2,
+                              minH: 2,
+                          },
+                          {
+                              i: "chat",
+                              x: 7,
+                              y: 3,
+                              w: 3,
+                              h: 4,
+                              minW: 2,
+                              minH: 3,
+                          },
+                          {
+                              i: "whiteboard",
+                              x: 7,
+                              y: 7,
+                              w: 3,
+                              h: 3,
+                              minW: 2,
+                              minH: 2,
+                          },
+                      ]
+                    : [
+                          {
+                              i: "whiteboard",
+                              x: 0,
+                              y: 0,
+                              w: 7,
+                              h: 10,
+                              minW: 5,
+                              minH: 6,
+                          },
+                          {
+                              i: "remote-video",
+                              x: 7,
+                              y: 0,
+                              w: 3,
+                              h: 4,
+                              minW: 2,
+                              minH: 3,
+                          },
+                          {
+                              i: "local-video",
+                              x: 7,
+                              y: 4,
+                              w: 3,
+                              h: 3,
+                              minW: 2,
+                              minH: 2,
+                          },
+                          {
+                              i: "chat",
+                              x: 7,
+                              y: 7,
+                              w: 3,
+                              h: 3,
+                              minW: 2,
+                              minH: 2,
+                          },
+                      ],
+            sm:
+                mode === "video"
+                    ? [
+                          {
+                              i: "remote-video",
+                              x: 0,
+                              y: 0,
+                              w: 6,
+                              h: 8,
+                              minW: 4,
+                              minH: 5,
+                          },
+                          {
+                              i: "local-video",
+                              x: 0,
+                              y: 8,
+                              w: 2,
+                              h: 2,
+                              minW: 1,
+                              minH: 1,
+                          },
+                          {
+                              i: "chat",
+                              x: 2,
+                              y: 8,
+                              w: 2,
+                              h: 3,
+                              minW: 1,
+                              minH: 2,
+                          },
+                          {
+                              i: "whiteboard",
+                              x: 4,
+                              y: 8,
+                              w: 2,
+                              h: 3,
+                              minW: 1,
+                              minH: 2,
+                          },
+                      ]
+                    : [
+                          {
+                              i: "whiteboard",
+                              x: 0,
+                              y: 0,
+                              w: 6,
+                              h: 8,
+                              minW: 4,
+                              minH: 5,
+                          },
+                          {
+                              i: "remote-video",
+                              x: 0,
+                              y: 8,
+                              w: 3,
+                              h: 3,
+                              minW: 2,
+                              minH: 2,
+                          },
+                          {
+                              i: "local-video",
+                              x: 3,
+                              y: 8,
+                              w: 1,
+                              h: 2,
+                              minW: 1,
+                              minH: 1,
+                          },
+                          {
+                              i: "chat",
+                              x: 4,
+                              y: 8,
+                              w: 2,
+                              h: 3,
+                              minW: 1,
+                              minH: 2,
+                          },
+                      ],
+            xs:
+                mode === "video"
+                    ? [
+                          {
+                              i: "remote-video",
+                              x: 0,
+                              y: 0,
+                              w: 4,
+                              h: 6,
+                              minW: 3,
+                              minH: 4,
+                          },
+                          {
+                              i: "local-video",
+                              x: 0,
+                              y: 6,
+                              w: 1,
+                              h: 2,
+                              minW: 1,
+                              minH: 1,
+                          },
+                          {
+                              i: "chat",
+                              x: 1,
+                              y: 6,
+                              w: 1,
+                              h: 2,
+                              minW: 1,
+                              minH: 1,
+                          },
+                          {
+                              i: "whiteboard",
+                              x: 2,
+                              y: 6,
+                              w: 2,
+                              h: 2,
+                              minW: 1,
+                              minH: 1,
+                          },
+                      ]
+                    : [
+                          {
+                              i: "whiteboard",
+                              x: 0,
+                              y: 0,
+                              w: 4,
+                              h: 6,
+                              minW: 3,
+                              minH: 4,
+                          },
+                          {
+                              i: "remote-video",
+                              x: 0,
+                              y: 6,
+                              w: 2,
+                              h: 2,
+                              minW: 1,
+                              minH: 1,
+                          },
+                          {
+                              i: "local-video",
+                              x: 2,
+                              y: 6,
+                              w: 1,
+                              h: 1,
+                              minW: 1,
+                              minH: 1,
+                          },
+                          {
+                              i: "chat",
+                              x: 3,
+                              y: 6,
+                              w: 1,
+                              h: 2,
+                              minW: 1,
+                              minH: 1,
+                          },
+                      ],
+            xxs:
+                mode === "video"
+                    ? [
+                          {
+                              i: "remote-video",
+                              x: 0,
+                              y: 0,
+                              w: 2,
+                              h: 5,
+                              minW: 2,
+                              minH: 3,
+                          },
+                          {
+                              i: "local-video",
+                              x: 0,
+                              y: 5,
+                              w: 1,
+                              h: 1,
+                              minW: 1,
+                              minH: 1,
+                          },
+                          {
+                              i: "chat",
+                              x: 1,
+                              y: 5,
+                              w: 1,
+                              h: 2,
+                              minW: 1,
+                              minH: 1,
+                          },
+                          {
+                              i: "whiteboard",
+                              x: 0,
+                              y: 7,
+                              w: 2,
+                              h: 2,
+                              minW: 1,
+                              minH: 1,
+                          },
+                      ]
+                    : [
+                          {
+                              i: "whiteboard",
+                              x: 0,
+                              y: 0,
+                              w: 2,
+                              h: 5,
+                              minW: 2,
+                              minH: 3,
+                          },
+                          {
+                              i: "remote-video",
+                              x: 0,
+                              y: 5,
+                              w: 2,
+                              h: 2,
+                              minW: 1,
+                              minH: 1,
+                          },
+                          {
+                              i: "local-video",
+                              x: 0,
+                              y: 7,
+                              w: 1,
+                              h: 1,
+                              minW: 1,
+                              minH: 1,
+                          },
+                          {
+                              i: "chat",
+                              x: 1,
+                              y: 7,
+                              w: 1,
+                              h: 2,
+                              minW: 1,
+                              minH: 1,
+                          },
+                      ],
+        }
+
+        // Apply the new layouts
+        setLayouts(focusLayouts)
+        console.log(`✅ Applied ${mode} focus layout`)
+    }
+
+    const exitFocusMode = () => {
+        console.log("🔄 Exiting focus mode")
+        setFocusMode("none")
+        if (originalLayouts) {
+            setLayouts(originalLayouts)
+            setOriginalLayouts(null)
+            console.log("✅ Restored original layout")
         }
     }
 
@@ -1031,7 +1516,7 @@ export default function VideoCallPage() {
     return (
         <div className="min-h-screen bg-orange-100 text-black relative overflow-hidden">
             {/* Grid Layout Container */}
-            <div className="h-screen p-4 pb-24 overflow-hidden">
+            <div className="h-screen p-4 pb-20 overflow-hidden">
                 <ResponsiveGridLayout
                     className="layout"
                     layouts={layouts}
@@ -1045,14 +1530,14 @@ export default function VideoCallPage() {
                         xxs: 0,
                     }}
                     cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-                    rowHeight={50}
-                    compactType="vertical"
-                    preventCollision={false}
+                    rowHeight={60}
+                    compactType={null}
+                    preventCollision={true}
                     isDraggable={true}
                     isResizable={true}
                     draggableHandle=".react-grid-draghandle"
-                    margin={[8, 8]}
-                    containerPadding={[8, 8]}
+                    margin={[10, 10]}
+                    containerPadding={[10, 10]}
                 >
                     {/* Remote Video Card */}
                     <div
@@ -1067,14 +1552,35 @@ export default function VideoCallPage() {
                                         {otherUserName || "Remote User"}
                                     </span>
                                 </div>
-                                <div
-                                    className={`px-2 py-1 text-xs font-black uppercase tracking-wide border-2 border-white ${
-                                        callStatus === "Connected"
-                                            ? "bg-green-400 text-black"
-                                            : "bg-red-400 text-black"
-                                    }`}
-                                >
-                                    {callStatus}
+                                <div className="flex items-center space-x-2">
+                                    {focusMode === "video" ? (
+                                        <Button
+                                            onClick={exitFocusMode}
+                                            className="px-2 py-1 text-xs bg-yellow-400 hover:bg-yellow-500 text-black border-2 border-white font-black uppercase tracking-wide"
+                                            title="Exit Focus Mode"
+                                        >
+                                            EXIT
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            onClick={() =>
+                                                enterFocusMode("video")
+                                            }
+                                            className="px-2 py-1 text-xs bg-blue-400 hover:bg-blue-500 text-black border-2 border-white font-black uppercase tracking-wide"
+                                            title="Focus on Video"
+                                        >
+                                            FOCUS
+                                        </Button>
+                                    )}
+                                    <div
+                                        className={`px-2 py-1 text-xs font-black uppercase tracking-wide border-2 border-white ${
+                                            callStatus === "Connected"
+                                                ? "bg-green-400 text-black"
+                                                : "bg-red-400 text-black"
+                                        }`}
+                                    >
+                                        {callStatus}
+                                    </div>
                                 </div>
                             </div>
                             <div className="flex-1 relative bg-black overflow-hidden">
@@ -1176,16 +1682,37 @@ export default function VideoCallPage() {
                                         Collaborative Whiteboard
                                     </span>
                                 </div>
-                                <Button
-                                    onClick={toggleWhiteboard}
-                                    className={`px-2 py-1 text-xs border-2 border-black font-black uppercase tracking-wide ${
-                                        showWhiteboard
-                                            ? "bg-red-300 hover:bg-red-400 text-black"
-                                            : "bg-blue-300 hover:bg-blue-400 text-black"
-                                    }`}
-                                >
-                                    {showWhiteboard ? "Close" : "Open"}
-                                </Button>
+                                <div className="flex items-center space-x-2">
+                                    {focusMode === "whiteboard" ? (
+                                        <Button
+                                            onClick={exitFocusMode}
+                                            className="px-2 py-1 text-xs bg-yellow-400 hover:bg-yellow-500 text-black border-2 border-black font-black uppercase tracking-wide"
+                                            title="Exit Focus Mode"
+                                        >
+                                            EXIT
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            onClick={() =>
+                                                enterFocusMode("whiteboard")
+                                            }
+                                            className="px-2 py-1 text-xs bg-purple-400 hover:bg-purple-500 text-black border-2 border-black font-black uppercase tracking-wide"
+                                            title="Focus on Whiteboard"
+                                        >
+                                            FOCUS
+                                        </Button>
+                                    )}
+                                    <Button
+                                        onClick={toggleWhiteboard}
+                                        className={`px-2 py-1 text-xs border-2 border-black font-black uppercase tracking-wide ${
+                                            showWhiteboard
+                                                ? "bg-red-300 hover:bg-red-400 text-black"
+                                                : "bg-blue-300 hover:bg-blue-400 text-black"
+                                        }`}
+                                    >
+                                        {showWhiteboard ? "Close" : "Open"}
+                                    </Button>
+                                </div>
                             </div>
                             <div className="flex-1 relative react-grid-no-drag">
                                 {showWhiteboard ? (
@@ -1239,8 +1766,12 @@ export default function VideoCallPage() {
                                 {showChat ? (
                                     <ChatPanel
                                         sessionId={sessionId}
-                                        user={user}
+                                        isOpen={showChat}
+                                        onClose={() => setShowChat(false)}
                                         socket={socketRef.current}
+                                        user={user}
+                                        messages={chatMessages}
+                                        onSendMessage={sendChatMessage}
                                     />
                                 ) : (
                                     <div className="flex items-center justify-center h-full bg-yellow-100">
@@ -1255,211 +1786,128 @@ export default function VideoCallPage() {
                             </div>
                         </div>
                     </div>
-
-                    {/* Controls Card */}
-                    <div
-                        key="controls"
-                        className="bg-black border-4 border-black shadow-[8px_8px_0px_0px_black] overflow-hidden"
-                    >
-                        <div className="h-full flex items-center justify-center">
-                            <div className="flex items-center space-x-4">
-                                {/* Audio Toggle */}
-                                <Button
-                                    onClick={toggleAudio}
-                                    className={`p-3 border-3 border-white shadow-[4px_4px_0px_0px_white] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_white] transition-all font-black ${
-                                        isAudioEnabled
-                                            ? "bg-green-400 hover:bg-green-500 text-black"
-                                            : "bg-red-400 hover:bg-red-500 text-black"
-                                    }`}
-                                >
-                                    {isAudioEnabled ? (
-                                        <Mic className="h-5 w-5" />
-                                    ) : (
-                                        <MicOff className="h-5 w-5" />
-                                    )}
-                                </Button>
-
-                                {/* Video Toggle */}
-                                <Button
-                                    onClick={toggleVideo}
-                                    className={`p-3 border-3 border-white shadow-[4px_4px_0px_0px_white] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_white] transition-all font-black ${
-                                        isVideoEnabled
-                                            ? "bg-green-400 hover:bg-green-500 text-black"
-                                            : "bg-red-400 hover:bg-red-500 text-black"
-                                    }`}
-                                >
-                                    {isVideoEnabled ? (
-                                        <Video className="h-5 w-5" />
-                                    ) : (
-                                        <VideoOff className="h-5 w-5" />
-                                    )}
-                                </Button>
-
-                                {/* Screen Share Toggle */}
-                                <Button
-                                    onClick={toggleScreenShare}
-                                    className={`p-3 border-3 border-white shadow-[4px_4px_0px_0px_white] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_white] transition-all font-black ${
-                                        isScreenSharing
-                                            ? "bg-blue-400 hover:bg-blue-500 text-black"
-                                            : "bg-gray-400 hover:bg-gray-500 text-black"
-                                    }`}
-                                >
-                                    {isScreenSharing ? (
-                                        <MonitorOff className="h-5 w-5" />
-                                    ) : (
-                                        <Monitor className="h-5 w-5" />
-                                    )}
-                                </Button>
-
-                                {/* Whiteboard Toggle */}
-                                <Button
-                                    onClick={toggleWhiteboard}
-                                    className={`p-3 border-3 border-white shadow-[4px_4px_0px_0px_white] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_white] transition-all font-black ${
-                                        showWhiteboard
-                                            ? "bg-green-400 hover:bg-green-500 text-black"
-                                            : "bg-gray-400 hover:bg-gray-500 text-black"
-                                    }`}
-                                >
-                                    <PenTool className="h-5 w-5" />
-                                </Button>
-
-                                {/* Chat Toggle */}
-                                <Button
-                                    onClick={() => setShowChat(!showChat)}
-                                    className={`p-3 border-3 border-white shadow-[4px_4px_0px_0px_white] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_white] transition-all font-black ${
-                                        showChat
-                                            ? "bg-yellow-400 hover:bg-yellow-500 text-black"
-                                            : "bg-gray-400 hover:bg-gray-500 text-black"
-                                    }`}
-                                >
-                                    <MessageSquare className="h-5 w-5" />
-                                </Button>
-
-                                {/* Start/End Call */}
-                                {callStatus === "Idle" ? (
-                                    <Button
-                                        onClick={startCall}
-                                        className="p-3 bg-green-500 hover:bg-green-600 text-white border-3 border-white shadow-[4px_4px_0px_0px_white] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_white] transition-all font-black"
-                                    >
-                                        <Phone className="h-5 w-5" />
-                                    </Button>
-                                ) : (
-                                    <Button
-                                        onClick={endCall}
-                                        className="p-3 bg-red-500 hover:bg-red-600 text-white border-3 border-white shadow-[4px_4px_0px_0px_white] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_white] transition-all font-black"
-                                    >
-                                        <PhoneOff className="h-5 w-5" />
-                                    </Button>
-                                )}
-
-                                {/* Call Status */}
-                                <div className="ml-4 px-4 py-2 bg-white text-black border-3 border-white shadow-[4px_4px_0px_0px_white] font-black uppercase tracking-wide">
-                                    {status}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </ResponsiveGridLayout>
             </div>
 
-            {/* Fixed Bottom Controls Bar */}
+            {/* Fixed Always-Visible Controls Bar */}
             <div className="fixed bottom-0 left-0 right-0 bg-black border-t-4 border-black shadow-[0px_-8px_0px_0px_black] z-50">
-                <div className="flex items-center justify-center p-4 space-x-4">
+                <div className="flex items-center justify-center p-3 space-x-3">
                     {/* Audio Toggle */}
                     <Button
                         onClick={toggleAudio}
-                        className={`p-3 border-3 border-white shadow-[4px_4px_0px_0px_white] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_white] transition-all font-black ${
+                        className={`p-2 border-2 border-white shadow-[3px_3px_0px_0px_white] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[4px_4px_0px_0px_white] transition-all font-black ${
                             isAudioEnabled
                                 ? "bg-green-400 hover:bg-green-500 text-black"
                                 : "bg-red-400 hover:bg-red-500 text-black"
                         }`}
+                        title={isAudioEnabled ? "Mute Audio" : "Unmute Audio"}
                     >
                         {isAudioEnabled ? (
-                            <Mic className="h-5 w-5" />
+                            <Mic className="h-4 w-4" />
                         ) : (
-                            <MicOff className="h-5 w-5" />
+                            <MicOff className="h-4 w-4" />
                         )}
                     </Button>
 
                     {/* Video Toggle */}
                     <Button
                         onClick={toggleVideo}
-                        className={`p-3 border-3 border-white shadow-[4px_4px_0px_0px_white] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_white] transition-all font-black ${
+                        className={`p-2 border-2 border-white shadow-[3px_3px_0px_0px_white] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[4px_4px_0px_0px_white] transition-all font-black ${
                             isVideoEnabled
                                 ? "bg-green-400 hover:bg-green-500 text-black"
                                 : "bg-red-400 hover:bg-red-500 text-black"
                         }`}
+                        title={
+                            isVideoEnabled ? "Turn Off Video" : "Turn On Video"
+                        }
                     >
                         {isVideoEnabled ? (
-                            <Video className="h-5 w-5" />
+                            <Video className="h-4 w-4" />
                         ) : (
-                            <VideoOff className="h-5 w-5" />
+                            <VideoOff className="h-4 w-4" />
                         )}
                     </Button>
 
                     {/* Screen Share Toggle */}
                     <Button
                         onClick={toggleScreenShare}
-                        className={`p-3 border-3 border-white shadow-[4px_4px_0px_0px_white] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_white] transition-all font-black ${
+                        className={`p-2 border-2 border-white shadow-[3px_3px_0px_0px_white] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[4px_4px_0px_0px_white] transition-all font-black ${
                             isScreenSharing
                                 ? "bg-blue-400 hover:bg-blue-500 text-black"
                                 : "bg-gray-400 hover:bg-gray-500 text-black"
                         }`}
+                        title={
+                            isScreenSharing
+                                ? "Stop Screen Share"
+                                : "Share Screen"
+                        }
                     >
                         {isScreenSharing ? (
-                            <MonitorOff className="h-5 w-5" />
+                            <MonitorOff className="h-4 w-4" />
                         ) : (
-                            <Monitor className="h-5 w-5" />
+                            <Monitor className="h-4 w-4" />
                         )}
                     </Button>
 
                     {/* Whiteboard Toggle */}
                     <Button
                         onClick={toggleWhiteboard}
-                        className={`p-3 border-3 border-white shadow-[4px_4px_0px_0px_white] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_white] transition-all font-black ${
+                        className={`p-2 border-2 border-white shadow-[3px_3px_0px_0px_white] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[4px_4px_0px_0px_white] transition-all font-black ${
                             showWhiteboard
                                 ? "bg-green-400 hover:bg-green-500 text-black"
                                 : "bg-gray-400 hover:bg-gray-500 text-black"
                         }`}
+                        title={
+                            showWhiteboard
+                                ? "Close Whiteboard"
+                                : "Open Whiteboard"
+                        }
                     >
-                        <PenTool className="h-5 w-5" />
+                        <PenTool className="h-4 w-4" />
                     </Button>
 
                     {/* Chat Toggle */}
                     <Button
                         onClick={() => setShowChat(!showChat)}
-                        className={`p-3 border-3 border-white shadow-[4px_4px_0px_0px_white] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_white] transition-all font-black ${
+                        className={`p-2 border-2 border-white shadow-[3px_3px_0px_0px_white] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[4px_4px_0px_0px_white] transition-all font-black ${
                             showChat
                                 ? "bg-yellow-400 hover:bg-yellow-500 text-black"
                                 : "bg-gray-400 hover:bg-gray-500 text-black"
                         }`}
+                        title={showChat ? "Close Chat" : "Open Chat"}
                     >
-                        <MessageSquare className="h-5 w-5" />
+                        <MessageSquare className="h-4 w-4" />
                     </Button>
+
+                    {/* Focus Mode Indicator */}
+                    {focusMode !== "none" && (
+                        <div className="px-3 py-1 bg-yellow-400 text-black border-2 border-white font-black uppercase tracking-wide text-xs">
+                            {focusMode} FOCUS
+                        </div>
+                    )}
 
                     {/* Start/End Call */}
                     {callStatus === "Idle" ? (
                         <Button
                             onClick={startCall}
-                            className="p-4 bg-green-500 hover:bg-green-600 text-white border-3 border-white shadow-[4px_4px_0px_0px_white] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_white] transition-all font-black text-lg"
+                            className="p-3 bg-green-500 hover:bg-green-600 text-white border-2 border-white shadow-[3px_3px_0px_0px_white] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[4px_4px_0px_0px_white] transition-all font-black"
                             title="Start Call"
                         >
-                            <Phone className="h-6 w-6" />
+                            <Phone className="h-5 w-5" />
                         </Button>
                     ) : (
                         <Button
                             onClick={endCall}
-                            className="p-4 bg-red-500 hover:bg-red-600 text-white border-3 border-white shadow-[4px_4px_0px_0px_white] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_white] transition-all font-black text-lg"
+                            className="p-3 bg-red-500 hover:bg-red-600 text-white border-2 border-white shadow-[3px_3px_0px_0px_white] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[4px_4px_0px_0px_white] transition-all font-black"
                             title="End Call"
                         >
-                            <PhoneOff className="h-6 w-6" />
+                            <PhoneOff className="h-5 w-5" />
                         </Button>
                     )}
 
                     {/* Call Status */}
-                    <div className="ml-4 px-4 py-2 bg-white text-black border-3 border-white shadow-[4px_4px_0px_0px_white] font-black uppercase tracking-wide">
-                        {callStatus === "Idle" ? "Ready to Call" : callStatus} (
-                        {callStatus})
+                    <div className="px-3 py-1 bg-white text-black border-2 border-white shadow-[3px_3px_0px_0px_white] font-black uppercase tracking-wide text-xs">
+                        {callStatus === "Idle" ? "Ready" : callStatus}
                     </div>
                 </div>
             </div>
