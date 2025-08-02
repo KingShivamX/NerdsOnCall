@@ -11,6 +11,7 @@ import {
     User,
     BookOpen,
 } from "lucide-react"
+import { BlockLoader } from "@/components/ui/Loader"
 import { api } from "@/lib/api"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
@@ -162,9 +163,11 @@ export default function SubmitSolutionPage() {
             <div className="min-h-screen flex flex-col">
                 <Navbar />
                 <main className="flex-grow flex items-center justify-center">
-                    <div className="flex items-center gap-3 text-gray-600">
-                        <Loader2 className="h-6 w-6 animate-spin" />
-                        <span className="text-lg">Loading question...</span>
+                    <div className="flex items-center gap-4 text-black">
+                        <BlockLoader size="lg" />
+                        <span className="text-lg font-bold uppercase tracking-wide">
+                            Loading question...
+                        </span>
                     </div>
                 </main>
                 <Footer />
@@ -442,7 +445,10 @@ export default function SubmitSolutionPage() {
                                     >
                                         {isSubmitting ? (
                                             <>
-                                                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                                <BlockLoader
+                                                    size="sm"
+                                                    className="mr-2"
+                                                />
                                                 Submitting Solution...
                                             </>
                                         ) : (

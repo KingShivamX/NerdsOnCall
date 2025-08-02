@@ -176,14 +176,14 @@ export default function SolveDoubtPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-slate-50">
+            <div className="min-h-screen bg-green-200">
                 <Navbar />
                 <div className="pt-20 pb-10">
                     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <Card>
+                        <Card className="bg-yellow-400">
                             <CardContent className="p-12 text-center">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-600 mx-auto"></div>
-                                <p className="mt-4 text-slate-600">
+                                <div className="w-12 h-12 border-4 border-black border-t-transparent animate-spin mx-auto bg-white shadow-[4px_4px_0px_0px_black]"></div>
+                                <p className="mt-6 text-black text-xl font-black uppercase tracking-wide bg-white px-4 py-2 border-3 border-black shadow-[3px_3px_0px_0px_black]">
                                     Loading doubt details...
                                 </p>
                             </CardContent>

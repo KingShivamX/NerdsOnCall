@@ -8,6 +8,7 @@ import { useDashboard } from "@/hooks/useDashboard"
 import { useTutorDashboard } from "@/hooks/useTutorDashboard"
 import { Subscription } from "@/types"
 import { Navbar } from "@/components/layout/Navbar"
+import { Footer } from "@/components/layout/Footer"
 import { Button } from "@/components/ui/Button"
 import {
     Card,
@@ -19,6 +20,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { BlockLoader } from "@/components/ui/Loader"
 
 import {
     BookOpen,
@@ -170,12 +172,14 @@ export default function DashboardPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-gray-100">
+            <div className="min-h-screen flex items-center justify-center bg-purple-200">
                 <div className="text-center">
-                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center shadow-lg animate-pulse">
-                        <Crown className="h-8 w-8 text-amber-400" />
+                    <div className="w-24 h-24 mx-auto mb-6 bg-yellow-400 border-4 border-black shadow-[8px_8px_0px_0px_black] flex items-center justify-center animate-bounce">
+                        <Crown className="h-12 w-12 text-black" />
                     </div>
-                    <p className="text-slate-600">Loading your dashboard...</p>
+                    <p className="text-black text-2xl font-black uppercase tracking-wide bg-white px-6 py-3 border-4 border-black shadow-[4px_4px_0px_0px_black]">
+                        Loading your dashboard...
+                    </p>
                 </div>
             </div>
         )
@@ -183,23 +187,26 @@ export default function DashboardPage() {
 
     if (!user) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-gray-100 px-4">
-                <Card className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-xl p-6 sm:p-8 max-w-md mx-auto w-full">
-                    <CardHeader className="text-center pb-6">
-                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center shadow-lg">
-                            <Crown className="h-8 w-8 text-amber-400" />
+            <div className="min-h-screen flex items-center justify-center bg-orange-200 px-4">
+                <Card className="bg-red-400 max-w-md mx-auto w-full">
+                    <CardHeader className="text-center">
+                        <div className="w-20 h-20 mx-auto mb-6 bg-black border-4 border-white shadow-[6px_6px_0px_0px_white] flex items-center justify-center">
+                            <Crown className="h-10 w-10 text-yellow-400" />
                         </div>
-                        <CardTitle className="text-2xl font-bold text-slate-800">
+                        <CardTitle className="text-3xl font-black text-black mb-4 uppercase tracking-wide">
                             Access Required
                         </CardTitle>
-                        <CardDescription className="text-slate-600">
+                        <CardDescription className="text-black text-lg font-bold bg-white px-4 py-2 border-3 border-black shadow-[3px_3px_0px_0px_black]">
                             Please log in to access your premium dashboard
                         </CardDescription>
                     </CardHeader>
                     <div className="flex justify-center mt-6">
                         <Link href="/auth/login">
-                            <Button className="bg-gradient-to-r from-slate-700 to-slate-900 hover:from-slate-800 hover:to-slate-950 text-white border-0 w-full sm:w-auto">
-                                <Crown className="w-4 h-4 mr-2" />
+                            <Button
+                                variant="default"
+                                className="w-full sm:w-auto"
+                            >
+                                <Crown className="w-5 h-5 mr-2" />
                                 Sign In Now
                             </Button>
                         </Link>
@@ -227,54 +234,48 @@ export default function DashboardPage() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-purple-200">
             <Navbar />
-            <div className="pt-20 pb-10">
+            <div className="pt-24 pb-12">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     {/* Header with mobile optimization */}
-                    <div className="mb-8 lg:mb-10">
-                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 lg:gap-0">
+                    <div className="mb-10 lg:mb-12">
+                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 lg:gap-0">
                             <div className="px-2 sm:px-0">
-                                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-800 mb-2 leading-tight">
+                                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-black mb-4 leading-tight uppercase tracking-wide">
                                     Welcome back,{" "}
                                     <Link
                                         href={`/profile/${user.id}`}
-                                        className="hover:text-blue-600 transition-colors cursor-pointer"
+                                        className="hover:translate-x-[-2px] hover:translate-y-[-2px] transition-transform duration-100 cursor-pointer bg-yellow-400 px-2 py-1 border-2 border-black shadow-[2px_2px_0px_0px_black] inline-block"
                                     >
                                         {user.firstName}
                                     </Link>
                                     !
                                 </h1>
-                                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2">
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                                     <Badge
                                         variant={
                                             isTutor
                                                 ? "default"
-                                                : getSubscriptionVariant()
-                                        }
-                                        className={`w-fit ${
-                                            isTutor
-                                                ? "bg-slate-700 text-white border-0"
                                                 : subscription &&
                                                   subscription.status ===
                                                       "ACTIVE"
-                                                ? "bg-green-100 text-green-700 border-green-200"
-                                                : !subscription
-                                                ? "bg-red-100 text-red-700 border-red-200"
-                                                : "bg-slate-100 text-slate-700"
-                                        }`}
+                                                ? "secondary"
+                                                : "destructive"
+                                        }
+                                        className="w-fit text-base"
                                     >
                                         {isTutor && (
-                                            <Crown className="w-4 h-4 mr-1" />
+                                            <Crown className="w-5 h-5 mr-2" />
                                         )}
                                         {isTutor
                                             ? "Elite Tutor"
                                             : getSubscriptionDisplay()}
                                     </Badge>
-                                    <span className="hidden sm:inline text-slate-400">
+                                    <span className="hidden sm:inline text-black font-bold text-xl">
                                         •
                                     </span>
-                                    <span className="text-slate-600 text-sm">
+                                    <span className="text-black text-lg font-bold uppercase tracking-wide">
                                         Dashboard
                                     </span>
                                 </div>
@@ -309,27 +310,27 @@ export default function DashboardPage() {
 
                     {/* Load Data Button for Students */}
                     {isStudent && !dashboardData && !dashboardLoading && (
-                        <div className="mb-6">
-                            <Card className="border-blue-200 bg-blue-50">
-                                <CardContent className="px-6 py-4">
-                                    <div className="flex items-center justify-between">
+                        <div className="mb-8">
+                            <Card className="bg-cyan-300">
+                                <CardContent>
+                                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                                         <div>
-                                            <h3 className="text-lg font-semibold text-blue-800 mb-1">
+                                            <h3 className="text-xl font-black text-black mb-2 uppercase tracking-wide">
                                                 Welcome to Your Dashboard!
                                             </h3>
-                                            <p className="text-blue-600 text-sm">
-                                                Click the button to load your
+                                            <p className="text-black text-base font-bold">
                                                 learning statistics and recent
                                                 activities.
                                             </p>
                                         </div>
                                         <Button
                                             onClick={refetch}
-                                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                                            variant="default"
                                             disabled={dashboardLoading}
+                                            className="w-full sm:w-auto"
                                         >
                                             <RefreshCw
-                                                className={`w-4 h-4 mr-2 ${
+                                                className={`w-5 h-5 mr-2 ${
                                                     dashboardLoading
                                                         ? "animate-spin"
                                                         : ""
@@ -345,22 +346,25 @@ export default function DashboardPage() {
 
                     {/* Stats Cards - Only for Students */}
                     {isStudent && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-8 lg:mb-10">
-                            <Card className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-lg group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6">
-                                    <CardTitle className="text-sm font-medium text-slate-600">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 mb-10 lg:mb-12">
+                            <Card className="bg-yellow-300">
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                                    <CardTitle className="text-base font-black text-black uppercase tracking-wide">
                                         Sessions Attended
                                     </CardTitle>
-                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center">
-                                        <Video className="h-5 w-5 text-white" />
+                                    <div className="w-12 h-12 bg-black border-3 border-black shadow-[4px_4px_0px_0px_black] flex items-center justify-center">
+                                        <Video className="h-6 w-6 text-white" />
                                     </div>
                                 </CardHeader>
-                                <CardContent className="px-4 sm:px-6">
-                                    <div className="text-2xl font-bold text-slate-800">
+                                <CardContent>
+                                    <div className="text-3xl font-black text-black">
                                         {dashboardLoading ? (
                                             <div className="flex items-center">
-                                                <div className="w-6 h-6 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin mr-2"></div>
-                                                <span className="text-lg">
+                                                <BlockLoader
+                                                    size="sm"
+                                                    className="mr-3"
+                                                />
+                                                <span className="text-2xl">
                                                     ...
                                                 </span>
                                             </div>
@@ -368,27 +372,30 @@ export default function DashboardPage() {
                                             dashboardData?.sessionsAttended || 0
                                         )}
                                     </div>
-                                    <p className="text-xs text-slate-600 mt-1">
+                                    <p className="text-sm text-black font-bold mt-2 uppercase tracking-wide">
                                         Completed sessions
                                     </p>
                                 </CardContent>
                             </Card>
 
-                            <Card className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-lg group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6">
-                                    <CardTitle className="text-sm font-medium text-slate-600">
+                            <Card className="bg-pink-300">
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                                    <CardTitle className="text-base font-black text-black uppercase tracking-wide">
                                         Hours Learned
                                     </CardTitle>
-                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center">
-                                        <Clock className="h-5 w-5 text-white" />
+                                    <div className="w-12 h-12 bg-black border-3 border-black shadow-[4px_4px_0px_0px_black] flex items-center justify-center">
+                                        <Clock className="h-6 w-6 text-white" />
                                     </div>
                                 </CardHeader>
-                                <CardContent className="px-4 sm:px-6">
-                                    <div className="text-2xl font-bold text-slate-800">
+                                <CardContent>
+                                    <div className="text-3xl font-black text-black">
                                         {dashboardLoading ? (
                                             <div className="flex items-center">
-                                                <div className="w-6 h-6 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin mr-2"></div>
-                                                <span className="text-lg">
+                                                <BlockLoader
+                                                    size="sm"
+                                                    className="mr-3"
+                                                />
+                                                <span className="text-2xl">
                                                     ...
                                                 </span>
                                             </div>
@@ -398,12 +405,12 @@ export default function DashboardPage() {
                                             }h`
                                         )}
                                     </div>
-                                    <p className="text-xs text-slate-600 mt-1">
+                                    <p className="text-sm text-black font-bold mt-2 uppercase tracking-wide">
                                         Actual learning time
                                     </p>
                                     {dashboardData &&
                                         dashboardData.hoursLearned > 0 && (
-                                            <p className="text-xs text-blue-600 mt-1">
+                                            <p className="text-sm text-black font-bold mt-2 bg-white px-2 py-1 border-2 border-black shadow-[2px_2px_0px_0px_black] inline-block">
                                                 {Math.round(
                                                     (dashboardData.hoursLearned /
                                                         (dashboardData.sessionsAttended ||
@@ -556,75 +563,85 @@ export default function DashboardPage() {
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="px-4 sm:px-6">
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="space-y-4">
                                         {isStudent ? (
                                             <>
-                                                <Link href="/select-tutor">
-                                                    <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white border-0 h-auto p-6 flex-col w-full group shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                                                        <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                                                            <PlusCircle className="h-6 w-6 group-hover:rotate-90 transition-transform" />
-                                                        </div>
-                                                        <span className="font-bold text-lg">
-                                                            Ask a Doubt
-                                                        </span>
-                                                        <span className="text-sm opacity-90">
-                                                            Select a tutor and
-                                                            get personalized
-                                                            help
-                                                        </span>
-                                                    </Button>
-                                                </Link>
-                                                <Link href="/browse-tutors">
-                                                    <Button
-                                                        variant="outline"
-                                                        className="bg-white border-2 border-slate-300 text-slate-700 hover:bg-gradient-to-r hover:from-slate-50 hover:to-slate-100 h-auto p-6 flex-col w-full group shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
-                                                    >
-                                                        <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mb-3 group-hover:bg-slate-200 transition-colors">
-                                                            <Users className="h-6 w-6 text-slate-600 group-hover:scale-110 transition-transform" />
-                                                        </div>
-                                                        <span className="font-bold text-slate-700">
-                                                            Browse Tutors
-                                                        </span>
-                                                        <span className="text-sm text-slate-600">
-                                                            Find expert tutors
-                                                            in your subject
-                                                        </span>
-                                                    </Button>
-                                                </Link>
-                                                <Link href="/my-sessions">
-                                                    <Button
-                                                        variant="outline"
-                                                        className="bg-white border-2 border-slate-300 text-slate-700 hover:bg-gradient-to-r hover:from-slate-50 hover:to-slate-100 h-auto p-6 flex-col w-full group shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
-                                                    >
-                                                        <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mb-3 group-hover:bg-slate-200 transition-colors">
-                                                            <Video className="h-6 w-6 text-slate-600 group-hover:scale-110 transition-transform" />
-                                                        </div>
-                                                        <span className="font-bold text-slate-700">
-                                                            My Sessions
-                                                        </span>
-                                                        <span className="text-sm text-slate-600">
-                                                            View your learning
-                                                            sessions
-                                                        </span>
-                                                    </Button>
-                                                </Link>
-                                                <Link href="/my-questions">
-                                                    <Button
-                                                        variant="outline"
-                                                        className="bg-white border-2 border-slate-300 text-slate-700 hover:bg-gradient-to-r hover:from-slate-50 hover:to-slate-100 h-auto p-6 flex-col w-full group shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
-                                                    >
-                                                        <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mb-3 group-hover:bg-slate-200 transition-colors">
-                                                            <MessageCircle className="h-6 w-6 text-slate-600 group-hover:scale-110 transition-transform" />
-                                                        </div>
-                                                        <span className="font-bold text-slate-700">
-                                                            My Questions
-                                                        </span>
-                                                        <span className="text-sm text-slate-600">
-                                                            Track your question
-                                                            progress
-                                                        </span>
-                                                    </Button>
-                                                </Link>
+                                                {/* 2x2 Grid Layout */}
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                    <Link href="/select-tutor">
+                                                        <Button
+                                                            variant="outline"
+                                                            className="bg-cyan-200 border-3 border-black text-black hover:bg-cyan-300 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_black] h-auto p-6 flex-col w-full group shadow-[2px_2px_0px_0px_black] transition-all duration-100"
+                                                        >
+                                                            <div className="w-12 h-12 bg-black border-2 border-black flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                                                <PlusCircle className="h-6 w-6 text-white group-hover:rotate-90 transition-transform" />
+                                                            </div>
+                                                            <span className="font-black text-lg text-black uppercase tracking-wide">
+                                                                Ask a Doubt
+                                                            </span>
+                                                            <span className="text-sm text-black font-bold">
+                                                                Select a tutor
+                                                                and get
+                                                                personalized
+                                                                help
+                                                            </span>
+                                                        </Button>
+                                                    </Link>
+                                                    <Link href="/my-questions">
+                                                        <Button
+                                                            variant="outline"
+                                                            className="bg-pink-200 border-3 border-black text-black hover:bg-pink-300 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_black] h-auto p-6 flex-col w-full group shadow-[2px_2px_0px_0px_black] transition-all duration-100"
+                                                        >
+                                                            <div className="w-12 h-12 bg-black border-2 border-black flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                                                <MessageCircle className="h-6 w-6 text-white group-hover:scale-110 transition-transform" />
+                                                            </div>
+                                                            <span className="font-black text-lg text-black uppercase tracking-wide">
+                                                                My Questions
+                                                            </span>
+                                                            <span className="text-sm text-black font-bold">
+                                                                Track your
+                                                                question
+                                                                progress
+                                                            </span>
+                                                        </Button>
+                                                    </Link>
+                                                    <Link href="/browse-tutors">
+                                                        <Button
+                                                            variant="outline"
+                                                            className="bg-yellow-200 border-3 border-black text-black hover:bg-yellow-300 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_black] h-auto p-6 flex-col w-full group shadow-[2px_2px_0px_0px_black] transition-all duration-100"
+                                                        >
+                                                            <div className="w-12 h-12 bg-black border-2 border-black flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                                                <Users className="h-6 w-6 text-white group-hover:scale-110 transition-transform" />
+                                                            </div>
+                                                            <span className="font-black text-lg text-black uppercase tracking-wide">
+                                                                Find Tutors
+                                                            </span>
+                                                            <span className="text-sm text-black font-bold">
+                                                                Discover expert
+                                                                tutors in your
+                                                                subject
+                                                            </span>
+                                                        </Button>
+                                                    </Link>
+                                                    <Link href="/my-sessions">
+                                                        <Button
+                                                            variant="outline"
+                                                            className="bg-green-200 border-3 border-black text-black hover:bg-green-300 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_black] h-auto p-6 flex-col w-full group shadow-[2px_2px_0px_0px_black] transition-all duration-100"
+                                                        >
+                                                            <div className="w-12 h-12 bg-black border-2 border-black flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                                                <Video className="h-6 w-6 text-white group-hover:scale-110 transition-transform" />
+                                                            </div>
+                                                            <span className="font-black text-lg text-black uppercase tracking-wide">
+                                                                My Sessions
+                                                            </span>
+                                                            <span className="text-sm text-black font-bold">
+                                                                View your
+                                                                learning
+                                                                sessions
+                                                            </span>
+                                                        </Button>
+                                                    </Link>
+                                                </div>
                                             </>
                                         ) : (
                                             <>
@@ -691,8 +708,11 @@ export default function DashboardPage() {
                                                 : tutorDashboardLoading
                                         ) ? (
                                             <div className="flex items-center justify-center py-8">
-                                                <div className="w-6 h-6 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin mr-2"></div>
-                                                <span className="text-slate-600">
+                                                <BlockLoader
+                                                    size="sm"
+                                                    className="mr-2"
+                                                />
+                                                <span className="text-black font-bold uppercase tracking-wide">
                                                     Loading activities...
                                                 </span>
                                             </div>
@@ -795,85 +815,6 @@ export default function DashboardPage() {
 
                         {/* Right Column with mobile optimization */}
                         <div className="space-y-6 lg:space-y-8">
-                            {/* Student Quick Stats */}
-                            {isStudent && (
-                                <Card className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-lg">
-                                    <CardHeader className="px-4 sm:px-6">
-                                        <CardTitle className="flex items-center text-slate-800">
-                                            <GraduationCap className="w-5 h-5 mr-2 text-slate-600" />
-                                            Quick Overview
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="px-4 sm:px-6">
-                                        <div className="space-y-4">
-                                            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                                                <div className="flex items-center space-x-3">
-                                                    <div className="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center">
-                                                        <Video className="h-4 w-4 text-white" />
-                                                    </div>
-                                                    <span className="text-sm font-medium text-slate-700">
-                                                        Active Sessions
-                                                    </span>
-                                                </div>
-                                                <span className="text-sm text-slate-600">
-                                                    {dashboardLoading ? (
-                                                        <div className="w-4 h-4 border border-slate-300 border-t-slate-600 rounded-full animate-spin"></div>
-                                                    ) : (
-                                                        dashboardData?.activeSessions ||
-                                                        0
-                                                    )}
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                                                <div className="flex items-center space-x-3">
-                                                    <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center">
-                                                        <MessageCircle className="h-4 w-4 text-white" />
-                                                    </div>
-                                                    <span className="text-sm font-medium text-slate-700">
-                                                        Open Questions
-                                                    </span>
-                                                </div>
-                                                <span className="text-sm text-slate-600">
-                                                    {dashboardLoading ? (
-                                                        <div className="w-4 h-4 border border-slate-300 border-t-slate-600 rounded-full animate-spin"></div>
-                                                    ) : (
-                                                        dashboardData?.openQuestions ||
-                                                        0
-                                                    )}
-                                                </span>
-                                            </div>
-
-                                            {/* Subscription Status */}
-                                            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                                                <div className="flex items-center space-x-3">
-                                                    <div
-                                                        className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                                                            subscription &&
-                                                            subscription.status ===
-                                                                "ACTIVE"
-                                                                ? "bg-green-500"
-                                                                : "bg-red-500"
-                                                        }`}
-                                                    >
-                                                        <Crown className="h-4 w-4 text-white" />
-                                                    </div>
-                                                    <span className="text-sm font-medium text-slate-700">
-                                                        Subscription
-                                                    </span>
-                                                </div>
-                                                <span className="text-sm text-slate-600">
-                                                    {subscriptionLoading ? (
-                                                        <div className="w-4 h-4 border border-slate-300 border-t-slate-600 rounded-full animate-spin"></div>
-                                                    ) : (
-                                                        getSubscriptionDisplay()
-                                                    )}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            )}
-
                             {/* Tutor Manage Profile */}
                             {isTutor && (
                                 <Card className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-lg">
@@ -926,7 +867,7 @@ export default function DashboardPage() {
                                                     }`}
                                                 >
                                                     {updatingStatus ? (
-                                                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                                                        <BlockLoader size="sm" />
                                                     ) : (
                                                         <>
                                                             {isOnline ? (
@@ -971,6 +912,7 @@ export default function DashboardPage() {
                     </div>
                 </div>
             </div>
+            <Footer />
         </div>
     )
 }

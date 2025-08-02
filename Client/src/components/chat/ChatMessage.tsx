@@ -29,7 +29,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
 
     return (
         <div
-            className={`flex items-start space-x-3 ${
+            className={`flex items-start space-x-4 ${
                 message.role === "user"
                     ? "flex-row-reverse space-x-reverse"
                     : ""
@@ -37,16 +37,14 @@ export function ChatMessage({ message }: ChatMessageProps) {
         >
             {/* Avatar */}
             <div
-                className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                    message.role === "user"
-                        ? "bg-blue-600"
-                        : "bg-gradient-to-r from-purple-600 to-blue-600"
+                className={`flex-shrink-0 w-12 h-12 border-3 border-black shadow-[4px_4px_0px_0px_black] flex items-center justify-center ${
+                    message.role === "user" ? "bg-pink-300" : "bg-cyan-300"
                 }`}
             >
                 {message.role === "user" ? (
-                    <User className="w-4 h-4 text-white" />
+                    <User className="w-6 h-6 text-black" />
                 ) : (
-                    <Bot className="w-4 h-4 text-white" />
+                    <Bot className="w-6 h-6 text-black" />
                 )}
             </div>
 
@@ -57,10 +55,10 @@ export function ChatMessage({ message }: ChatMessageProps) {
                 }`}
             >
                 <div
-                    className={`inline-block p-4 rounded-2xl ${
+                    className={`inline-block p-4 border-3 border-black shadow-[4px_4px_0px_0px_black] ${
                         message.role === "user"
-                            ? "bg-blue-600 text-white"
-                            : "bg-slate-100 text-slate-800"
+                            ? "bg-pink-200 text-black"
+                            : "bg-white text-black"
                     }`}
                 >
                     {message.role === "assistant" ? (
@@ -75,17 +73,17 @@ export function ChatMessage({ message }: ChatMessageProps) {
                                         </p>
                                     ),
                                     h1: ({ children }) => (
-                                        <h1 className="text-lg font-bold mb-2 text-slate-800">
+                                        <h1 className="text-lg font-black mb-2 text-black uppercase tracking-wide">
                                             {children}
                                         </h1>
                                     ),
                                     h2: ({ children }) => (
-                                        <h2 className="text-base font-bold mb-2 text-slate-800">
+                                        <h2 className="text-base font-black mb-2 text-black uppercase tracking-wide">
                                             {children}
                                         </h2>
                                     ),
                                     h3: ({ children }) => (
-                                        <h3 className="text-sm font-bold mb-1 text-slate-800">
+                                        <h3 className="text-sm font-black mb-1 text-black uppercase tracking-wide">
                                             {children}
                                         </h3>
                                     ),
@@ -100,17 +98,17 @@ export function ChatMessage({ message }: ChatMessageProps) {
                                         </ol>
                                     ),
                                     li: ({ children }) => (
-                                        <li className="text-slate-700">
+                                        <li className="text-black font-bold">
                                             {children}
                                         </li>
                                     ),
                                     strong: ({ children }) => (
-                                        <strong className="font-semibold text-slate-800">
+                                        <strong className="font-black text-black">
                                             {children}
                                         </strong>
                                     ),
                                     em: ({ children }) => (
-                                        <em className="italic text-slate-700">
+                                        <em className="italic text-black font-bold">
                                             {children}
                                         </em>
                                     ),
@@ -118,34 +116,34 @@ export function ChatMessage({ message }: ChatMessageProps) {
                                         const isInline =
                                             !className?.includes("language-")
                                         return isInline ? (
-                                            <code className="bg-slate-200 px-1 py-0.5 rounded text-xs font-mono text-slate-800">
+                                            <code className="bg-yellow-300 px-2 py-1 border border-black text-xs font-mono text-black font-bold">
                                                 {children}
                                             </code>
                                         ) : (
-                                            <pre className="bg-slate-800 text-slate-100 p-3 rounded-lg text-xs font-mono overflow-x-auto mb-2">
+                                            <pre className="bg-black text-white p-4 border-3 border-black shadow-[4px_4px_0px_0px_black] text-xs font-mono overflow-x-auto mb-2">
                                                 <code>{children}</code>
                                             </pre>
                                         )
                                     },
                                     blockquote: ({ children }) => (
-                                        <blockquote className="border-l-4 border-blue-500 pl-4 italic text-slate-600 mb-2 bg-blue-50 py-2 rounded-r">
+                                        <blockquote className="border-l-4 border-black pl-4 italic text-black mb-2 bg-cyan-200 py-2 border-r border-t border-b font-bold">
                                             {children}
                                         </blockquote>
                                     ),
                                     table: ({ children }) => (
                                         <div className="overflow-x-auto mb-2">
-                                            <table className="min-w-full border border-slate-300 rounded">
+                                            <table className="min-w-full border-3 border-black shadow-[4px_4px_0px_0px_black]">
                                                 {children}
                                             </table>
                                         </div>
                                     ),
                                     th: ({ children }) => (
-                                        <th className="border border-slate-300 px-3 py-2 bg-slate-200 font-semibold text-left">
+                                        <th className="border border-black px-3 py-2 bg-yellow-300 font-black text-left uppercase tracking-wide">
                                             {children}
                                         </th>
                                     ),
                                     td: ({ children }) => (
-                                        <td className="border border-slate-300 px-3 py-2">
+                                        <td className="border border-black px-3 py-2 font-bold">
                                             {children}
                                         </td>
                                     ),
@@ -161,21 +159,21 @@ export function ChatMessage({ message }: ChatMessageProps) {
 
                 {/* Message Actions */}
                 <div
-                    className={`flex items-center mt-2 space-x-2 text-xs text-slate-500 ${
+                    className={`flex items-center mt-3 space-x-3 text-xs text-black font-bold ${
                         message.role === "user" ? "justify-end" : ""
                     }`}
                 >
-                    <span>{message.timestamp.toLocaleTimeString()}</span>
+                    <span className="uppercase tracking-wide">
+                        {message.timestamp.toLocaleTimeString()}
+                    </span>
                     <Button
                         onClick={copyMessage}
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0 hover:bg-slate-200"
+                        className="h-6 w-6 p-0 bg-green-300 hover:bg-green-400 border-2 border-black shadow-[2px_2px_0px_0px_black] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_black] transition-all"
                     >
                         {copied ? (
-                            <Check className="w-3 h-3 text-green-600" />
+                            <Check className="w-3 h-3 text-black" />
                         ) : (
-                            <Copy className="w-3 h-3" />
+                            <Copy className="w-3 h-3 text-black" />
                         )}
                     </Button>
                 </div>

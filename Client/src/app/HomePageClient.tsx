@@ -24,10 +24,12 @@ export function HomePageClient() {
     // Show loading state while checking authentication
     if (loading) {
         return (
-            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+            <div className="min-h-screen bg-lime-200 flex items-center justify-center">
                 <div className="text-center">
-                    <div className="w-8 h-8 border-4 border-slate-300 border-t-slate-800 rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-slate-600">Loading...</p>
+                    <div className="w-12 h-12 border-4 border-black border-t-transparent animate-spin mx-auto mb-6 bg-yellow-400 shadow-[4px_4px_0px_0px_black]"></div>
+                    <p className="text-black font-black text-xl uppercase tracking-wide">
+                        Loading...
+                    </p>
                 </div>
             </div>
         )
@@ -40,26 +42,26 @@ export function HomePageClient() {
 
     // Show landing page for non-authenticated users
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-orange-200">
             <Navbar />
             <main>
                 {/* Hero Section */}
-                <section className="min-h-screen flex items-center pt-16 pb-16">
+                <section className="min-h-screen flex items-center pt-20 pb-16 bg-orange-200">
                     <Hero />
                 </section>
 
                 {/* Features Section */}
-                <section className="py-16 bg-white">
+                <section className="py-16 bg-cyan-200 border-t-4 border-b-4 border-black">
                     <Features />
                 </section>
 
                 {/* How It Works Section */}
-                <section className="py-16 bg-slate-50">
+                <section className="py-16 bg-pink-200 border-b-4 border-black">
                     <HowItWorks />
                 </section>
 
                 {/* Pricing Section */}
-                <section className="py-16 bg-white">
+                <section className="py-16 bg-lime-200 border-b-4 border-black">
                     <Pricing />
                 </section>
             </main>

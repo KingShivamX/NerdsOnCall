@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 import { useAuth } from "@/context/AuthContext"
 import { api } from "@/lib/api"
 import { Navbar } from "@/components/layout/Navbar"
+import { Footer } from "@/components/layout/Footer"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { Card, CardContent } from "@/components/ui/card"
@@ -521,6 +522,7 @@ export default function BrowseTutorsPage() {
                     }_${Date.now()}`}
                 />
             )}
+            <Footer />
         </div>
     )
 }

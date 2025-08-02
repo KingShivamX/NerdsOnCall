@@ -89,24 +89,24 @@ const features = [
 
 export default function AboutPage() {
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+        <div className="min-h-screen bg-orange-100">
             <Navbar />
 
             {/* Hero Section */}
             <section className="pt-20 pb-16 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-6xl mx-auto">
                     <div className="text-center mb-16">
-                        <Badge className="mb-6 bg-slate-800 text-white px-4 py-2">
-                            🚀 About NerdsOnCall
+                        <Badge className="mb-6 bg-black text-white px-6 py-3 border-3 border-black shadow-[4px_4px_0px_0px_black] font-black uppercase tracking-wide">
+                            About NerdsOnCall
                         </Badge>
-                        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-800 mb-6 leading-tight">
+                        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-black mb-6 leading-tight uppercase">
                             Revolutionizing Education
-                            <span className="text-slate-800">
+                            <span className="text-black">
                                 {" "}
                                 One Student at a Time
                             </span>
                         </h1>
-                        <p className="text-xl text-slate-600 max-w-4xl mx-auto mb-8 leading-relaxed">
+                        <p className="text-xl text-black max-w-4xl mx-auto mb-8 leading-relaxed font-bold">
                             We're on a mission to make quality education
                             accessible to every student, anywhere in the world.
                             Through innovative technology and expert tutors,
@@ -117,14 +117,14 @@ export default function AboutPage() {
             </section>
 
             {/* Mission & Vision */}
-            <section className="py-20 bg-white/50 backdrop-blur-sm">
+            <section className="py-20 bg-yellow-100">
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                         <div>
-                            <h2 className="text-3xl sm:text-4xl font-bold text-slate-800 mb-6">
+                            <h2 className="text-3xl sm:text-4xl font-black text-black mb-6 uppercase tracking-wide">
                                 Our Mission
                             </h2>
-                            <p className="text-lg text-slate-600 mb-6 leading-relaxed">
+                            <p className="text-lg text-black mb-6 leading-relaxed font-bold">
                                 To democratize access to quality education by
                                 connecting students with expert tutors through
                                 innovative technology, making learning
@@ -132,12 +132,12 @@ export default function AboutPage() {
                             </p>
                             <div className="space-y-4">
                                 <div className="flex items-start space-x-3">
-                                    <CheckCircle className="h-6 w-6 text-green-500 mt-1 flex-shrink-0" />
+                                    <CheckCircle className="h-6 w-6 text-green-600 mt-1 flex-shrink-0" />
                                     <div>
-                                        <h3 className="font-semibold text-slate-800">
+                                        <h3 className="font-black text-black uppercase tracking-wide">
                                             Personalized Learning
                                         </h3>
-                                        <p className="text-slate-600">
+                                        <p className="text-black font-bold">
                                             Tailored tutoring sessions that
                                             adapt to each student's unique
                                             learning style
@@ -145,12 +145,12 @@ export default function AboutPage() {
                                     </div>
                                 </div>
                                 <div className="flex items-start space-x-3">
-                                    <CheckCircle className="h-6 w-6 text-green-500 mt-1 flex-shrink-0" />
+                                    <CheckCircle className="h-6 w-6 text-green-600 mt-1 flex-shrink-0" />
                                     <div>
-                                        <h3 className="font-semibold text-slate-800">
+                                        <h3 className="font-black text-black uppercase tracking-wide">
                                             Global Accessibility
                                         </h3>
-                                        <p className="text-slate-600">
+                                        <p className="text-black font-bold">
                                             Breaking down geographical barriers
                                             to connect students with the best
                                             tutors worldwide
@@ -158,12 +158,12 @@ export default function AboutPage() {
                                     </div>
                                 </div>
                                 <div className="flex items-start space-x-3">
-                                    <CheckCircle className="h-6 w-6 text-green-500 mt-1 flex-shrink-0" />
+                                    <CheckCircle className="h-6 w-6 text-green-600 mt-1 flex-shrink-0" />
                                     <div>
-                                        <h3 className="font-semibold text-slate-800">
+                                        <h3 className="font-black text-black uppercase tracking-wide">
                                             Technology-Enhanced
                                         </h3>
-                                        <p className="text-slate-600">
+                                        <p className="text-black font-bold">
                                             Leveraging cutting-edge technology
                                             to create immersive learning
                                             experiences
@@ -173,12 +173,12 @@ export default function AboutPage() {
                             </div>
                         </div>
                         <div className="relative">
-                            <div className="bg-slate-800 rounded-2xl p-8 text-white">
-                                <Target className="h-12 w-12 mb-6" />
-                                <h3 className="text-2xl font-bold mb-4">
+                            <div className="bg-black border-3 border-black shadow-[6px_6px_0px_0px_black] p-8 text-white">
+                                <Target className="h-12 w-12 mb-6 text-cyan-300" />
+                                <h3 className="text-2xl font-black mb-4 uppercase tracking-wide">
                                     Our Vision
                                 </h3>
-                                <p className="text-blue-100 leading-relaxed">
+                                <p className="text-white leading-relaxed font-bold">
                                     To become the world's leading platform for
                                     personalized education, where every student
                                     has access to expert guidance and can
@@ -192,13 +192,13 @@ export default function AboutPage() {
             </section>
 
             {/* Values */}
-            <section className="py-20 px-4 sm:px-6 lg:px-8">
+            <section className="py-20 px-4 sm:px-6 lg:px-8 bg-pink-100">
                 <div className="max-w-6xl mx-auto">
                     <div className="text-center mb-16">
-                        <h2 className="text-3xl sm:text-4xl font-bold text-slate-800 mb-6">
+                        <h2 className="text-3xl sm:text-4xl font-black text-black mb-6 uppercase tracking-wide">
                             Our Core Values
                         </h2>
-                        <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+                        <p className="text-xl text-black max-w-3xl mx-auto font-bold">
                             The principles that guide everything we do and shape
                             our commitment to educational excellence
                         </p>
@@ -208,16 +208,16 @@ export default function AboutPage() {
                         {values.map((value, index) => (
                             <Card
                                 key={index}
-                                className="border border-slate-200 hover:shadow-lg transition-all duration-300 bg-white group hover:-translate-y-1"
+                                className="bg-white border-3 border-black shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] transition-all duration-300 group"
                             >
                                 <CardContent className="p-6 text-center">
-                                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                                        <value.icon className="h-8 w-8 text-slate-700" />
+                                    <div className="w-16 h-16 bg-black border-2 border-black flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                                        <value.icon className="h-8 w-8 text-white" />
                                     </div>
-                                    <h3 className="text-lg font-bold text-slate-800 mb-3">
+                                    <h3 className="text-lg font-black text-black mb-3 uppercase tracking-wide">
                                         {value.title}
                                     </h3>
-                                    <p className="text-slate-600 text-sm leading-relaxed">
+                                    <p className="text-black text-sm leading-relaxed font-bold">
                                         {value.description}
                                     </p>
                                 </CardContent>
@@ -228,13 +228,13 @@ export default function AboutPage() {
             </section>
 
             {/* Technology */}
-            <section className="py-20 bg-white/50 backdrop-blur-sm">
+            <section className="py-20 bg-green-100">
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-16">
-                        <h2 className="text-3xl sm:text-4xl font-bold text-slate-800 mb-6">
+                        <h2 className="text-3xl sm:text-4xl font-black text-black mb-6 uppercase tracking-wide">
                             Built with Modern Technology
                         </h2>
-                        <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+                        <p className="text-xl text-black max-w-3xl mx-auto font-bold">
                             Our platform leverages cutting-edge technology to
                             deliver the best learning experience
                         </p>
@@ -244,16 +244,16 @@ export default function AboutPage() {
                         {features.map((feature, index) => (
                             <Card
                                 key={index}
-                                className="border border-slate-200 hover:shadow-lg transition-all duration-300 bg-white group"
+                                className="bg-white border-3 border-black shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] transition-all duration-300 group"
                             >
                                 <CardContent className="p-6 text-center">
-                                    <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                                    <div className="w-12 h-12 bg-black border-2 border-black flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
                                         <feature.icon className="h-6 w-6 text-white" />
                                     </div>
-                                    <h3 className="text-lg font-bold text-slate-800 mb-3">
+                                    <h3 className="text-lg font-black text-black mb-3 uppercase tracking-wide">
                                         {feature.title}
                                     </h3>
-                                    <p className="text-slate-600 text-sm">
+                                    <p className="text-black text-sm font-bold">
                                         {feature.description}
                                     </p>
                                 </CardContent>
@@ -262,31 +262,31 @@ export default function AboutPage() {
                     </div>
 
                     <div className="mt-12 text-center">
-                        <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl p-8 text-white">
-                            <Code className="h-12 w-12 mx-auto mb-4" />
-                            <h3 className="text-2xl font-bold mb-4">
+                        <div className="bg-black border-3 border-black shadow-[6px_6px_0px_0px_black] p-8 text-white">
+                            <Code className="h-12 w-12 mx-auto mb-4 text-cyan-300" />
+                            <h3 className="text-2xl font-black mb-4 uppercase tracking-wide">
                                 Open Source & Secure
                             </h3>
-                            <p className="text-slate-300 max-w-2xl mx-auto mb-6">
+                            <p className="text-white max-w-2xl mx-auto mb-6 font-bold">
                                 Built with Spring Boot, Next.js, and modern web
                                 technologies. Our platform is secure, scalable,
                                 and continuously updated with the latest
                                 features.
                             </p>
                             <div className="flex flex-wrap justify-center gap-3">
-                                <Badge className="bg-blue-600 text-white">
+                                <Badge className="bg-cyan-300 text-black border-2 border-black shadow-[2px_2px_0px_0px_black] font-black uppercase tracking-wide">
                                     Spring Boot
                                 </Badge>
-                                <Badge className="bg-blue-600 text-white">
+                                <Badge className="bg-pink-300 text-black border-2 border-black shadow-[2px_2px_0px_0px_black] font-black uppercase tracking-wide">
                                     Next.js
                                 </Badge>
-                                <Badge className="bg-blue-600 text-white">
+                                <Badge className="bg-yellow-300 text-black border-2 border-black shadow-[2px_2px_0px_0px_black] font-black uppercase tracking-wide">
                                     WebRTC
                                 </Badge>
-                                <Badge className="bg-blue-600 text-white">
+                                <Badge className="bg-green-300 text-black border-2 border-black shadow-[2px_2px_0px_0px_black] font-black uppercase tracking-wide">
                                     PostgreSQL
                                 </Badge>
-                                <Badge className="bg-blue-600 text-white">
+                                <Badge className="bg-orange-300 text-black border-2 border-black shadow-[2px_2px_0px_0px_black] font-black uppercase tracking-wide">
                                     TypeScript
                                 </Badge>
                             </div>
@@ -294,41 +294,6 @@ export default function AboutPage() {
                     </div>
                 </div>
             </section>
-
-            {/* CTA */}
-            <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600">
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                    <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
-                        Join Our Educational Revolution
-                    </h2>
-                    <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-                        Whether you're a student seeking help or an expert tutor
-                        looking to make an impact, we'd love to have you as part
-                        of our growing community.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <Link href="/auth/register?role=student">
-                            <Button
-                                size="lg"
-                                className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
-                            >
-                                Start Learning
-                                <ArrowRight className="ml-2 h-5 w-5" />
-                            </Button>
-                        </Link>
-                        <Link href="/auth/register?role=tutor">
-                            <Button
-                                variant="outline"
-                                size="lg"
-                                className="border-2 border-white text-white hover:bg-white hover:text-blue-600 px-8 py-4 text-lg font-semibold"
-                            >
-                                Become a Tutor
-                            </Button>
-                        </Link>
-                    </div>
-                </div>
-            </section>
-
             <Footer />
         </div>
     )
