@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>NerdsOnCall - Backend API</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+                    Helvetica, Arial, sans-serif, 'Apple Color Emoji',
+                    'Segoe UI Emoji', 'Segoe UI Symbol';
+                background: #f0f2f5;
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #333;
+                padding: 20px;
+            }
+
+            .container {
+                background: white;
+                border-radius: 16px;
+                padding: 2rem;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+                max-width: 700px;
+                width: 100%;
+                text-align: center;
+            }
+
+            .logo {
+                font-size: 2.5rem;
+                font-weight: 700;
+                color: #1877f2;
+                margin-bottom: 0.5rem;
+            }
+
+            .subtitle {
+                color: #606770;
+                margin-bottom: 1.5rem;
+                font-size: 1.1rem;
+            }
+
+            .status {
+                background: #42b72a;
+                color: white;
+                padding: 0.5rem 1rem;
+                border-radius: 50px;
+                display: inline-block;
+                margin-bottom: 2rem;
+                font-weight: 600;
+                font-size: 0.9rem;
+            }
+
+            .info-grid {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+                margin: 2rem 0;
+            }
+
+            @media (min-width: 768px) {
+                .info-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+            }
+
+            .api-info {
+                background: #f0f2f5;
+                border-radius: 12px;
+                padding: 1.5rem;
+                text-align: left;
+            }
+
+            .api-info h3 {
+                font-size: 1.2rem;
+                margin-bottom: 1rem;
+                color: #1c1e21;
+            }
+
+            .endpoint {
+                background: #e7f3ff;
+                color: #1877f2;
+                padding: 0.5rem 0.75rem;
+                border-radius: 6px;
+                margin-top: 0.5rem;
+                font-family: 'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono', monospace;
+                font-size: 0.9rem;
+                word-wrap: break-word;
+            }
+
+            .endpoint strong {
+                color: #333;
+            }
+
+            .button-group {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                justify-content: center;
+                margin-bottom: 2rem;
+            }
+
+            .button {
+                background: #1877f2;
+                color: white;
+                padding: 12px 24px;
+                border: none;
+                border-radius: 8px;
+                text-decoration: none;
+                font-weight: 600;
+                transition: background 0.2s ease-in-out, transform 0.1s ease;
+                display: inline-block;
+            }
+
+            .button:hover {
+                background: #166fe5;
+                transform: translateY(-2px);
+            }
+
+            .button.secondary {
+                background: #e4e6eb;
+                color: #4b4f56;
+            }
+
+            .button.secondary:hover {
+                background: #dadde1;
+            }
+
+            .version {
+                margin-top: 2rem;
+                color: #90949c;
+                font-size: 0.85rem;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1 class="logo">🧠 NerdsOnCall</h1>
+            <p class="subtitle">Real-Time Doubt-Solving Platform Backend</p>
+
+            <div class="status">🚀 Server Running Successfully</div>
+
+            <div class="button-group">
+                <a href="/health" class="button">Health Check</a>
+                <a href="/info" class="button secondary">API Info</a>
+                <a
+                    href="https://supabase.com/dashboard"
+                    class="button secondary"
+                    target="_blank"
+                    >Supabase Dashboard</a
+                >
+            </div>
+
+            <div class="info-grid">
+                <div class="api-info">
+                    <h3>📡 API Information</h3>
+                    <div class="endpoint">
+                        <strong>Base URL:</strong>
+                        <span>/</span>
+                    </div>
+                    <div class="endpoint">
+                        <strong>Health Check:</strong>
+                        <span>GET /health</span>
+                    </div>
+                    <div class="endpoint">
+                        <strong>Authentication:</strong>
+                        <span>POST /auth/*</span>
+                    </div>
+                    <div class="endpoint">
+                        <strong>WebSocket:</strong>
+                        <span>WS /ws</span>
+                    </div>
+                </div>
+                <div class="api-info">
+                    <h3>🛠️ Available Endpoints</h3>
+                    <div class="endpoint">/auth/* - Authentication</div>
+                    <div class="endpoint">/users/* - User Management</div>
+                    <div class="endpoint">/sessions/* - Sessions</div>
+                    <div class="endpoint">/doubts/* - Doubts</div>
+                    <div class="endpoint">/subscriptions/* - Subscriptions</div>
+                    <div class="endpoint">/payments/* - Payments</div>
+                    <div class="endpoint">/feedback/* - Feedback</div>
+                </div>
+            </div>
+
+            <p class="version">Powered by Spring Boot | GoodTeam | Super 69</p>
+        </div>
+
+        <script>
+            // Auto-refresh status every 30 seconds
+            setInterval(() => {
+                fetch('/health')
+                    .then(response => {
+                        if(response.ok) {
+                             console.log('Service Status: OK');
+                        } else {
+                             console.log('Service may be down.');
+                        }
+                    })
+                    .catch(error => {
+                        console.log('Service may be down:', error);
+                    });
+            }, 30000);
+        </script>
+    </body>
+</html>
