@@ -3,12 +3,15 @@ package com.nerdsoncall.service;
 import com.nerdsoncall.entity.Session;
 import com.nerdsoncall.entity.User;
 import com.nerdsoncall.entity.Doubt;
+import com.nerdsoncall.entity.Subscription;
 import com.nerdsoncall.repository.SessionRepository;
 import com.nerdsoncall.repository.UserRepository;
 import com.nerdsoncall.repository.DoubtRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -28,6 +31,9 @@ public class SessionService {
 
     @Autowired
     private DoubtRepository doubtRepository;
+
+    @Autowired
+    private SubscriptionService subscriptionService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -104,12 +110,15 @@ public class SessionService {
     public Session createCallSession(Long studentId, Long tutorId, String callSessionId) {
         try {
             System.out.println("Creating call session - StudentId: " + studentId + ", TutorId: " + tutorId + ", SessionId: " + callSessionId);
-            
+
             User student = userRepository.findById(studentId)
                     .orElseThrow(() -> new RuntimeException("Student not found with ID: " + studentId));
-            
+
             User tutor = userRepository.findById(tutorId)
                     .orElseThrow(() -> new RuntimeException("Tutor not found with ID: " + tutorId));
+
+            // Check session limit before creating call session (same as doubt validation)
+            validateSessionLimitForCall(student);
 
             // Check if session already exists
             Optional<Session> existingSession = sessionRepository.findBySessionId(callSessionId);
@@ -139,6 +148,10 @@ public class SessionService {
             System.out.println("Session details: Student=" + student.getId() + ", Tutor=" + tutor.getId() + ", Doubt=null, SessionId=" + callSessionId);
 
             Session savedSession = sessionRepository.save(session);
+
+            // Increment session usage after successful call session creation (same as doubt)
+            subscriptionService.incrementSessionUsage(student);
+
             System.out.println("Call session created successfully with ID: " + savedSession.getId());
             return savedSession;
             
@@ -232,6 +245,24 @@ public class SessionService {
             System.err.println("Error ending call session: " + e.getMessage());
             e.printStackTrace();
             throw new RuntimeException("Failed to end call session: " + e.getMessage());
+        }
+    }
+
+    // Validate session limit for video call (same logic as doubt validation)
+    private void validateSessionLimitForCall(User student) {
+        Optional<Subscription> activeSubscription = subscriptionService.getActiveSubscription(student);
+
+        if (!activeSubscription.isPresent()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                "No active subscription found. Please subscribe to a plan to start video calls.");
+        }
+
+        Subscription subscription = activeSubscription.get();
+
+        if (subscription.getSessionsUsed() >= subscription.getSessionsLimit()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                "Daily session limit reached. You have used " + subscription.getSessionsUsed() +
+                " out of " + subscription.getSessionsLimit() + " allowed sessions for today. This limit is shared between doubts and video calls.");
         }
     }
 

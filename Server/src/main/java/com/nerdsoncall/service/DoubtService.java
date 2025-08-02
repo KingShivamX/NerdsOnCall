@@ -61,7 +61,7 @@ public class DoubtService {
         if (subscription.getSessionsUsed() >= subscription.getSessionsLimit()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                 "Daily session limit reached. You have used " + subscription.getSessionsUsed() +
-                " out of " + subscription.getSessionsLimit() + " allowed doubts for today.");
+                " out of " + subscription.getSessionsLimit() + " allowed sessions for today. This limit is shared between doubts and video calls.");
         }
     }
 
