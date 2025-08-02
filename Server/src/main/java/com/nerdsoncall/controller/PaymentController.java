@@ -72,17 +72,21 @@ public class PaymentController {
             }
             subscription.setEndDate(newEndDate);
             subscriptionService.saveSubscription(subscription);
-            // Send HTML subscription receipt email
-            String userName = userService.findByEmail(userEmail).map(u -> u.getFirstName() + (u.getLastName() != null ? (" " + u.getLastName()) : "")).orElse(userEmail);
-            try {
-                emailService.sendHtmlReceiptMailOfSubscription(
-                    userEmail,
-                    userName,
-                    subscription
-                );
-            } catch (jakarta.mail.MessagingException e) {
-                System.err.println("Failed to send subscription receipt email: " + e.getMessage());
-            }
+            // Send subscription receipt email with PDF attachment
+            userService.findByEmail(userEmail).ifPresent(user -> {
+                String userName = user.getFirstName() + (user.getLastName() != null ? (" " + user.getLastName()) : "");
+                try {
+                    emailService.sendSubscriptionReceiptWithPdf(
+                        userEmail,
+                        userName,
+                        user,
+                        subscription
+                    );
+                } catch (jakarta.mail.MessagingException | java.io.IOException e) {
+                    System.err.println("Failed to send subscription receipt email with PDF: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            });
             return ResponseEntity.ok(subscription);
         } else {
             return ResponseEntity.badRequest().body("Payment verification failed");

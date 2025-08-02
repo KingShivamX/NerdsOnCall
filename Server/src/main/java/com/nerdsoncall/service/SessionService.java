@@ -213,8 +213,8 @@ public class SessionService {
 
                 System.out.println("Session duration: " + durationMinutes + " minutes (from " + session.getActualStartTime() + " to " + session.getEndTime() + ")");
 
-                // Calculate earnings: 50 per hour (50/60 per minute)
-                double hourlyRate = 50.0;
+                // Calculate earnings: ₹50 per hour (₹50/60 per minute)
+                double hourlyRate = 50.0; // ₹50 per hour
                 double totalCost = (durationMinutes / 60.0) * hourlyRate;
                 session.setCost(java.math.BigDecimal.valueOf(totalCost));
 
@@ -226,7 +226,7 @@ public class SessionService {
                 session.setAmount(totalCost);
                 session.setCommission(commission);
 
-                System.out.println("Calculated earnings - Total: $" + totalCost + ", Tutor: $" + tutorEarnings + ", Commission: $" + commission);
+                System.out.println("Calculated earnings - Total: ₹" + totalCost + ", Tutor: ₹" + tutorEarnings + ", Commission: ₹" + commission);
             } else {
                 System.out.println("Warning: Session has no actual start time, cannot calculate earnings");
                 // Set zero values

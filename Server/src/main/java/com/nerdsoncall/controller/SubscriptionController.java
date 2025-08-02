@@ -120,11 +120,9 @@ public class SubscriptionController {
             Plan plan = planService.getPlanEntity(planId)
                     .orElseThrow(() -> new RuntimeException("Plan not found"));
 
-            // Convert USD to INR (matching frontend conversion)
-            // Frontend uses: convertToINR(plan.price) = plan.price * 83
-            double usdToInrRate = 83.0;
-            double priceInINR = plan.getPrice() * usdToInrRate;
-            
+            // Plan price is already in INR, no conversion needed
+            double priceInINR = plan.getPrice(); // Already in INR
+
             // Amount in paise (Razorpay expects INR in paise)
             long amount = (long) (priceInINR * 100);
             String currency = "INR";

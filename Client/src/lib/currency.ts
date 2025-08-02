@@ -1,23 +1,22 @@
-// Currency conversion utilities
-const USD_TO_INR_RATE = 83 // Current approximate exchange rate
+// Currency utilities for INR (Indian Rupees)
+// All amounts are now stored and processed in INR directly
 
 /**
- * Convert USD to INR and format as currency
- * @param usdAmount - Amount in USD
+ * Format INR amount as currency string
+ * @param inrAmount - Amount in INR
  * @returns Formatted INR string with ₹ symbol
  */
-export function formatINR(usdAmount: number): string {
-    const inrAmount = Math.round(usdAmount * USD_TO_INR_RATE)
-    return `₹${inrAmount.toLocaleString("en-IN")}`
+export function formatINR(inrAmount: number): string {
+    return `₹${Math.round(inrAmount).toLocaleString("en-IN")}`
 }
 
 /**
- * Convert USD to INR (numeric value only)
- * @param usdAmount - Amount in USD
+ * Get INR amount (no conversion needed - already in INR)
+ * @param inrAmount - Amount in INR
  * @returns INR amount as number
  */
-export function convertToINR(usdAmount: number): number {
-    return Math.round(usdAmount * USD_TO_INR_RATE)
+export function getINRAmount(inrAmount: number): number {
+    return Math.round(inrAmount)
 }
 
 /**

@@ -121,17 +121,8 @@ public class PayoutService {
                     sessionRepository.updatePaymentStatusForSessions(sessionIds, Session.PaymentStatus.PAID);
                 }
 
-                // Send payout completion email to tutor
-                String month = payout.getPeriodStart().getMonth().name() + " " + payout.getPeriodStart().getYear();
-                String billingDate = payout.getPeriodEnd().toLocalDate().toString();
-                emailService.sendMonthlyPayoutMail(
-                    tutor.getEmail(),
-                    tutor.getFirstName(),
-                    payout.getAmount(),
-                    month,
-                    billingDate,
-                    payout.getTransactionId()
-                );
+                // Send payout completion email with PDF receipt to tutor
+                emailService.sendMonthlyPayoutMailWithPdf(tutor, payout);
             } catch (Exception e) {
                 payout.setStatus(Payout.Status.FAILED);
                 payout.setDescription(payout.getDescription() + " - Failed: " + e.getMessage());
