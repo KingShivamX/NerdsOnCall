@@ -154,14 +154,30 @@ export function HowItWorks() {
 
                 {/* For Students */}
                 <div className="mb-16 sm:mb-20 lg:mb-24">
-                    <div className="text-center mb-10 sm:mb-12 lg:mb-16">
-                        <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-800 mb-2 sm:mb-4">
-                            For Students
-                        </h3>
-                        <p className="text-sm sm:text-base text-slate-600 max-w-xl mx-auto text-center">
-                            Get instant help with your doubts through live video
-                            sessions
-                        </p>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center mb-12">
+                        {/* Content Section */}
+                        <div className="order-2 lg:order-1">
+                            <div className="text-center lg:text-left mb-10 sm:mb-12 lg:mb-16">
+                                <h3 className="text-xl sm:text-2xl lg:text-3xl font-black text-black mb-2 sm:mb-4 uppercase tracking-wide">
+                                    For Students
+                                </h3>
+                                <p className="text-sm sm:text-base text-black font-bold max-w-xl mx-auto lg:mx-0 bg-white px-4 py-3 border-4 border-black shadow-[4px_4px_0px_0px_black]">
+                                    Get instant help with your doubts through
+                                    live video sessions with expert tutors
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Image Section */}
+                        <div className="flex justify-center items-center order-1 lg:order-2">
+                            <div className="relative">
+                                <img
+                                    src="/Nerd2.png"
+                                    alt="Students Learning Illustration"
+                                    className="w-full max-w-md h-auto"
+                                />
+                            </div>
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">

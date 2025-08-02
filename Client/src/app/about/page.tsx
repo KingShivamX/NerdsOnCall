@@ -94,24 +94,39 @@ export default function AboutPage() {
 
             {/* Hero Section */}
             <section className="pt-20 pb-16 px-4 sm:px-6 lg:px-8">
-                <div className="max-w-6xl mx-auto">
-                    <div className="text-center mb-16">
-                        <Badge className="mb-6 bg-black text-white px-6 py-3 border-3 border-black shadow-[4px_4px_0px_0px_black] font-black uppercase tracking-wide">
-                            About NerdsOnCall
-                        </Badge>
-                        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-black mb-6 leading-tight uppercase">
-                            Revolutionizing Education
-                            <span className="text-black">
-                                {" "}
-                                One Student at a Time
-                            </span>
-                        </h1>
-                        <p className="text-xl text-black max-w-4xl mx-auto mb-8 leading-relaxed font-bold text-center">
-                            We're on a mission to make quality education
-                            accessible to every student, anywhere in the world.
-                            Through innovative technology and expert tutors,
-                            we're transforming how students learn and succeed.
-                        </p>
+                <div className="max-w-7xl mx-auto">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+                        {/* Content Section */}
+                        <div className="text-center lg:text-left order-2 lg:order-1">
+                            <Badge className="mb-6 bg-black text-white px-6 py-3 border-3 border-black shadow-[4px_4px_0px_0px_black] font-black uppercase tracking-wide">
+                                About NerdsOnCall
+                            </Badge>
+                            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-black mb-6 leading-tight uppercase">
+                                Revolutionizing Education
+                                <span className="text-black">
+                                    {" "}
+                                    One Student at a Time
+                                </span>
+                            </h1>
+                            <p className="text-xl text-black max-w-3xl mx-auto lg:mx-0 mb-8 leading-relaxed font-bold">
+                                We're on a mission to make quality education
+                                accessible to every student, anywhere in the
+                                world. Through innovative technology and expert
+                                tutors, we're transforming how students learn
+                                and succeed.
+                            </p>
+                        </div>
+
+                        {/* Image Section */}
+                        <div className="flex justify-center items-center order-1 lg:order-2">
+                            <div className="relative">
+                                <img
+                                    src="/about-page.png"
+                                    alt="About Us Illustration"
+                                    className="w-full max-w-lg h-auto"
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>

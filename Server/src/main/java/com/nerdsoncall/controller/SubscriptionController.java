@@ -58,7 +58,10 @@ public class SubscriptionController {
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
             if (user.getRole() != User.Role.STUDENT) {
-                return ResponseEntity.badRequest().body("Only students have session limits");
+                Map<String, Object> response = new HashMap<>();
+                response.put("hasActiveSubscription", false);
+                response.put("message", "Only students have session limits");
+                return ResponseEntity.ok(response);
             }
 
             java.util.Optional<Subscription> activeSubscription = subscriptionService.getActiveSubscription(user);
@@ -88,7 +91,12 @@ public class SubscriptionController {
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Failed to get session status: " + e.getMessage());
+            System.err.println("Error in getSessionStatus: " + e.getMessage());
+            e.printStackTrace();
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("hasActiveSubscription", false);
+            errorResponse.put("message", "Error retrieving session status: " + e.getMessage());
+            return ResponseEntity.ok(errorResponse);
         }
     }
 

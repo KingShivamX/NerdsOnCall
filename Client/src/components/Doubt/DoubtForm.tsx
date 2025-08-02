@@ -52,10 +52,10 @@ const priorityList = [
 interface DoubtFormProps {
     isOpen: boolean
     onClose: () => void
-    tutorId?: number  // Optional for dashboard flow
+    tutorId?: number // Optional for dashboard flow
     tutorName: string
     onSubmitSuccess?: (doubt: any) => void
-    flowType?: 'dashboard' | 'browse-tutors'  // New prop to distinguish flows
+    flowType?: "dashboard" | "browse-tutors" // New prop to distinguish flows
 }
 
 export function DoubtForm({
@@ -64,7 +64,7 @@ export function DoubtForm({
     tutorId,
     tutorName,
     onSubmitSuccess,
-    flowType = 'browse-tutors',
+    flowType = "browse-tutors",
 }: DoubtFormProps) {
     const [title, setTitle] = useState("")
     const [subject, setSubject] = useState<Subject | "">("")
@@ -150,15 +150,13 @@ export function DoubtForm({
                 attachments: fileUrls,
                 // For browse-tutors flow: set preferredTutorId to specific tutor
                 // For dashboard flow: set preferredTutorId to null (broadcast to all tutors of subject)
-                preferredTutorId: flowType === 'browse-tutors' ? tutorId : null,
+                preferredTutorId: flowType === "browse-tutors" ? tutorId : null,
             }
 
             console.log("Submitting doubt data:", doubtData)
             const response = await api.post("/api/doubts", doubtData)
 
-            toast.success(
-                "Your doubt has been sent to the tutor successfully!"
-            )
+            toast.success("Your doubt has been sent to the tutor successfully!")
 
             // Reset form
             setTitle("")
@@ -182,20 +180,19 @@ export function DoubtForm({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[650px] bg-gradient-to-br from-white to-blue-50 border-2 border-blue-200 shadow-2xl rounded-2xl">
-                <DialogHeader className="bg-gradient-to-r from-blue-600 to-blue-700 -m-6 mb-6 p-6 rounded-t-2xl">
+            <DialogContent className="sm:max-w-[650px] neo-card">
+                <DialogHeader className="bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] -m-6 mb-6 p-6 border-3 border-black shadow-[4px_4px_0px_0px_black]">
                     <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                        <div className="w-12 h-12 bg-[hsl(var(--accent))] border-2 border-black shadow-[2px_2px_0px_0px_black] flex items-center justify-center">
                             <span className="text-2xl">💭</span>
                         </div>
                         <div>
-                            <DialogTitle className="text-white text-xl font-bold">
-                                {flowType === 'dashboard' 
-                                    ? '🎯 Ask Your Question' 
-                                    : `💬 Ask ${tutorName}`
-                                }
+                            <DialogTitle className="text-[hsl(var(--primary-foreground))] text-xl font-bold">
+                                {flowType === "dashboard"
+                                    ? "Ask Your Question"
+                                    : `Ask ${tutorName}`}
                             </DialogTitle>
-                            <p className="text-blue-100 text-sm">
+                            <p className="text-[hsl(var(--primary-foreground))] text-sm font-semibold opacity-90">
                                 Get expert help with your studies
                             </p>
                         </div>
@@ -216,15 +213,15 @@ export function DoubtForm({
                                 setSubject(value as Subject)
                             }
                         >
-                            <SelectTrigger className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600">
+                            <SelectTrigger className="neo-select">
                                 <SelectValue placeholder="Select a subject" />
                             </SelectTrigger>
-                            <SelectContent className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600">
+                            <SelectContent className="neo-dropdown-content">
                                 {subjectsList.map((subject) => (
                                     <SelectItem
                                         key={subject}
                                         value={subject}
-                                        className="hover:bg-gray-100 dark:hover:bg-gray-600"
+                                        className="neo-dropdown-item"
                                     >
                                         {subject.replace(/_/g, " ")}
                                     </SelectItem>
@@ -271,20 +268,20 @@ export function DoubtForm({
                     <div className="space-y-2">
                         <Label
                             htmlFor="priority"
-                            className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                            className="text-sm font-medium text-[hsl(var(--foreground))]"
                         >
                             Priority
                         </Label>
                         <Select value={priority} onValueChange={setPriority}>
-                            <SelectTrigger className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600">
+                            <SelectTrigger className="neo-select">
                                 <SelectValue placeholder="Select priority" />
                             </SelectTrigger>
-                            <SelectContent className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600">
+                            <SelectContent className="neo-dropdown-content">
                                 {priorityList.map((item) => (
                                     <SelectItem
                                         key={item.value}
                                         value={item.value}
-                                        className="hover:bg-gray-100 dark:hover:bg-gray-600"
+                                        className="neo-dropdown-item"
                                     >
                                         {item.label}
                                     </SelectItem>
@@ -344,13 +341,12 @@ export function DoubtForm({
                         </div>
                     </div>
 
-                    <DialogFooter className="mt-6 border-t border-gray-200 dark:border-gray-700 pt-4 flex justify-end gap-3">
+                    <DialogFooter className="mt-6 border-t-3 border-black pt-4 flex justify-end gap-3">
                         <Button
                             type="button"
                             variant="outline"
                             onClick={onClose}
                             disabled={isSubmitting || isUploading}
-                            className="bg-white hover:bg-gray-100 text-gray-800 border-gray-300"
                         >
                             Cancel
                         </Button>
@@ -363,7 +359,7 @@ export function DoubtForm({
                                 !title ||
                                 !description
                             }
-                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                            variant="default"
                         >
                             {(isSubmitting || isUploading) && (
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

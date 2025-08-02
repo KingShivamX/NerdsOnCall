@@ -30,52 +30,15 @@ export default function QuestionsPage() {
                 {/* Hero Section */}
                 <div className="bg-black border-b-4 border-black text-white">
                     <div className="container mx-auto px-4 py-12">
-                        <div className="max-w-4xl mx-auto text-center">
-                            <h1 className="text-4xl md:text-5xl font-black mb-6 uppercase tracking-wide">
-                                Community Questions
+                        <div className="text-white max-w-4xl mx-auto text-center">
+                            <h1 className="text-4xl text-yellow-300 md:text-5xl font-black mb-6 uppercase tracking-wide drop-shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+                                Explore Questions
                             </h1>
-                            <p className="text-xl text-white font-bold mb-8 max-w-2xl mx-auto uppercase tracking-wide text-center">
+                            <p className="text-xl text-white font-bold mb-8 max-w-2xl mx-auto uppercase tracking-wide">
                                 {isTutor
                                     ? "Share your expertise and help students succeed by answering their questions"
                                     : "Get instant help from our community of expert tutors and fellow students"}
                             </p>
-
-                            {/* Stats */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                                <div className="bg-cyan-300 border-3 border-black shadow-[4px_4px_0px_0px_black] p-4">
-                                    <div className="flex items-center justify-center gap-3 mb-3">
-                                        <BookOpen className="h-6 w-6 text-black" />
-                                        <span className="font-black text-black text-xl">
-                                            1,000+
-                                        </span>
-                                    </div>
-                                    <p className="text-sm text-black font-bold uppercase tracking-wide text-center">
-                                        Questions Answered
-                                    </p>
-                                </div>
-                                <div className="bg-pink-300 border-3 border-black shadow-[4px_4px_0px_0px_black] p-4">
-                                    <div className="flex items-center justify-center gap-3 mb-3">
-                                        <Users className="h-6 w-6 text-black" />
-                                        <span className="font-black text-black text-xl">
-                                            500+
-                                        </span>
-                                    </div>
-                                    <p className="text-sm text-black font-bold uppercase tracking-wide text-center">
-                                        Active Tutors
-                                    </p>
-                                </div>
-                                <div className="bg-green-300 border-3 border-black shadow-[4px_4px_0px_0px_black] p-4">
-                                    <div className="flex items-center justify-center gap-3 mb-3">
-                                        <TrendingUp className="h-6 w-6 text-black" />
-                                        <span className="font-black text-black text-xl">
-                                            95%
-                                        </span>
-                                    </div>
-                                    <p className="text-sm text-black font-bold uppercase tracking-wide text-center">
-                                        Success Rate
-                                    </p>
-                                </div>
-                            </div>
 
                             <button
                                 onClick={handleAskQuestion}

@@ -114,16 +114,13 @@ export function QuestionList({
             <div className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_black] p-6">
                 <div className="flex flex-col lg:flex-row gap-4">
                     <div className="flex-1">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-black" />
-                            <input
-                                type="text"
-                                placeholder="Search questions by title, description, or subject..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 border-3 border-black shadow-[4px_4px_0px_0px_black] focus:translate-x-[-2px] focus:translate-y-[-2px] focus:shadow-[6px_6px_0px_0px_black] transition-all font-bold text-black placeholder:text-gray-600"
-                            />
-                        </div>
+                        <input
+                            type="text"
+                            placeholder="Search questions by title, description, or subject..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pr-4 py-3 border-3 border-black shadow-[4px_4px_0px_0px_black] focus:translate-x-[-2px] focus:translate-y-[-2px] focus:shadow-[6px_6px_0px_0px_black] transition-all font-bold text-black placeholder:text-gray-600"
+                        />
                     </div>
                     <div className="flex gap-3">
                         <div className="relative">

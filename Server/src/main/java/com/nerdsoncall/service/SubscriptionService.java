@@ -21,7 +21,13 @@ public class SubscriptionService {
     }
 
     public Optional<Subscription> getActiveSubscription(User user) {
-        return subscriptionRepository.findActiveSubscriptionByUser(user);
+        try {
+            return subscriptionRepository.findActiveSubscriptionByUser(user);
+        } catch (Exception e) {
+            System.err.println("Error getting active subscription for user " + user.getEmail() + ": " + e.getMessage());
+            e.printStackTrace();
+            return Optional.empty();
+        }
     }
 
     public List<Subscription> getSubscriptionsByUser(User user) {

@@ -22,8 +22,13 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Long
     @Query("SELECT s FROM Subscription s WHERE s.status = 'ACTIVE' AND s.endDate < :now")
     List<Subscription> findExpiredSubscriptions(LocalDateTime now);
     
-    @Query("SELECT s FROM Subscription s WHERE s.user = :user AND s.status = 'ACTIVE'")
-    Optional<Subscription> findActiveSubscriptionByUser(User user);
+    @Query("SELECT s FROM Subscription s WHERE s.user = :user AND s.status = 'ACTIVE' ORDER BY s.createdAt DESC")
+    List<Subscription> findActiveSubscriptionsByUser(User user);
+
+    default Optional<Subscription> findActiveSubscriptionByUser(User user) {
+        List<Subscription> subscriptions = findActiveSubscriptionsByUser(user);
+        return subscriptions.isEmpty() ? Optional.empty() : Optional.of(subscriptions.get(0));
+    }
     
     List<Subscription> findByStatus(Subscription.Status status);
 } 

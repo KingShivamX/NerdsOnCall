@@ -219,441 +219,436 @@ export default function RegisterPage() {
 
     return (
         <AuthPageGuard>
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
-                <div className="w-full max-w-md">
-                    <div className="text-center mb-8 px-2 sm:px-0">
-                        <div className="flex justify-center mb-4 lg:mb-6">
-                            <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-slate-700 to-slate-900 rounded-full flex items-center justify-center shadow-lg">
-                                <Crown className="h-8 w-8 lg:h-10 lg:w-10 text-amber-400" />
+            <div className="min-h-screen bg-orange-200 flex items-center justify-center p-4">
+                <div className="w-full max-w-6xl">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                        {/* Image Section */}
+                        <div className="hidden lg:flex justify-center items-center order-1">
+                            <div className="relative">
+                                <img
+                                    src="/register.png"
+                                    alt="Register Illustration"
+                                    className="w-full max-w-lg h-auto"
+                                />
                             </div>
                         </div>
-                        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-800 mb-2 leading-tight">
-                            Create Your Account
-                        </h1>
-                        <p className="text-slate-600 text-base lg:text-lg">
-                            Join the elite learning experience
-                        </p>
-                    </div>
-                    <Card className="border border-slate-200 shadow-xl bg-white/95 backdrop-blur-sm mx-2 sm:mx-0">
-                        <CardHeader>
-                            <CardTitle className="text-xl lg:text-2xl text-center text-slate-800 font-bold">
-                                Sign Up
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="px-6 lg:px-8 pb-8">
-                            {/* General Error Display */}
-                            {errors.general && (
-                                <div className="p-4 rounded-lg bg-red-50 border border-red-200 flex items-center space-x-2 mb-4">
-                                    <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
-                                    <span className="text-sm text-red-700">
-                                        {errors.general}
-                                    </span>
-                                </div>
-                            )}
-                            <form onSubmit={handleSubmit} className="space-y-6">
-                                <div className="space-y-2">
-                                    <label
-                                        htmlFor="role"
-                                        className="text-sm font-semibold text-slate-700"
-                                    >
-                                        I am a...
-                                    </label>
-                                    <Select
-                                        onValueChange={(value) =>
-                                            setFormData((p) => ({
-                                                ...p,
-                                                role: value as any,
-                                            }))
-                                        }
-                                        value={formData.role}
-                                    >
-                                        <SelectTrigger className="h-12">
-                                            <SelectValue placeholder="Select your role" />
-                                        </SelectTrigger>
-                                        <SelectContent className="z-50 bg-white">
-                                            <SelectItem value="STUDENT">
-                                                Student
-                                            </SelectItem>
-                                            <SelectItem value="TUTOR">
-                                                Tutor
-                                            </SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    {errors.role && (
-                                        <p className="text-sm text-red-600 flex items-center gap-1">
-                                            <AlertCircle className="h-3 w-3" />
-                                            {errors.role}
-                                        </p>
-                                    )}
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <label
-                                            htmlFor="firstName"
-                                            className="text-sm font-semibold text-slate-700"
-                                        >
-                                            First Name
-                                        </label>
-                                        <div className="relative">
-                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                                <User className="h-4 w-4 text-slate-400" />
-                                            </div>
-                                            <Input
-                                                id="firstName"
-                                                name="firstName"
-                                                onChange={handleChange}
-                                                onBlur={handleBlur}
-                                                value={formData.firstName}
-                                                className={`pl-10 pr-10 h-12 lg:h-14 ${
-                                                    errors.firstName
-                                                        ? "border-red-400"
-                                                        : isFieldValid(
-                                                              "firstName"
-                                                          )
-                                                        ? "border-emerald-400"
-                                                        : "border-slate-300"
-                                                }`}
-                                                placeholder="John"
-                                            />
-                                            <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                                                {errors.firstName && (
-                                                    <AlertCircle className="h-4 w-4 text-red-500" />
-                                                )}
-                                                {isFieldValid("firstName") && (
-                                                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                                                )}
-                                            </div>
-                                        </div>
-                                        {errors.firstName && (
-                                            <p className="text-sm text-red-600 flex items-center gap-1">
-                                                <AlertCircle className="h-3 w-3" />
-                                                {errors.firstName}
-                                            </p>
-                                        )}
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label
-                                            htmlFor="lastName"
-                                            className="text-sm font-semibold text-slate-700"
-                                        >
-                                            Last Name
-                                        </label>
-                                        <div className="relative">
-                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                                <User className="h-4 w-4 text-slate-400" />
-                                            </div>
-                                            <Input
-                                                id="lastName"
-                                                name="lastName"
-                                                onChange={handleChange}
-                                                onBlur={handleBlur}
-                                                value={formData.lastName}
-                                                className={`pl-10 pr-10 h-12 lg:h-14 ${
-                                                    errors.lastName
-                                                        ? "border-red-400"
-                                                        : isFieldValid(
-                                                              "lastName"
-                                                          )
-                                                        ? "border-emerald-400"
-                                                        : "border-slate-300"
-                                                }`}
-                                                placeholder="Doe"
-                                            />
-                                            <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                                                {errors.lastName && (
-                                                    <AlertCircle className="h-4 w-4 text-red-500" />
-                                                )}
-                                                {isFieldValid("lastName") && (
-                                                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                                                )}
-                                            </div>
-                                        </div>
-                                        {errors.lastName && (
-                                            <p className="text-sm text-red-600 flex items-center gap-1">
-                                                <AlertCircle className="h-3 w-3" />
-                                                {errors.lastName}
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <label
-                                        htmlFor="email"
-                                        className="text-sm font-semibold text-slate-700"
-                                    >
-                                        Email Address
-                                    </label>
-                                    <div className="relative">
-                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <Mail className="h-4 w-4 text-slate-400" />
-                                        </div>
-                                        <Input
-                                            id="email"
-                                            name="email"
-                                            type="email"
-                                            onChange={handleChange}
-                                            onBlur={handleBlur}
-                                            value={formData.email}
-                                            className={`pl-10 pr-10 h-12 lg:h-14 ${
-                                                errors.email
-                                                    ? "border-red-400"
-                                                    : isFieldValid("email")
-                                                    ? "border-emerald-400"
-                                                    : "border-slate-300"
-                                            }`}
-                                            placeholder="Enter your email"
-                                        />
-                                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                                            {errors.email && (
-                                                <AlertCircle className="h-4 w-4 text-red-500" />
-                                            )}
-                                            {isFieldValid("email") && (
-                                                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                                            )}
-                                        </div>
-                                    </div>
-                                    {errors.email && (
-                                        <p className="text-sm text-red-600 flex items-center gap-1">
-                                            <AlertCircle className="h-3 w-3" />
-                                            {errors.email}
-                                        </p>
-                                    )}
-                                </div>
-                                <div className="space-y-2">
-                                    <label
-                                        htmlFor="password"
-                                        className="text-sm font-semibold text-slate-700"
-                                    >
-                                        Password
-                                    </label>
-                                    <div className="relative">
-                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <Lock className="h-4 w-4 text-slate-400" />
-                                        </div>
-                                        <Input
-                                            id="password"
-                                            name="password"
-                                            type={
-                                                showPassword
-                                                    ? "text"
-                                                    : "password"
-                                            }
-                                            onChange={handleChange}
-                                            onBlur={handleBlur}
-                                            value={formData.password}
-                                            className={`pl-10 pr-10 h-12 lg:h-14 ${
-                                                errors.password
-                                                    ? "border-red-400"
-                                                    : isFieldValid("password")
-                                                    ? "border-emerald-400"
-                                                    : "border-slate-300"
-                                            }`}
-                                            placeholder="Create a strong password"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                setShowPassword(!showPassword)
-                                            }
-                                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
-                                        >
-                                            {showPassword ? (
-                                                <EyeOff className="h-4 w-4" />
-                                            ) : (
-                                                <Eye className="h-4 w-4" />
-                                            )}
-                                        </button>
-                                    </div>
-                                    {errors.password && (
-                                        <p className="text-sm text-red-600 flex items-center gap-1">
-                                            <AlertCircle className="h-3 w-3" />
-                                            {errors.password}
-                                        </p>
-                                    )}
-                                </div>
-                                <div className="space-y-2">
-                                    <label
-                                        htmlFor="confirmPassword"
-                                        className="text-sm font-semibold text-slate-700"
-                                    >
-                                        Confirm Password
-                                    </label>
-                                    <div className="relative">
-                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <Lock className="h-4 w-4 text-slate-400" />
-                                        </div>
-                                        <Input
-                                            id="confirmPassword"
-                                            name="confirmPassword"
-                                            type={
-                                                showConfirmPassword
-                                                    ? "text"
-                                                    : "password"
-                                            }
-                                            onChange={handleChange}
-                                            onBlur={handleBlur}
-                                            value={formData.confirmPassword}
-                                            className={`pl-10 pr-10 h-12 lg:h-14 ${
-                                                errors.confirmPassword
-                                                    ? "border-red-400"
-                                                    : isFieldValid(
-                                                          "confirmPassword"
-                                                      )
-                                                    ? "border-emerald-400"
-                                                    : "border-slate-300"
-                                            }`}
-                                            placeholder="Confirm your password"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                setShowConfirmPassword(
-                                                    !showConfirmPassword
-                                                )
-                                            }
-                                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
-                                        >
-                                            {showConfirmPassword ? (
-                                                <EyeOff className="h-4 w-4" />
-                                            ) : (
-                                                <Eye className="h-4 w-4" />
-                                            )}
-                                        </button>
-                                    </div>
-                                    {errors.confirmPassword && (
-                                        <p className="text-sm text-red-600 flex items-center gap-1">
-                                            <AlertCircle className="h-3 w-3" />
-                                            {errors.confirmPassword}
-                                        </p>
-                                    )}
-                                </div>
 
-                                {formData.role === "TUTOR" && (
-                                    <div className="space-y-4 border-t pt-4">
-                                        <h3 className="text-lg font-semibold text-center">
-                                            Tutor Details
-                                        </h3>
-                                        <Textarea
-                                            name="bio"
-                                            placeholder="Your professional bio"
-                                            onChange={handleChange}
-                                            value={formData.bio}
-                                        />
-                                        {errors.bio && (
-                                            <p className="text-sm text-red-600 flex items-center gap-1">
-                                                <AlertCircle className="h-3 w-3" />
-                                                {errors.bio}
-                                            </p>
-                                        )}
-                                        <div>
-                                            <label className="font-semibold">
-                                                Subjects
+                        {/* Register Form Section */}
+                        <div className="w-full max-w-2xl mx-auto order-2">
+                            <div className="text-center mb-8 px-2 sm:px-0">
+                                <div className="flex justify-center mb-4 lg:mb-6">
+                                    <div className="w-16 h-16 lg:w-20 lg:h-20 bg-black border-4 border-black shadow-[6px_6px_0px_0px_black] flex items-center justify-center">
+                                        <Crown className="h-8 w-8 lg:h-10 lg:w-10 text-yellow-400" />
+                                    </div>
+                                </div>
+                                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-black mb-2 leading-tight uppercase tracking-wide">
+                                    Create Account
+                                </h1>
+                                <p className="text-black text-base lg:text-lg font-bold">
+                                    Join the elite learning experience
+                                </p>
+                            </div>
+                            <Card className="bg-yellow-300 mx-2 sm:mx-0">
+                                <CardHeader className="bg-black text-white p-6">
+                                    <CardTitle className="text-2xl text-white lg:text-3xl text-center font-black uppercase tracking-wide">
+                                        Sign Up
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="px-4 lg:px-6 pb-6">
+                                    {/* General Error Display */}
+                                    {errors.general && (
+                                        <div className="p-4 rounded-lg bg-red-50 border border-red-200 flex items-center space-x-2 mb-4">
+                                            <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
+                                            <span className="text-sm text-red-700">
+                                                {errors.general}
+                                            </span>
+                                        </div>
+                                    )}
+                                    <form
+                                        onSubmit={handleSubmit}
+                                        className="space-y-3"
+                                    >
+                                        {/* Role Selection - Full Width */}
+                                        <div className="space-y-1">
+                                            <label
+                                                htmlFor="role"
+                                                className="text-sm font-semibold text-slate-700"
+                                            >
+                                                I am a...
                                             </label>
-                                            <div className="grid grid-cols-2 p-2 border rounded-md max-h-48 overflow-auto">
-                                                {subjectsList.map((s) => (
-                                                    <div
-                                                        key={s}
-                                                        className="flex items-center gap-2"
-                                                    >
-                                                        <Checkbox
-                                                            id={s}
-                                                            checked={formData.subjects.includes(
-                                                                s
-                                                            )}
-                                                            onCheckedChange={() =>
-                                                                handleSubjectChange(
-                                                                    s
-                                                                )
-                                                            }
-                                                        />
-                                                        <label
-                                                            htmlFor={s}
-                                                            className="text-sm"
-                                                        >
-                                                            {s.replace(
-                                                                /_/g,
-                                                                " "
-                                                            )}
-                                                        </label>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                            {errors.subjects && (
-                                                <p className="text-sm text-red-600 flex items-center gap-1">
+                                            <Select
+                                                onValueChange={(value) =>
+                                                    setFormData((p) => ({
+                                                        ...p,
+                                                        role: value as any,
+                                                    }))
+                                                }
+                                                value={formData.role}
+                                            >
+                                                <SelectTrigger className="h-10">
+                                                    <SelectValue placeholder="Select your role" />
+                                                </SelectTrigger>
+                                                <SelectContent className="z-50 bg-white">
+                                                    <SelectItem value="STUDENT">
+                                                        Student
+                                                    </SelectItem>
+                                                    <SelectItem value="TUTOR">
+                                                        Tutor
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            {errors.role && (
+                                                <p className="text-xs text-red-600 flex items-center gap-1">
                                                     <AlertCircle className="h-3 w-3" />
-                                                    {errors.subjects}
+                                                    {errors.role}
                                                 </p>
                                             )}
                                         </div>
 
-                                        <Input
-                                            name="phoneNumber"
-                                            placeholder="Phone Number (Optional)"
-                                            onChange={handleChange}
-                                            value={formData.phoneNumber}
-                                        />
-                                    </div>
-                                )}
-
-                                <div className="flex items-start gap-2">
-                                    <Checkbox
-                                        id="agreeToTerms"
-                                        name="agreeToTerms"
-                                        onCheckedChange={(checked) =>
-                                            setFormData((p) => ({
-                                                ...p,
-                                                agreeToTerms: !!checked,
-                                            }))
-                                        }
-                                    />
-                                    <label
-                                        htmlFor="agreeToTerms"
-                                        className="text-sm"
-                                    >
-                                        I agree to the{" "}
-                                        <Link
-                                            href="/terms"
-                                            className="underline"
-                                        >
-                                            terms and conditions
-                                        </Link>
-                                        .
-                                    </label>
-                                </div>
-                                {errors.agreeToTerms && (
-                                    <p className="text-sm text-red-600 flex items-center gap-1">
-                                        <AlertCircle className="h-3 w-3" />
-                                        {errors.agreeToTerms}
-                                    </p>
-                                )}
-
-                                <Button
-                                    type="submit"
-                                    disabled={isLoading}
-                                    className="w-full bg-gradient-to-r from-slate-700 to-slate-900 text-white h-12"
-                                >
-                                    {isLoading ? (
-                                        "Creating Account..."
-                                    ) : (
-                                        <div className="flex items-center justify-center gap-2">
-                                            <Crown className="h-4 w-4 text-amber-400" />
-                                            Create Account
+                                        {/* First Name and Last Name Row */}
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <div className="space-y-1">
+                                                <label
+                                                    htmlFor="firstName"
+                                                    className="text-sm font-semibold text-slate-700"
+                                                >
+                                                    First Name
+                                                </label>
+                                                <Input
+                                                    id="firstName"
+                                                    name="firstName"
+                                                    onChange={handleChange}
+                                                    onBlur={handleBlur}
+                                                    value={formData.firstName}
+                                                    className={`h-10 ${
+                                                        errors.firstName
+                                                            ? "border-red-400"
+                                                            : isFieldValid(
+                                                                  "firstName"
+                                                              )
+                                                            ? "border-emerald-400"
+                                                            : "border-slate-300"
+                                                    }`}
+                                                    placeholder="Alex"
+                                                />
+                                                {errors.firstName && (
+                                                    <p className="text-xs text-red-600 flex items-center gap-1">
+                                                        <AlertCircle className="h-3 w-3" />
+                                                        {errors.firstName}
+                                                    </p>
+                                                )}
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label
+                                                    htmlFor="lastName"
+                                                    className="text-sm font-semibold text-slate-700"
+                                                >
+                                                    Last Name
+                                                </label>
+                                                <Input
+                                                    id="lastName"
+                                                    name="lastName"
+                                                    onChange={handleChange}
+                                                    onBlur={handleBlur}
+                                                    value={formData.lastName}
+                                                    className={`h-10 ${
+                                                        errors.lastName
+                                                            ? "border-red-400"
+                                                            : isFieldValid(
+                                                                  "lastName"
+                                                              )
+                                                            ? "border-emerald-400"
+                                                            : "border-slate-300"
+                                                    }`}
+                                                    placeholder="Smith"
+                                                />
+                                                {errors.lastName && (
+                                                    <p className="text-xs text-red-600 flex items-center gap-1">
+                                                        <AlertCircle className="h-3 w-3" />
+                                                        {errors.lastName}
+                                                    </p>
+                                                )}
+                                            </div>
                                         </div>
-                                    )}
-                                </Button>
 
-                                <p className="text-center text-sm pt-4">
-                                    Already have an account?{" "}
-                                    <Link
-                                        href="/auth/login"
-                                        className="underline"
-                                    >
-                                        Log in
-                                    </Link>
-                                </p>
-                            </form>
-                        </CardContent>
-                    </Card>
+                                        {/* Email - Full Width */}
+                                        <div className="space-y-1">
+                                            <label
+                                                htmlFor="email"
+                                                className="text-sm font-semibold text-slate-700"
+                                            >
+                                                Email Address
+                                            </label>
+                                            <Input
+                                                id="email"
+                                                name="email"
+                                                type="email"
+                                                onChange={handleChange}
+                                                onBlur={handleBlur}
+                                                value={formData.email}
+                                                className={`h-10 ${
+                                                    errors.email
+                                                        ? "border-red-400"
+                                                        : isFieldValid("email")
+                                                        ? "border-emerald-400"
+                                                        : "border-slate-300"
+                                                }`}
+                                                placeholder="Enter your email"
+                                            />
+                                            {errors.email && (
+                                                <p className="text-xs text-red-600 flex items-center gap-1">
+                                                    <AlertCircle className="h-3 w-3" />
+                                                    {errors.email}
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        {/* Password and Confirm Password Row */}
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <div className="space-y-1">
+                                                <label
+                                                    htmlFor="password"
+                                                    className="text-sm font-semibold text-slate-700"
+                                                >
+                                                    Password
+                                                </label>
+                                                <div className="relative">
+                                                    <Input
+                                                        id="password"
+                                                        name="password"
+                                                        type={
+                                                            showPassword
+                                                                ? "text"
+                                                                : "password"
+                                                        }
+                                                        onChange={handleChange}
+                                                        onBlur={handleBlur}
+                                                        value={
+                                                            formData.password
+                                                        }
+                                                        className={`pr-10 h-10 ${
+                                                            errors.password
+                                                                ? "border-red-400"
+                                                                : isFieldValid(
+                                                                      "password"
+                                                                  )
+                                                                ? "border-emerald-400"
+                                                                : "border-slate-300"
+                                                        }`}
+                                                        placeholder="Create password"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            setShowPassword(
+                                                                !showPassword
+                                                            )
+                                                        }
+                                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+                                                    >
+                                                        {showPassword ? (
+                                                            <EyeOff className="h-3 w-3" />
+                                                        ) : (
+                                                            <Eye className="h-3 w-3" />
+                                                        )}
+                                                    </button>
+                                                </div>
+                                                {errors.password && (
+                                                    <p className="text-xs text-red-600 flex items-center gap-1">
+                                                        <AlertCircle className="h-3 w-3" />
+                                                        {errors.password}
+                                                    </p>
+                                                )}
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label
+                                                    htmlFor="confirmPassword"
+                                                    className="text-sm font-semibold text-slate-700"
+                                                >
+                                                    Confirm Password
+                                                </label>
+                                                <div className="relative">
+                                                    <Input
+                                                        id="confirmPassword"
+                                                        name="confirmPassword"
+                                                        type={
+                                                            showConfirmPassword
+                                                                ? "text"
+                                                                : "password"
+                                                        }
+                                                        onChange={handleChange}
+                                                        onBlur={handleBlur}
+                                                        value={
+                                                            formData.confirmPassword
+                                                        }
+                                                        className={`pr-10 h-10 ${
+                                                            errors.confirmPassword
+                                                                ? "border-red-400"
+                                                                : isFieldValid(
+                                                                      "confirmPassword"
+                                                                  )
+                                                                ? "border-emerald-400"
+                                                                : "border-slate-300"
+                                                        }`}
+                                                        placeholder="Confirm password"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            setShowConfirmPassword(
+                                                                !showConfirmPassword
+                                                            )
+                                                        }
+                                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+                                                    >
+                                                        {showConfirmPassword ? (
+                                                            <EyeOff className="h-3 w-3" />
+                                                        ) : (
+                                                            <Eye className="h-3 w-3" />
+                                                        )}
+                                                    </button>
+                                                </div>
+                                                {errors.confirmPassword && (
+                                                    <p className="text-xs text-red-600 flex items-center gap-1">
+                                                        <AlertCircle className="h-3 w-3" />
+                                                        {errors.confirmPassword}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {formData.role === "TUTOR" && (
+                                            <div className="space-y-4 border-t pt-4">
+                                                <h3 className="text-lg font-semibold text-center">
+                                                    Tutor Details
+                                                </h3>
+                                                <Textarea
+                                                    name="bio"
+                                                    placeholder="Your professional bio"
+                                                    onChange={handleChange}
+                                                    value={formData.bio}
+                                                />
+                                                {errors.bio && (
+                                                    <p className="text-sm text-red-600 flex items-center gap-1">
+                                                        <AlertCircle className="h-3 w-3" />
+                                                        {errors.bio}
+                                                    </p>
+                                                )}
+                                                <div>
+                                                    <label className="font-semibold">
+                                                        Subjects
+                                                    </label>
+                                                    <div className="grid grid-cols-2 p-2 border rounded-md max-h-48 overflow-auto">
+                                                        {subjectsList.map(
+                                                            (s) => (
+                                                                <div
+                                                                    key={s}
+                                                                    className="flex items-center gap-2"
+                                                                >
+                                                                    <Checkbox
+                                                                        id={s}
+                                                                        checked={formData.subjects.includes(
+                                                                            s
+                                                                        )}
+                                                                        onCheckedChange={() =>
+                                                                            handleSubjectChange(
+                                                                                s
+                                                                            )
+                                                                        }
+                                                                    />
+                                                                    <label
+                                                                        htmlFor={
+                                                                            s
+                                                                        }
+                                                                        className="text-sm"
+                                                                    >
+                                                                        {s.replace(
+                                                                            /_/g,
+                                                                            " "
+                                                                        )}
+                                                                    </label>
+                                                                </div>
+                                                            )
+                                                        )}
+                                                    </div>
+                                                    {errors.subjects && (
+                                                        <p className="text-sm text-red-600 flex items-center gap-1">
+                                                            <AlertCircle className="h-3 w-3" />
+                                                            {errors.subjects}
+                                                        </p>
+                                                    )}
+                                                </div>
+
+                                                <Input
+                                                    name="phoneNumber"
+                                                    placeholder="Phone Number (Optional)"
+                                                    onChange={handleChange}
+                                                    value={formData.phoneNumber}
+                                                />
+                                            </div>
+                                        )}
+
+                                        <div className="flex items-start gap-2">
+                                            <Checkbox
+                                                id="agreeToTerms"
+                                                name="agreeToTerms"
+                                                onCheckedChange={(checked) =>
+                                                    setFormData((p) => ({
+                                                        ...p,
+                                                        agreeToTerms: !!checked,
+                                                    }))
+                                                }
+                                            />
+                                            <label
+                                                htmlFor="agreeToTerms"
+                                                className="text-sm"
+                                            >
+                                                I agree to the{" "}
+                                                <Link
+                                                    href="/terms"
+                                                    className="underline"
+                                                >
+                                                    terms and conditions
+                                                </Link>
+                                                .
+                                            </label>
+                                        </div>
+                                        {errors.agreeToTerms && (
+                                            <p className="text-xs text-red-600 flex items-center gap-1">
+                                                <AlertCircle className="h-3 w-3" />
+                                                {errors.agreeToTerms}
+                                            </p>
+                                        )}
+
+                                        <Button
+                                            type="submit"
+                                            disabled={isLoading}
+                                            className="w-full bg-gradient-to-r from-slate-700 to-slate-900 text-white h-10"
+                                        >
+                                            {isLoading ? (
+                                                "Creating Account..."
+                                            ) : (
+                                                <div className="flex items-center justify-center gap-2">
+                                                    <Crown className="h-4 w-4 text-amber-400" />
+                                                    Create Account
+                                                </div>
+                                            )}
+                                        </Button>
+
+                                        <p className="text-center text-sm pt-2">
+                                            Already have an account?{" "}
+                                            <Link
+                                                href="/auth/login"
+                                                className="underline"
+                                            >
+                                                Log in
+                                            </Link>
+                                        </p>
+                                    </form>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </div>
                 </div>
             </div>
         </AuthPageGuard>

@@ -121,7 +121,7 @@ export default function ForgotPasswordPage() {
                                     <CheckCircle2 className="h-8 w-8 text-emerald-600" />
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-semibold text-slate-800 mb-2">
+                                    <h3 className=" text-lg font-semibold text-slate-800 mb-2">
                                         Reset Link Sent
                                     </h3>
                                     <p className="text-slate-600 text-sm">
@@ -169,119 +169,125 @@ export default function ForgotPasswordPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
-            <div className="w-full max-w-md">
-                {/* Header */}
-                <div className="text-center mb-8 px-2 sm:px-0">
-                    <div className="flex justify-center mb-4 lg:mb-6">
-                        <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-slate-700 to-slate-900 rounded-full flex items-center justify-center shadow-lg">
-                            <Crown className="h-8 w-8 lg:h-10 lg:w-10 text-amber-400" />
+        <div className="min-h-screen bg-orange-200 flex items-center justify-center p-4">
+            <div className="w-full max-w-6xl">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                    {/* Image Section */}
+                    <div className="hidden lg:flex justify-center items-center order-2 lg:order-1">
+                        <div className="relative">
+                            <img
+                                src="/reset-password.png"
+                                alt="Reset Password Illustration"
+                                className="w-full max-w-lg h-auto"
+                            />
                         </div>
                     </div>
-                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-800 mb-2 leading-tight">
-                        Forgot Password
-                    </h1>
-                    <p className="text-slate-600 text-base lg:text-lg">
-                        Enter your email to reset your password
-                    </p>
-                </div>
 
-                {/* Forgot Password Form */}
-                <Card className="border border-slate-200 shadow-xl bg-white/95 backdrop-blur-sm mx-2 sm:mx-0">
-                    <CardHeader className="space-y-1 pb-6 px-6 lg:px-8">
-                        <CardTitle className="text-xl lg:text-2xl text-center text-slate-800 font-bold">
-                            Reset Password
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6 px-6 lg:px-8">
-                        {/* General Error */}
-                        {errors.general && (
-                            <div className="p-4 rounded-lg bg-red-50 border border-red-200 flex items-center space-x-2">
-                                <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
-                                <span className="text-sm text-red-700">
-                                    {errors.general}
-                                </span>
-                            </div>
-                        )}
-
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            {/* Email Field */}
-                            <div className="space-y-2">
-                                <label
-                                    htmlFor="email"
-                                    className="text-sm font-semibold text-slate-700"
-                                >
-                                    Email Address
-                                </label>
-                                <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <Mail className="h-4 w-4 text-slate-400" />
-                                    </div>
-                                    <Input
-                                        id="email"
-                                        name="email"
-                                        type="email"
-                                        value={formData.email}
-                                        onChange={handleInputChange}
-                                        onBlur={handleBlur}
-                                        className={`pl-10 pr-10 h-12 lg:h-14 border-slate-300 focus:border-slate-500 focus:ring-slate-500 bg-white shadow-sm ${
-                                            errors.email
-                                                ? "border-red-400 focus:border-red-500 focus:ring-red-500"
-                                                : isFieldValid("email")
-                                                ? "border-emerald-400 focus:border-emerald-500 focus:ring-emerald-500"
-                                                : ""
-                                        }`}
-                                        placeholder="Enter your email"
-                                    />
-                                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                                        {errors.email && (
-                                            <AlertCircle className="h-4 w-4 text-red-500" />
-                                        )}
-                                        {isFieldValid("email") && (
-                                            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                                        )}
-                                    </div>
+                    {/* Reset Password Form Section */}
+                    <div className="w-full max-w-md mx-auto order-1 lg:order-2">
+                        {/* Header */}
+                        <div className="text-center mb-8 px-2 sm:px-0">
+                            <div className="flex justify-center mb-4 lg:mb-6">
+                                <div className="w-16 h-16 lg:w-20 lg:h-20 bg-black border-4 border-black shadow-[6px_6px_0px_0px_black] flex items-center justify-center">
+                                    <Crown className="h-8 w-8 lg:h-10 lg:w-10 text-yellow-400" />
                                 </div>
-                                {errors.email && (
-                                    <p className="text-sm text-red-600 flex items-center gap-1">
-                                        <AlertCircle className="h-3 w-3" />
-                                        {errors.email}
-                                    </p>
-                                )}
                             </div>
+                            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black mb-2 leading-tight uppercase tracking-wide">
+                                Reset Password
+                            </h1>
+                            <p className="text-black text-base lg:text-lg font-bold">
+                                Enter your email to reset your password
+                            </p>
+                        </div>
 
-                            {/* Submit Button */}
-                            <Button
-                                type="submit"
-                                disabled={isLoading}
-                                className="w-full h-12 lg:h-14 bg-slate-800 hover:bg-slate-700 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                {isLoading ? (
-                                    <div className="flex items-center">
-                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                        Sending...
-                                    </div>
-                                ) : (
-                                    <div className="flex items-center">
-                                        Send Reset Link
-                                        <ArrowRight className="h-4 w-4 ml-2" />
+                        {/* Forgot Password Form */}
+                        <Card className="bg-yellow-300 mx-2 sm:mx-0">
+                            <CardHeader className="bg-black text-white p-6">
+                                <CardTitle className=" text-white text-2xl lg:text-3xl text-center font-black uppercase tracking-wide">
+                                    Reset Password
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-6 px-6 lg:px-8">
+                                {/* General Error */}
+                                {errors.general && (
+                                    <div className="p-4 rounded-lg bg-red-50 border border-red-200 flex items-center space-x-2">
+                                        <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
+                                        <span className="text-sm text-red-700">
+                                            {errors.general}
+                                        </span>
                                     </div>
                                 )}
-                            </Button>
-                        </form>
 
-                        {/* Back to Login */}
-                        <div className="text-center">
-                            <Link
-                                href="/auth/login"
-                                className="text-sm text-slate-600 hover:text-slate-800 hover:underline flex items-center justify-center gap-1"
-                            >
-                                <ArrowLeft className="h-3 w-3" />
-                                Back to Login
-                            </Link>
-                        </div>
-                    </CardContent>
-                </Card>
+                                <form
+                                    onSubmit={handleSubmit}
+                                    className="space-y-6"
+                                >
+                                    {/* Email Field */}
+                                    <div className="space-y-2">
+                                        <label
+                                            htmlFor="email"
+                                            className="text-sm font-semibold text-slate-700"
+                                        >
+                                            Email Address
+                                        </label>
+                                        <Input
+                                            id="email"
+                                            name="email"
+                                            type="email"
+                                            value={formData.email}
+                                            onChange={handleInputChange}
+                                            onBlur={handleBlur}
+                                            className={`h-12 lg:h-14 ${
+                                                errors.email
+                                                    ? "border-red-400"
+                                                    : isFieldValid("email")
+                                                    ? "border-emerald-400"
+                                                    : ""
+                                            }`}
+                                            placeholder="Enter your email"
+                                        />
+                                        {errors.email && (
+                                            <p className="text-sm text-red-600 flex items-center gap-1">
+                                                <AlertCircle className="h-3 w-3" />
+                                                {errors.email}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    {/* Submit Button */}
+                                    <Button
+                                        type="submit"
+                                        disabled={isLoading}
+                                        className="w-full h-12 lg:h-14 bg-slate-800 hover:bg-slate-700 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {isLoading ? (
+                                            <div className="flex items-center">
+                                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                                Sending...
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center">
+                                                Send Reset Link
+                                                <ArrowRight className="h-4 w-4 ml-2" />
+                                            </div>
+                                        )}
+                                    </Button>
+                                </form>
+
+                                {/* Back to Login */}
+                                <div className="text-center">
+                                    <Link
+                                        href="/auth/login"
+                                        className="text-sm text-slate-600 hover:text-slate-800 hover:underline flex items-center justify-center gap-1"
+                                    >
+                                        <ArrowLeft className="h-3 w-3" />
+                                        Back to Login
+                                    </Link>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
             </div>
         </div>
     )

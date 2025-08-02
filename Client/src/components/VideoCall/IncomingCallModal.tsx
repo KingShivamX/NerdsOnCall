@@ -41,12 +41,12 @@ export function IncomingCallModal({
 
     return (
         <Dialog open={isOpen} onOpenChange={() => {}}>
-            <DialogContent className="sm:max-w-md bg-white border-2 border-green-400 shadow-2xl">
-                <DialogHeader className="text-center pb-4">
+            <DialogContent className="sm:max-w-md bg-white border-4 border-black shadow-[8px_8px_0px_0px_black]">
+                <DialogHeader className="bg-black text-white p-4 -m-6 mb-6">
                     <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse shadow-lg">
                         <Phone className="h-10 w-10 text-white animate-bounce" />
                     </div>
-                    <DialogTitle className="text-green-800 text-xl font-bold">
+                    <DialogTitle className="text-white text-xl font-bold text-center">
                         📞 Incoming Call
                     </DialogTitle>
                 </DialogHeader>
@@ -73,18 +73,18 @@ export function IncomingCallModal({
                             onClick={handleDecline}
                             disabled={isResponding}
                             variant="outline"
-                            className="bg-red-50 border-red-200 text-red-600 hover:bg-red-100 hover:border-red-300 px-6 py-3 rounded-full shadow-md"
+                            className="bg-red-500 border-4 border-black text-white font-bold shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] transition-all px-6 py-3"
                         >
                             <PhoneOff className="h-5 w-5 mr-2" />
-                            Decline
+                            DECLINE
                         </Button>
                         <Button
                             onClick={handleAccept}
                             disabled={isResponding}
-                            className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-full shadow-lg animate-pulse"
+                            className="bg-green-500 border-4 border-black text-white font-bold shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] transition-all animate-pulse px-6 py-3"
                         >
                             <Video className="h-5 w-5 mr-2" />
-                            Accept Call
+                            ACCEPT CALL
                         </Button>
                     </div>
 

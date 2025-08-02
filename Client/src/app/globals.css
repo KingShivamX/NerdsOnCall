@@ -290,6 +290,231 @@ p {
     font-weight: 500;
 }
 
+/* Neubrutalism Select/Dropdown Styles */
+.neo-select {
+    background: hsl(var(--popover)) !important;
+    color: hsl(var(--popover-foreground)) !important;
+    border: 3px solid hsl(var(--border)) !important;
+    border-radius: 0 !important;
+    padding: 0.875rem 1rem !important;
+    font-weight: 600 !important;
+    font-size: 1rem !important;
+    width: 100% !important;
+    transition: all 0.1s ease !important;
+    box-shadow: 4px 4px 0px hsl(var(--border)) !important;
+    cursor: pointer !important;
+}
+
+.neo-select:focus {
+    outline: none !important;
+    transform: translate(-2px, -2px) !important;
+    box-shadow: 6px 6px 0px hsl(var(--border)) !important;
+    border-color: hsl(var(--primary)) !important;
+}
+
+.neo-select:hover {
+    transform: translate(-1px, -1px) !important;
+    box-shadow: 5px 5px 0px hsl(var(--border)) !important;
+}
+
+/* Neubrutalism Dropdown Content */
+.neo-dropdown-content {
+    background: hsl(var(--popover)) !important;
+    color: hsl(var(--popover-foreground)) !important;
+    border: 3px solid hsl(var(--border)) !important;
+    border-radius: 0 !important;
+    box-shadow: 6px 6px 0px hsl(var(--border)) !important;
+    padding: 0.5rem !important;
+    z-index: 50 !important;
+}
+
+.neo-dropdown-item {
+    background: transparent !important;
+    color: hsl(var(--popover-foreground)) !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0.75rem 1rem !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.1s ease !important;
+}
+
+.neo-dropdown-item:hover {
+    background: hsl(var(--accent)) !important;
+    color: hsl(var(--accent-foreground)) !important;
+    transform: translate(-1px, -1px) !important;
+}
+
+.neo-dropdown-item:focus {
+    background: hsl(var(--accent)) !important;
+    color: hsl(var(--accent-foreground)) !important;
+    outline: none !important;
+}
+
+/* Global overrides for all select/dropdown components */
+[data-slot="select-trigger"] {
+    background: hsl(var(--popover)) !important;
+    color: hsl(var(--popover-foreground)) !important;
+    border: 3px solid hsl(var(--border)) !important;
+    border-radius: 0 !important;
+    padding: 0.875rem 1rem !important;
+    font-weight: 600 !important;
+    font-size: 1rem !important;
+    box-shadow: 4px 4px 0px hsl(var(--border)) !important;
+    transition: all 0.1s ease !important;
+}
+
+[data-slot="select-trigger"]:hover {
+    transform: translate(-1px, -1px) !important;
+    box-shadow: 5px 5px 0px hsl(var(--border)) !important;
+}
+
+[data-slot="select-trigger"]:focus {
+    outline: none !important;
+    transform: translate(-2px, -2px) !important;
+    box-shadow: 6px 6px 0px hsl(var(--border)) !important;
+    border-color: hsl(var(--primary)) !important;
+}
+
+[data-slot="select-content"] {
+    background: hsl(var(--popover)) !important;
+    color: hsl(var(--popover-foreground)) !important;
+    border: 3px solid hsl(var(--border)) !important;
+    border-radius: 0 !important;
+    box-shadow: 6px 6px 0px hsl(var(--border)) !important;
+    padding: 0.5rem !important;
+}
+
+[data-slot="select-item"] {
+    background: transparent !important;
+    color: hsl(var(--popover-foreground)) !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0.75rem 1rem !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.1s ease !important;
+}
+
+[data-slot="select-item"]:hover {
+    background: hsl(var(--accent)) !important;
+    color: hsl(var(--accent-foreground)) !important;
+    transform: translate(-1px, -1px) !important;
+}
+
+[data-slot="select-item"]:focus {
+    background: hsl(var(--accent)) !important;
+    color: hsl(var(--accent-foreground)) !important;
+    outline: none !important;
+}
+
+/* Global overrides for all input components */
+[data-slot="input"] {
+    background: hsl(var(--input)) !important;
+    color: hsl(var(--foreground)) !important;
+    border: 3px solid hsl(var(--border)) !important;
+    border-radius: 0 !important;
+    font-weight: 600 !important;
+    font-size: 1rem !important;
+    box-shadow: 4px 4px 0px hsl(var(--border)) !important;
+    transition: all 0.1s ease !important;
+}
+
+/* Standard padding for all inputs */
+[data-slot="input"] {
+    padding: 0.875rem 1rem !important;
+}
+
+[data-slot="input"]:focus {
+    outline: none !important;
+    transform: translate(-2px, -2px) !important;
+    box-shadow: 6px 6px 0px hsl(var(--border)) !important;
+    border-color: hsl(var(--primary)) !important;
+}
+
+[data-slot="input"]:hover {
+    transform: translate(-1px, -1px) !important;
+    box-shadow: 5px 5px 0px hsl(var(--border)) !important;
+}
+
+/* Global overrides for textarea components */
+textarea {
+    background: hsl(var(--input)) !important;
+    color: hsl(var(--foreground)) !important;
+    border: 3px solid hsl(var(--border)) !important;
+    border-radius: 0 !important;
+    padding: 0.875rem 1rem !important;
+    font-weight: 600 !important;
+    font-size: 1rem !important;
+    box-shadow: 4px 4px 0px hsl(var(--border)) !important;
+    transition: all 0.1s ease !important;
+}
+
+textarea:focus {
+    outline: none !important;
+    transform: translate(-2px, -2px) !important;
+    box-shadow: 6px 6px 0px hsl(var(--border)) !important;
+    border-color: hsl(var(--primary)) !important;
+}
+
+textarea:hover {
+    transform: translate(-1px, -1px) !important;
+    box-shadow: 5px 5px 0px hsl(var(--border)) !important;
+}
+
+/* Global overrides for dropdown menu components */
+[data-slot="dropdown-menu-content"] {
+    background: hsl(var(--popover)) !important;
+    color: hsl(var(--popover-foreground)) !important;
+    border: 3px solid hsl(var(--border)) !important;
+    border-radius: 0 !important;
+    box-shadow: 6px 6px 0px hsl(var(--border)) !important;
+    padding: 0.5rem !important;
+}
+
+[data-slot="dropdown-menu-item"] {
+    background: transparent !important;
+    color: hsl(var(--popover-foreground)) !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0.75rem 1rem !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.1s ease !important;
+}
+
+[data-slot="dropdown-menu-item"]:hover {
+    background: hsl(var(--accent)) !important;
+    color: hsl(var(--accent-foreground)) !important;
+    transform: translate(-1px, -1px) !important;
+}
+
+[data-slot="dropdown-menu-item"]:focus {
+    background: hsl(var(--accent)) !important;
+    color: hsl(var(--accent-foreground)) !important;
+    outline: none !important;
+}
+
+/* Ensure all popover/dropdown backgrounds are opaque */
+[role="listbox"],
+[role="menu"],
+[role="dialog"] {
+    background: hsl(var(--popover)) !important;
+    border: 3px solid hsl(var(--border)) !important;
+    border-radius: 0 !important;
+    box-shadow: 6px 6px 0px hsl(var(--border)) !important;
+}
+
+/* Fix any remaining transparent backgrounds */
+.bg-transparent {
+    background: hsl(var(--background)) !important;
+}
+
+/* Ensure proper contrast for all text */
+.text-muted-foreground {
+    color: hsl(var(--muted-foreground)) !important;
+}
+
 /* Neubrutalism Badge Styles */
 .neo-badge {
     background: hsl(var(--accent));

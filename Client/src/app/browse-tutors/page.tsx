@@ -103,12 +103,21 @@ export default function BrowseTutorsPage() {
             // Set a default state for no subscription
             setSessionStatus({
                 hasActiveSubscription: false,
-                message: "Unable to load subscription status",
+                message:
+                    "Unable to load subscription status. Please try refreshing the page.",
                 canAskDoubt: false,
+                sessionsUsed: 0,
+                sessionsLimit: 0,
+                sessionsRemaining: 0,
+                planName: "Unknown",
+                planType: "UNKNOWN",
             })
 
-            // Show error toast only if it's not a 401 (which might mean no subscription)
-            if (error.response?.status !== 401) {
+            // Show error toast only if it's not a 401 or 400 (which might mean no subscription)
+            if (
+                error.response?.status !== 401 &&
+                error.response?.status !== 400
+            ) {
                 toast.error("Failed to load subscription status")
             }
         } finally {
@@ -291,15 +300,13 @@ export default function BrowseTutorsPage() {
                         <CardContent className="p-6">
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                 {/* Search */}
-                                <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                                <div>
                                     <Input
                                         placeholder="Search tutors..."
                                         value={searchQuery}
                                         onChange={(e) =>
                                             setSearchQuery(e.target.value)
                                         }
-                                        className="pl-10"
                                     />
                                 </div>
 

@@ -193,38 +193,58 @@ export default function FeaturesPage() {
 
             {/* Hero Section */}
             <section className="pt-20 pb-16 px-4 sm:px-6 lg:px-8">
-                <div className="max-w-6xl mx-auto text-center">
-                    <Badge className="mb-6 bg-black text-white px-6 py-3 border-3 border-black shadow-[4px_4px_0px_0px_black] font-black uppercase tracking-wide">
-                        Premium Learning Platform
-                    </Badge>
-                    <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-black mb-6 leading-tight uppercase">
-                        Powerful Features for
-                        <span className="text-black"> Modern Learning</span>
-                    </h1>
-                    <p className="text-xl text-black max-w-3xl mx-auto mb-8 leading-relaxed font-bold text-center">
-                        Discover how NerdsOnCall revolutionizes education with
-                        cutting-edge technology, expert tutors, and innovative
-                        learning tools designed for your success.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <Link href="/auth/register?role=student">
-                            <Button
-                                size="lg"
-                                className="bg-cyan-300 hover:bg-cyan-400 text-black px-8 py-4 text-lg font-black border-3 border-black shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] transition-all uppercase tracking-wide"
-                            >
-                                <PlayCircle className="mr-2 h-5 w-5" />
-                                Start Learning Now
-                            </Button>
-                        </Link>
-                        <Link href="/pricing">
-                            <Button
-                                variant="outline"
-                                size="lg"
-                                className="bg-pink-300 hover:bg-pink-400 border-3 border-black text-black px-8 py-4 text-lg font-black shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] transition-all uppercase tracking-wide"
-                            >
-                                View Pricing
-                            </Button>
-                        </Link>
+                <div className="max-w-7xl mx-auto">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+                        {/* Content Section */}
+                        <div className="text-center lg:text-left order-2 lg:order-1">
+                            <Badge className="mb-6 bg-black text-white px-6 py-3 border-3 border-black shadow-[4px_4px_0px_0px_black] font-black uppercase tracking-wide">
+                                Premium Learning Platform
+                            </Badge>
+                            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-black mb-6 leading-tight uppercase">
+                                Powerful Features for
+                                <span className="text-black">
+                                    {" "}
+                                    Modern Learning
+                                </span>
+                            </h1>
+                            <p className="text-xl text-black max-w-3xl mx-auto lg:mx-0 mb-8 leading-relaxed font-bold">
+                                Discover how NerdsOnCall revolutionizes
+                                education with cutting-edge technology, expert
+                                tutors, and innovative learning tools designed
+                                for your success.
+                            </p>
+                            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                                <Link href="/auth/register?role=student">
+                                    <Button
+                                        size="lg"
+                                        className="bg-cyan-300 hover:bg-cyan-400 text-black px-8 py-4 text-lg font-black border-3 border-black shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] transition-all uppercase tracking-wide"
+                                    >
+                                        <PlayCircle className="mr-2 h-5 w-5" />
+                                        Start Learning Now
+                                    </Button>
+                                </Link>
+                                <Link href="/pricing">
+                                    <Button
+                                        variant="outline"
+                                        size="lg"
+                                        className="bg-pink-300 hover:bg-pink-400 border-3 border-black text-black px-8 py-4 text-lg font-black shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] transition-all uppercase tracking-wide"
+                                    >
+                                        View Pricing
+                                    </Button>
+                                </Link>
+                            </div>
+                        </div>
+
+                        {/* Image Section */}
+                        <div className="flex justify-center items-center order-1 lg:order-2">
+                            <div className="relative">
+                                <img
+                                    src="/features-page.png"
+                                    alt="Features Illustration"
+                                    className="w-full max-w-lg h-auto"
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>

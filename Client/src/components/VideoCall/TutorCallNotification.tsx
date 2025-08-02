@@ -515,9 +515,9 @@ export function TutorCallNotification({
                     if (!open) rejectCall()
                 }}
             >
-                <DialogContent className="sm:max-w-md bg-white border-2 border-gray-300 shadow-2xl">
-                    <DialogHeader className="bg-white">
-                        <DialogTitle className="text-gray-900 text-xl font-bold text-center">
+                <DialogContent className="sm:max-w-md bg-white border-4 border-black shadow-[8px_8px_0px_0px_black]">
+                    <DialogHeader className="bg-black text-white p-4 -m-6 mb-6">
+                        <DialogTitle className="text-white text-xl font-bold text-center">
                             📞 Incoming Call
                         </DialogTitle>
                     </DialogHeader>
@@ -535,15 +535,6 @@ export function TutorCallNotification({
                                 Student requesting help
                             </p>
                         </div>
-
-                        <div className="bg-gray-100 rounded-lg p-4 w-full text-center border border-gray-300">
-                            <p className="text-sm font-medium text-gray-700 mb-1">
-                                Session ID
-                            </p>
-                            <p className="text-xs text-gray-600 font-mono bg-white px-2 py-1 rounded border">
-                                {incomingCall?.sessionId}
-                            </p>
-                        </div>
                     </div>
 
                     <DialogFooter className="flex justify-center space-x-4 bg-white pt-4">
@@ -551,18 +542,18 @@ export function TutorCallNotification({
                             type="button"
                             variant="outline"
                             onClick={rejectCall}
-                            className="w-24 h-12 bg-red-50 border-red-300 text-red-700 hover:bg-red-100 hover:border-red-400 font-semibold"
+                            className="w-24 h-12 bg-red-500 border-4 border-black text-white font-bold shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] transition-all"
                         >
                             <PhoneOff className="mr-2 h-5 w-5" />
-                            Decline
+                            DECLINE
                         </Button>
                         <Button
                             type="button"
                             onClick={acceptCall}
-                            className="w-24 h-12 bg-green-600 hover:bg-green-700 text-white font-semibold shadow-lg animate-pulse"
+                            className="w-24 h-12 bg-green-500 border-4 border-black text-white font-bold shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] transition-all animate-pulse"
                         >
                             <Phone className="mr-2 h-5 w-5" />
-                            Accept
+                            ACCEPT
                         </Button>
                     </DialogFooter>
                 </DialogContent>

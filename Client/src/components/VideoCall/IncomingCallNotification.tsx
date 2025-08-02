@@ -19,7 +19,7 @@ interface IncomingCallNotificationProps {
     callerName: string
     callerId: number | string
     sessionId: string
-    callerRole?: 'STUDENT' | 'TUTOR'
+    callerRole?: "STUDENT" | "TUTOR"
 }
 
 export function IncomingCallNotification({
@@ -57,17 +57,21 @@ export function IncomingCallNotification({
 
     const handleAccept = () => {
         onAccept()
-        
+
         // Navigate to video call page based on user role
-        if (user?.role === 'TUTOR') {
+        if (user?.role === "TUTOR") {
             // Tutor accepting call from student
             router.push(
-                `/video-call/${sessionId}?role=tutor&studentId=${callerId}&studentName=${encodeURIComponent(callerName)}`
+                `/video-call/${sessionId}?role=tutor&studentId=${callerId}&studentName=${encodeURIComponent(
+                    callerName
+                )}`
             )
         } else {
             // Student accepting call from tutor
             router.push(
-                `/video-call/${sessionId}?role=student&tutorId=${callerId}&tutorName=${encodeURIComponent(callerName)}`
+                `/video-call/${sessionId}?role=student&tutorId=${callerId}&tutorName=${encodeURIComponent(
+                    callerName
+                )}`
             )
         }
     }
@@ -81,10 +85,10 @@ export function IncomingCallNotification({
     }
 
     const getCallerTypeLabel = () => {
-        if (user?.role === 'TUTOR') {
-            return 'Student'
+        if (user?.role === "TUTOR") {
+            return "Student"
         } else {
-            return 'Tutor'
+            return "Tutor"
         }
     }
 
@@ -92,9 +96,9 @@ export function IncomingCallNotification({
 
     return (
         <Dialog open={isOpen} onOpenChange={() => {}}>
-            <DialogContent className="sm:max-w-md bg-white border-2 border-blue-300 shadow-2xl">
-                <DialogHeader className="text-center pb-4">
-                    <DialogTitle className="text-xl font-bold text-blue-900">
+            <DialogContent className="sm:max-w-md bg-white border-4 border-black shadow-[8px_8px_0px_0px_black]">
+                <DialogHeader className="bg-black text-white p-4 -m-6 mb-6">
+                    <DialogTitle className="text-xl font-bold text-white text-center">
                         📞 Incoming Call
                     </DialogTitle>
                 </DialogHeader>
@@ -127,21 +131,18 @@ export function IncomingCallNotification({
                     <div className="flex justify-center space-x-4 pt-4">
                         <Button
                             onClick={onDecline}
-                            className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg hover:shadow-red-200 transition-all"
+                            className="w-20 h-12 bg-red-500 border-4 border-black text-white font-bold shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] transition-all"
                         >
-                            <PhoneOff className="h-6 w-6" />
+                            <PhoneOff className="h-5 w-5 mr-1" />
+                            DECLINE
                         </Button>
                         <Button
                             onClick={handleAccept}
-                            className="w-16 h-16 rounded-full bg-green-500 hover:bg-green-600 text-white shadow-lg hover:shadow-green-200 transition-all animate-pulse"
+                            className="w-20 h-12 bg-green-500 border-4 border-black text-white font-bold shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] transition-all animate-pulse"
                         >
-                            <Phone className="h-6 w-6" />
+                            <Phone className="h-5 w-5 mr-1" />
+                            ACCEPT
                         </Button>
-                    </div>
-
-                    <div className="flex justify-center space-x-8 text-sm text-gray-600">
-                        <span>Decline</span>
-                        <span>Accept</span>
                     </div>
                 </div>
             </DialogContent>
