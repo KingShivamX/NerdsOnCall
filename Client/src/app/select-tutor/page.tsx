@@ -208,7 +208,7 @@ export default function SelectTutorPage() {
                       </div>
                       <div className="text-sm text-slate-600">
                         {sessionStatus.sessionsUsed} /{" "}
-                        {sessionStatus.sessionsLimit} doubts used today
+                        {sessionStatus.sessionsLimit} sessions used today
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">

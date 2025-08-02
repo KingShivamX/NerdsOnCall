@@ -81,7 +81,8 @@ public class SubscriptionController {
             response.put("sessionsUsed", sessionsUsed);
             response.put("sessionsLimit", sessionsLimit);
             response.put("sessionsRemaining", Math.max(0, sessionsLimit - sessionsUsed));
-            response.put("canAskDoubt", sessionsUsed < sessionsLimit);
+            response.put("canAskDoubt", sessionsUsed < sessionsLimit); // This applies to both doubts and video calls
+            response.put("canStartVideoCall", sessionsUsed < sessionsLimit); // Explicit field for video calls
             response.put("planName", subscription.getPlanName() != null ? subscription.getPlanName() : "Unknown Plan");
             response.put("planType", subscription.getPlanType() != null ? subscription.getPlanType() : "UNKNOWN");
 

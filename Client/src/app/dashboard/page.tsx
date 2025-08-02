@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useTutorDashboard } from "@/hooks/useTutorDashboard";
+import { Subscription } from "@/types";
 import { Navbar } from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/Button";
 import {
@@ -55,6 +56,8 @@ export default function DashboardPage() {
   const { user, loading } = useAuth();
   const [isOnline, setIsOnline] = useState(user?.isOnline || false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [subscriptionLoading, setSubscriptionLoading] = useState(false);
 
   // Fetch dashboard data for students
   const {
@@ -75,12 +78,38 @@ export default function DashboardPage() {
   // Track if we've already fetched data to prevent continuous fetching
   const hasFetchedRef = useRef(false);
 
+  // Fetch subscription data for students
+  const fetchSubscription = async () => {
+    if (user && user.role === "STUDENT") {
+      try {
+        setSubscriptionLoading(true);
+        const res = await api.get<Subscription | string>(
+          "/subscriptions/my-subscription"
+        );
+        if (
+          typeof res.data === "object" &&
+          res.data !== null &&
+          "id" in res.data
+        ) {
+          setSubscription(res.data as Subscription);
+        } else {
+          setSubscription(null);
+        }
+      } catch {
+        setSubscription(null);
+      } finally {
+        setSubscriptionLoading(false);
+      }
+    }
+  };
+
   // Fetch data only once when user is ready
   useEffect(() => {
     if (user && user.role === "STUDENT" && !loading && !hasFetchedRef.current) {
       console.log("🎯 Dashboard page loaded, fetching student data once...");
       hasFetchedRef.current = true;
       refetch();
+      fetchSubscription();
     } else if (
       user &&
       user.role === "TUTOR" &&
@@ -176,6 +205,20 @@ export default function DashboardPage() {
   const isStudent = user.role === "STUDENT";
   const isTutor = user.role === "TUTOR";
 
+  // Get subscription display text
+  const getSubscriptionDisplay = () => {
+    if (subscriptionLoading) return "Loading...";
+    if (!subscription) return "No Active Plan";
+    return `${subscription.planName} Plan`;
+  };
+
+  // Get subscription badge variant
+  const getSubscriptionVariant = () => {
+    if (!subscription) return "destructive";
+    if (subscription.status === "ACTIVE") return "default";
+    return "secondary";
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
       <Navbar />
@@ -190,15 +233,19 @@ export default function DashboardPage() {
                 </h1>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2">
                   <Badge
-                    variant={isTutor ? "default" : "secondary"}
+                    variant={isTutor ? "default" : getSubscriptionVariant()}
                     className={`w-fit ${
                       isTutor
                         ? "bg-slate-700 text-white border-0"
+                        : subscription && subscription.status === "ACTIVE"
+                        ? "bg-green-100 text-green-700 border-green-200"
+                        : !subscription
+                        ? "bg-red-100 text-red-700 border-red-200"
                         : "bg-slate-100 text-slate-700"
                     }`}
                   >
                     {isTutor && <Crown className="w-4 h-4 mr-1" />}
-                    {isTutor ? "Elite Tutor" : "Premium Student"}
+                    {isTutor ? "Elite Tutor" : getSubscriptionDisplay()}
                   </Badge>
                   <span className="hidden sm:inline text-slate-400">•</span>
                   <span className="text-slate-600 text-sm">Dashboard</span>
@@ -691,6 +738,31 @@ export default function DashboardPage() {
                             <div className="w-4 h-4 border border-slate-300 border-t-slate-600 rounded-full animate-spin"></div>
                           ) : (
                             dashboardData?.openQuestions || 0
+                          )}
+                        </span>
+                      </div>
+
+                      {/* Subscription Status */}
+                      <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <div
+                            className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                              subscription && subscription.status === "ACTIVE"
+                                ? "bg-green-500"
+                                : "bg-red-500"
+                            }`}
+                          >
+                            <Crown className="h-4 w-4 text-white" />
+                          </div>
+                          <span className="text-sm font-medium text-slate-700">
+                            Subscription
+                          </span>
+                        </div>
+                        <span className="text-sm text-slate-600">
+                          {subscriptionLoading ? (
+                            <div className="w-4 h-4 border border-slate-300 border-t-slate-600 rounded-full animate-spin"></div>
+                          ) : (
+                            getSubscriptionDisplay()
                           )}
                         </span>
                       </div>

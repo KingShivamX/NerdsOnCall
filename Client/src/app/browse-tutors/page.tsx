@@ -16,8 +16,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { VideoCallModal } from "@/components/VideoCall/VideoCallModal";
-import { Star, Search, Filter, Video, Clock, Users } from "lucide-react";
+import {
+  Star,
+  Search,
+  Filter,
+  Video,
+  Clock,
+  Users,
+  AlertCircle,
+} from "lucide-react";
 import { Subject, User } from "@/types";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 const subjectsList: Subject[] = [
   "MATHEMATICS",
@@ -39,6 +49,7 @@ const subjectsList: Subject[] = [
 
 export default function BrowseTutorsPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const [tutors, setTutors] = useState<User[]>([]);
   const [filteredTutors, setFilteredTutors] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,9 +57,16 @@ export default function BrowseTutorsPage() {
   const [selectedSubject, setSelectedSubject] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("rating");
 
+  // Session status for video call limits
+  const [sessionStatus, setSessionStatus] = useState<any>(null);
+  const [loadingSession, setLoadingSession] = useState(false);
+
   useEffect(() => {
     fetchTutors();
-  }, [selectedSubject, sortBy]);
+    if (user && user.role === "STUDENT") {
+      fetchSessionStatus();
+    }
+  }, [user]);
 
   useEffect(() => {
     filterAndSortTutors();
@@ -70,6 +88,29 @@ export default function BrowseTutorsPage() {
       console.error("Error fetching tutors:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSessionStatus = async () => {
+    try {
+      setLoadingSession(true);
+      const response = await api.get("/subscriptions/session-status");
+      setSessionStatus(response.data);
+    } catch (error: any) {
+      console.error("Error fetching session status:", error);
+      // Set a default state for no subscription
+      setSessionStatus({
+        hasActiveSubscription: false,
+        message: "Unable to load subscription status",
+        canAskDoubt: false,
+      });
+
+      // Show error toast only if it's not a 401 (which might mean no subscription)
+      if (error.response?.status !== 401) {
+        toast.error("Failed to load subscription status");
+      }
+    } finally {
+      setLoadingSession(false);
     }
   };
 
@@ -119,6 +160,29 @@ export default function BrowseTutorsPage() {
   const [isCallModalOpen, setIsCallModalOpen] = useState(false);
 
   const handleConnectTutor = (tutor: User) => {
+    // If session status is not loaded yet, allow the attempt (backend will validate)
+    if (loadingSession) {
+      toast.error("Please wait while we load your subscription status...");
+      return;
+    }
+
+    // Check session limits before allowing video call
+    if (sessionStatus && !sessionStatus.hasActiveSubscription) {
+      toast.error(
+        "You need an active subscription to start video calls. Please subscribe to a plan first."
+      );
+      router.push("/pricing");
+      return;
+    }
+
+    if (sessionStatus && !sessionStatus.canAskDoubt) {
+      toast.error(
+        `Daily session limit reached! You have used ${sessionStatus.sessionsUsed} out of ${sessionStatus.sessionsLimit} allowed sessions for today. This limit is shared between doubts and video calls. Your limit will reset at 12:00 AM.`
+      );
+      return;
+    }
+
+    // If all checks pass, proceed with video call
     setSelectedTutor(tutor);
     setIsCallModalOpen(true);
   };
@@ -145,6 +209,62 @@ export default function BrowseTutorsPage() {
               Connect with online tutors ready to help you right now
             </p>
           </div>
+
+          {/* Session Status for Students */}
+          {user?.role === "STUDENT" && !loadingSession && sessionStatus && (
+            <Card className="mb-6">
+              <CardContent className="p-4">
+                {sessionStatus.hasActiveSubscription ? (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className="flex items-center space-x-2">
+                        <div
+                          className={`w-3 h-3 rounded-full ${
+                            sessionStatus.canAskDoubt
+                              ? "bg-green-500"
+                              : "bg-red-500"
+                          }`}
+                        ></div>
+                        <span className="font-medium text-slate-800">
+                          {sessionStatus.planName} Plan
+                        </span>
+                      </div>
+                      <div className="text-sm text-slate-600">
+                        {sessionStatus.sessionsUsed} /{" "}
+                        {sessionStatus.sessionsLimit} sessions used today
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="text-sm font-medium text-slate-700">
+                        {sessionStatus.sessionsRemaining} remaining
+                      </div>
+                      {!sessionStatus.canAskDoubt && (
+                        <Badge variant="destructive" className="text-xs">
+                          Limit Reached
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <AlertCircle className="h-5 w-5 text-orange-500" />
+                      <span className="font-medium text-slate-800">
+                        No Active Subscription
+                      </span>
+                    </div>
+                    <Button
+                      size="sm"
+                      className="bg-blue-600 hover:bg-blue-700"
+                      onClick={() => router.push("/pricing")}
+                    >
+                      Subscribe Now
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Filters */}
           <Card className="mb-8">
