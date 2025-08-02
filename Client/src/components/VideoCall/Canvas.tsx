@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useEffect, useState, useCallback } from "react"
+import { useRef, useEffect, useState, useCallback, memo } from "react"
 import { Button } from "@/components/ui/Button"
 import { Pencil, Eraser, Trash2, Palette, Users } from "lucide-react"
 
@@ -22,12 +22,12 @@ interface DrawingEvent {
     timestamp?: number
 }
 
-export function Canvas({
+const CanvasComponent = ({
     sessionId,
     user,
     socket,
     onCanvasUpdate,
-}: CanvasProps) {
+}: CanvasProps) => {
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const [isDrawing, setIsDrawing] = useState(false)
     const [color, setColor] = useState("#000000")
@@ -79,12 +79,7 @@ export function Canvas({
 
         isReceivingUpdateRef.current = true
 
-        console.log(
-            "📥 Received drawing event:",
-            event.type,
-            "from user:",
-            event.userId
-        )
+        // Process drawing event silently for better performance
 
         switch (event.type) {
             case "start":
@@ -125,21 +120,39 @@ export function Canvas({
         }, 10)
     }, [])
 
-    // Create dedicated WebSocket connection for canvas
+    // Initialize canvas WebSocket connection
     useEffect(() => {
         if (!user?.id || !sessionId) return
 
+        // Always start with the main socket if available
+        if (socket?.readyState === WebSocket.OPEN) {
+            setIsConnected(true)
+            setConnectionType("fallback")
+        } else {
+            setIsConnected(false)
+            setConnectionType("none")
+        }
+
+        // Optionally try to create a dedicated connection (but don't fail if it doesn't work)
         const serverUrl =
             process.env.NEXT_PUBLIC_API_URL?.replace("http", "ws") ||
             "ws://localhost:8080"
         const wsUrl = `${serverUrl}/ws/session?userId=${user.id}&sessionId=${sessionId}`
 
-        console.log("🎨 Connecting to canvas WebSocket:", wsUrl)
-
-        canvasSocketRef.current = new WebSocket(wsUrl)
+        // Only try dedicated connection if we have a proper server URL
+        if (process.env.NEXT_PUBLIC_API_URL) {
+            try {
+                canvasSocketRef.current = new WebSocket(wsUrl)
+            } catch (error) {
+                // Silently fall back to main socket
+                return
+            }
+        } else {
+            // No API URL configured, use main WebSocket only
+            return
+        }
 
         canvasSocketRef.current.onopen = () => {
-            console.log("✅ Canvas WebSocket connected")
             setIsConnected(true)
             setConnectionType("canvas")
 
@@ -174,39 +187,25 @@ export function Canvas({
         canvasSocketRef.current.onmessage = handleCanvasMessage
 
         canvasSocketRef.current.onclose = (event) => {
-            console.log(
-                "❌ Canvas WebSocket disconnected",
-                event.code,
-                event.reason
-            )
-
-            // Check if fallback socket is available
+            // Silently switch to fallback socket if available
             if (socket?.readyState === WebSocket.OPEN) {
-                console.log("🔄 Switching to fallback socket")
                 setIsConnected(true)
                 setConnectionType("fallback")
             } else {
                 setIsConnected(false)
                 setConnectionType("none")
             }
-
-            // Attempt to reconnect after 3 seconds if not a normal closure
-            if (event.code !== 1000 && user?.id && sessionId) {
-                setTimeout(() => {
-                    console.log(
-                        "🔄 Attempting to reconnect canvas WebSocket..."
-                    )
-                    // The useEffect will handle reconnection when dependencies change
-                }, 3000)
-            }
         }
 
         canvasSocketRef.current.onerror = (error) => {
-            console.error(
-                "❌ Canvas WebSocket connection failed. Check if backend server is running on port 8080"
-            )
-            console.error("WebSocket URL:", wsUrl)
-            setIsConnected(false)
+            // Silently fall back to main socket - no error logging needed
+            if (socket?.readyState === WebSocket.OPEN) {
+                setIsConnected(true)
+                setConnectionType("fallback")
+            } else {
+                setIsConnected(false)
+                setConnectionType("none")
+            }
         }
 
         // Also listen on the main socket as fallback
@@ -265,16 +264,9 @@ export function Canvas({
 
             try {
                 activeSocket.send(JSON.stringify(message))
-                console.log(
-                    "📝 Sent drawing event:",
-                    event.type,
-                    "via",
-                    activeSocket === canvasSocketRef.current
-                        ? "canvas socket"
-                        : "main socket"
-                )
+                // Reduced logging for better performance
             } catch (error) {
-                console.error("Error sending drawing event:", error)
+                console.warn("Failed to send drawing event")
             }
         },
         [sessionId, user?.id, socket]
@@ -568,3 +560,6 @@ export function Canvas({
         </div>
     )
 }
+
+// Export memoized component for better performance
+export const Canvas = memo(CanvasComponent)

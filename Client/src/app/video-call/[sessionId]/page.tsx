@@ -87,6 +87,7 @@ export default function VideoCallPage() {
     const peerConnectionRef = useRef<RTCPeerConnection | null>(null)
     const isConnectedRef = useRef<boolean>(false)
     const isInCallRef = useRef<boolean>(false)
+    const isEndingSessionRef = useRef<boolean>(false) // Prevent duplicate session ending calls
     const whiteboardSocketRef = useRef<WebSocket | null>(null)
 
     // Additional states for session management
@@ -157,17 +158,73 @@ export default function VideoCallPage() {
         }
     }, [sessionId, user])
 
-    // Add cleanup on page unload
+    // Handle page unload/close - end call if user leaves
     useEffect(() => {
-        const handleBeforeUnload = () => {
-            cleanupConnection()
+        const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+            if (isInCallRef.current) {
+                // Send disconnect message before page closes
+                if (socketRef.current?.readyState === WebSocket.OPEN) {
+                    socketRef.current.send(
+                        JSON.stringify({
+                            type: "user-disconnect",
+                            userId: user?.id.toString(),
+                            sessionId: sessionId,
+                        })
+                    )
+                }
+            }
+        }
+
+        const handleVisibilityChange = () => {
+            if (document.hidden && isInCallRef.current) {
+                console.log("📞 Page hidden during call, user may have left")
+                // Don't end call immediately on visibility change as user might just switch tabs
+                // Only end on actual page unload
+            }
         }
 
         window.addEventListener("beforeunload", handleBeforeUnload)
+        document.addEventListener("visibilitychange", handleVisibilityChange)
+
         return () => {
             window.removeEventListener("beforeunload", handleBeforeUnload)
+            document.removeEventListener(
+                "visibilitychange",
+                handleVisibilityChange
+            )
         }
-    }, [])
+    }, [user?.id, sessionId])
+
+    // Debug: Check track states when stream changes
+    useEffect(() => {
+        if (localStreamRef.current) {
+            const videoTrack = localStreamRef.current.getVideoTracks()[0]
+            const audioTrack = localStreamRef.current.getAudioTracks()[0]
+
+            console.log("🔍 Current track states:")
+            console.log(
+                `📹 Video enabled: ${videoTrack?.enabled}, State: ${isVideoEnabled}`
+            )
+            console.log(
+                `🎤 Audio enabled: ${audioTrack?.enabled}, State: ${isAudioEnabled}`
+            )
+
+            // Ensure tracks match our state
+            if (videoTrack && videoTrack.enabled !== isVideoEnabled) {
+                console.log(
+                    `🔧 Fixing video track: setting to ${isVideoEnabled}`
+                )
+                videoTrack.enabled = isVideoEnabled
+            }
+
+            if (audioTrack && audioTrack.enabled !== isAudioEnabled) {
+                console.log(
+                    `🔧 Fixing audio track: setting to ${isAudioEnabled}`
+                )
+                audioTrack.enabled = isAudioEnabled
+            }
+        }
+    }, [localStreamRef.current, isVideoEnabled, isAudioEnabled])
 
     const initializeVideoCall = async () => {
         try {
@@ -200,6 +257,20 @@ export default function VideoCallPage() {
             })
 
             localStreamRef.current = stream
+
+            // Ensure tracks are enabled by default and match our state
+            const videoTrack = stream.getVideoTracks()[0]
+            const audioTrack = stream.getAudioTracks()[0]
+
+            if (videoTrack) {
+                videoTrack.enabled = isVideoEnabled // Should be true by default
+                console.log(`📹 Video track enabled: ${videoTrack.enabled}`)
+            }
+
+            if (audioTrack) {
+                audioTrack.enabled = isAudioEnabled // Should be true by default
+                console.log(`🎤 Audio track enabled: ${audioTrack.enabled}`)
+            }
 
             if (localVideoRef.current) {
                 localVideoRef.current.srcObject = stream
@@ -252,8 +323,22 @@ export default function VideoCallPage() {
 
             socketRef.current.onmessage = handleWebSocketMessage
             socketRef.current.onclose = () => {
+                console.log("📞 WebSocket connection closed")
                 setStatus("Disconnected")
-                cleanupConnection()
+
+                // If we're in a call when WebSocket closes, end the call
+                if (
+                    isInCallRef.current &&
+                    callStatus === "Connected" &&
+                    !isEndingSessionRef.current
+                ) {
+                    console.log(
+                        "📞 WebSocket closed during call, ending call..."
+                    )
+                    handleOtherUserEndCall()
+                } else {
+                    cleanupConnection()
+                }
             }
             socketRef.current.onerror = (error) => {
                 console.error("WebSocket error:", error)
@@ -265,21 +350,63 @@ export default function VideoCallPage() {
     }
 
     const cleanupConnection = () => {
+        console.log("🧹 Starting cleanup - stopping all media streams...")
+
+        // Stop all local stream tracks immediately
         if (localStreamRef.current) {
-            localStreamRef.current.getTracks().forEach((track) => track.stop())
+            localStreamRef.current.getTracks().forEach((track) => {
+                console.log(`🛑 Stopping ${track.kind} track`)
+                track.stop()
+            })
+            localStreamRef.current = null
         }
+
+        // Stop all screen stream tracks immediately
         if (screenStreamRef.current) {
-            screenStreamRef.current.getTracks().forEach((track) => track.stop())
+            screenStreamRef.current.getTracks().forEach((track) => {
+                console.log(`🛑 Stopping screen ${track.kind} track`)
+                track.stop()
+            })
+            screenStreamRef.current = null
         }
+
+        // Clear video elements immediately
+        if (localVideoRef.current) {
+            localVideoRef.current.srcObject = null
+        }
+        if (remoteVideoRef.current) {
+            remoteVideoRef.current.srcObject = null
+        }
+
+        // Close peer connection
         if (peerConnectionRef.current) {
             peerConnectionRef.current.close()
+            peerConnectionRef.current = null
         }
+
+        // Close WebSocket connections
         if (socketRef.current) {
             socketRef.current.close()
+            socketRef.current = null
         }
         if (whiteboardSocketRef.current) {
             whiteboardSocketRef.current.close()
+            whiteboardSocketRef.current = null
         }
+
+        // Reset all states immediately
+        setIsVideoEnabled(false)
+        setIsAudioEnabled(false)
+        setIsScreenSharing(false)
+        setCallStatus("Idle")
+        isInCallRef.current = false
+
+        // Update page title to indicate call ended
+        if (typeof document !== "undefined") {
+            document.title = "NerdsOnCall - Call Ended"
+        }
+
+        console.log("✅ Cleanup completed - all media streams stopped")
     }
 
     const handleWebSocketMessage = async (event: MessageEvent) => {
@@ -314,8 +441,11 @@ export default function VideoCallPage() {
                     await handleIceCandidate(message)
                     break
                 case "user-disconnect":
-                    setCallStatus("Idle")
-                    toast("Other user disconnected")
+                    handleOtherUserEndCall()
+                    break
+                case "user-left":
+                    console.log("📞 Other user left the call")
+                    handleOtherUserEndCall()
                     break
                 default:
                     console.log("Unknown message type:", message.type)
@@ -360,10 +490,30 @@ export default function VideoCallPage() {
         }
 
         peerConnectionRef.current.onconnectionstatechange = () => {
-            console.log(
-                "Connection state:",
-                peerConnectionRef.current?.connectionState
-            )
+            const state = peerConnectionRef.current?.connectionState
+            console.log("Connection state:", state)
+
+            // Handle connection failures and disconnections
+            if (state === "failed" || state === "disconnected") {
+                console.log("📞 WebRTC connection lost, ending call...")
+
+                // Only end call if we're currently in a call and not already ending
+                if (
+                    isInCallRef.current &&
+                    callStatus === "Connected" &&
+                    !isEndingSessionRef.current
+                ) {
+                    setTimeout(() => {
+                        // Double-check we're still in call and not already ending
+                        if (
+                            isInCallRef.current &&
+                            !isEndingSessionRef.current
+                        ) {
+                            handleOtherUserEndCall()
+                        }
+                    }, 2000) // Give a small delay to see if connection recovers
+                }
+            }
         }
     }
 
@@ -378,6 +528,19 @@ export default function VideoCallPage() {
                             peerConnectionRef.current &&
                             localStreamRef.current
                         ) {
+                            // Ensure tracks are enabled when adding to peer connection
+                            if (track.kind === "video") {
+                                track.enabled = isVideoEnabled
+                                console.log(
+                                    `📹 Video track enabled for offer: ${track.enabled}`
+                                )
+                            } else if (track.kind === "audio") {
+                                track.enabled = isAudioEnabled
+                                console.log(
+                                    `🎤 Audio track enabled for offer: ${track.enabled}`
+                                )
+                            }
+
                             peerConnectionRef.current.addTrack(
                                 track,
                                 localStreamRef.current
@@ -591,6 +754,19 @@ export default function VideoCallPage() {
             if (localStreamRef.current && peerConnectionRef.current) {
                 localStreamRef.current.getTracks().forEach((track) => {
                     if (peerConnectionRef.current && localStreamRef.current) {
+                        // Ensure tracks are enabled when adding to peer connection
+                        if (track.kind === "video") {
+                            track.enabled = isVideoEnabled
+                            console.log(
+                                `📹 Video track enabled for call: ${track.enabled}`
+                            )
+                        } else if (track.kind === "audio") {
+                            track.enabled = isAudioEnabled
+                            console.log(
+                                `🎤 Audio track enabled for call: ${track.enabled}`
+                            )
+                        }
+
                         peerConnectionRef.current.addTrack(
                             track,
                             localStreamRef.current
@@ -641,8 +817,18 @@ export default function VideoCallPage() {
 
     const endCall = useCallback(async () => {
         try {
+            // Prevent duplicate session ending calls
+            if (isEndingSessionRef.current) {
+                console.log("Session already being ended, skipping...")
+                return
+            }
+            isEndingSessionRef.current = true
+
             setCallStatus("Idle")
             isInCallRef.current = false
+
+            // Immediately cleanup media streams to stop camera/mic indicators
+            cleanupConnection()
 
             // End the session in the backend to calculate duration and earnings
             try {
@@ -670,9 +856,17 @@ export default function VideoCallPage() {
                 } else {
                     toast.success("Session ended successfully!")
                 }
-            } catch (error) {
+            } catch (error: any) {
                 console.warn("Session end failed:", error)
-                toast.success("Call ended")
+                // Check if session was already ended
+                if (
+                    error.response?.status === 400 &&
+                    error.response?.data?.includes("already completed")
+                ) {
+                    toast.success("Call ended")
+                } else {
+                    toast.success("Call ended")
+                }
             }
 
             // Notify other user
@@ -686,15 +880,104 @@ export default function VideoCallPage() {
                 )
             }
 
-            cleanupConnection()
+            // Reset session ending flag
+            isEndingSessionRef.current = false
 
             // Navigate back after a delay
             setTimeout(() => {
                 router.push("/dashboard")
-            }, 2000)
+            }, 1500) // Reduced delay for faster redirect
         } catch (error: any) {
             console.error("Error ending call:", error)
             toast.error("Error ending call")
+            isEndingSessionRef.current = false // Reset flag on error
+        }
+    }, [user, sessionId, router])
+
+    // Handle when the other user ends the call
+    const handleOtherUserEndCall = useCallback(async () => {
+        try {
+            // Prevent duplicate session ending calls
+            if (isEndingSessionRef.current) {
+                console.log(
+                    "Session already being ended, skipping other user end call..."
+                )
+                return
+            }
+            isEndingSessionRef.current = true
+
+            console.log("📞 Other user ended the call - ending session")
+
+            // Immediately update UI to show call has ended
+            setCallStatus("Idle")
+            isInCallRef.current = false
+
+            // Immediately cleanup media streams to stop camera/mic indicators
+            cleanupConnection()
+
+            // Show immediate feedback to user
+            toast("Other user ended the call", {
+                duration: 2000,
+                icon: "📞",
+                style: {
+                    background: "#3b82f6",
+                    color: "white",
+                },
+            })
+
+            // End the session in the backend to calculate duration and earnings
+            // This ensures session data is recorded even when the other user ends the call
+            try {
+                const response = await api.put(
+                    `/api/sessions/call/${sessionId}/end`
+                )
+                console.log(
+                    "✅ Session ended successfully (other user initiated):",
+                    response.data
+                )
+
+                if (
+                    response.data.durationMinutes &&
+                    response.data.tutorEarnings
+                ) {
+                    const duration = response.data.durationMinutes
+                    const earnings = response.data.tutorEarnings
+                    const cost = response.data.cost
+
+                    toast.success(
+                        `Session completed! Duration: ${duration} min, ${
+                            user?.role === "TUTOR"
+                                ? `Earnings: ₹${Math.round(earnings * 83)}`
+                                : `Cost: ₹${Math.round(cost * 83)}`
+                        }`,
+                        { duration: 5000 }
+                    )
+                } else {
+                    // Don't show duplicate message since we already showed one above
+                    console.log("Session ended by other user")
+                }
+            } catch (error: any) {
+                console.warn(
+                    "Session end failed (other user initiated):",
+                    error
+                )
+                // Don't show duplicate message since we already showed one above
+                console.log(
+                    "Session end API call failed, but call already ended in UI"
+                )
+            }
+
+            // Reset session ending flag
+            isEndingSessionRef.current = false
+
+            // Navigate back after a delay
+            setTimeout(() => {
+                router.push("/dashboard")
+            }, 1500) // Reduced delay for faster redirect
+        } catch (error: any) {
+            console.error("Error handling other user end call:", error)
+            toast.error("Error ending call")
+            isEndingSessionRef.current = false // Reset flag on error
         }
     }, [user, sessionId, router])
 

@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
-import { api } from '@/lib/api'
-import { useAuth } from '@/context/AuthContext'
+import { useState, useEffect } from "react"
+import { api } from "@/lib/api"
+import { useAuth } from "@/context/AuthContext"
 
 export interface DashboardStats {
     sessionsAttended: number
@@ -24,20 +24,22 @@ export interface RecentActivity {
 
 export function useDashboard() {
     const { user } = useAuth()
-    const [dashboardData, setDashboardData] = useState<DashboardStats | null>(null)
+    const [dashboardData, setDashboardData] = useState<DashboardStats | null>(
+        null
+    )
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
     const fetchDashboardData = async () => {
         // Don't fetch if user is not loaded or not a student
         if (!user) {
-            console.log('⏳ User not loaded yet, skipping dashboard fetch')
+            console.log("⏳ User not loaded yet, skipping dashboard fetch")
             setLoading(false)
             return
         }
 
-        if (user.role !== 'STUDENT') {
-            console.log('👨‍🏫 User is not a student, skipping dashboard fetch')
+        if (user.role !== "STUDENT") {
+            console.log("👨‍🏫 User is not a student, skipping dashboard fetch")
             setLoading(false)
             return
         }
@@ -45,19 +47,29 @@ export function useDashboard() {
         try {
             setLoading(true)
             setError(null)
-            console.log('📊 [MANUAL] Fetching dashboard data for student:', user.firstName, user.lastName)
-            console.log('🕐 Fetch triggered at:', new Date().toLocaleTimeString())
+            console.log(
+                "📊 [MANUAL] Fetching dashboard data for student:",
+                user.firstName,
+                user.lastName
+            )
+            console.log(
+                "🕐 Fetch triggered at:",
+                new Date().toLocaleTimeString()
+            )
 
-            const response = await api.get('/api/dashboard/student')
-            console.log('✅ Dashboard data received:', response.data)
+            const response = await api.get("/api/dashboard/student")
+            console.log("✅ Dashboard data received:", response.data)
 
             setDashboardData(response.data)
         } catch (err: any) {
-            console.error('❌ Error fetching dashboard data:', err)
-            
+            console.error("❌ Error fetching dashboard data:", err)
+
             // Don't treat dashboard errors as authentication failures
             // Only set error state, don't trigger logout
-            const errorMessage = err.response?.data || err.message || 'Failed to fetch dashboard data'
+            const errorMessage =
+                err.response?.data ||
+                err.message ||
+                "Failed to fetch dashboard data"
             setError(errorMessage)
 
             // Set default values on error so dashboard still shows something
@@ -68,11 +80,14 @@ export function useDashboard() {
                 openQuestions: 0,
                 favoriteTutors: 0,
                 totalCost: 0,
-                recentActivities: []
+                recentActivities: [],
             })
 
             // Log the error but don't throw it to prevent auth context from logging out user
-            console.warn('Dashboard data fetch failed, using default values:', errorMessage)
+            console.warn(
+                "Dashboard data fetch failed, using default values:",
+                errorMessage
+            )
         } finally {
             setLoading(false)
         }
@@ -81,13 +96,13 @@ export function useDashboard() {
     useEffect(() => {
         // DISABLED AUTO-FETCH TO PREVENT LOGIN ISSUES
         // Dashboard data will only load when manually triggered
-        console.log('📊 Dashboard hook loaded, auto-fetch disabled')
+        console.log("📊 Dashboard hook loaded, auto-fetch disabled")
     }, [user])
 
     return {
         dashboardData,
         loading,
         error,
-        refetch: fetchDashboardData
+        refetch: fetchDashboardData,
     }
 }

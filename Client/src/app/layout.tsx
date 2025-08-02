@@ -7,8 +7,21 @@ import { ReactQueryProvider } from "../components/providers"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-    title: "NerdsOnCall - Real-Time Doubt Solving Platform",
+    title: "NerdsOnCall",
     description: "Connect with tutors instantly for live doubt resolution",
+    icons: {
+        icon: [
+            { url: "/favicon.ico", sizes: "any" },
+            { url: "/favicon.png", type: "image/png" },
+        ],
+        apple: [
+            {
+                url: "/apple-touch-icon.png",
+                sizes: "180x180",
+                type: "image/png",
+            },
+        ],
+    },
 }
 
 export default function RootLayout({
