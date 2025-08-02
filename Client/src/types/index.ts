@@ -13,7 +13,6 @@ export interface User {
   rating?: number;
   totalSessions?: number;
   totalEarnings?: number;
-  hourlyRate?: number;
   stripeAccountId?: string;
   createdAt: string;
   updatedAt: string;
@@ -116,7 +115,6 @@ export interface RegisterRequest {
   phoneNumber?: string;
   bio?: string;
   subjects?: Subject[];
-  hourlyRate?: number;
 }
 
 export interface CreateDoubtRequest {

@@ -31,5 +31,4 @@ public class RegisterRequest {
     // Tutor specific fields
     private String bio;
     private List<User.Subject> subjects;
-    private Double hourlyRate;
 } 
