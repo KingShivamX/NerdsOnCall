@@ -54,44 +54,163 @@ export default function VideoCallPage() {
     const [chatMessages, setChatMessages] = useState<any[]>([])
     const [otherUserName, setOtherUserName] = useState("")
 
-    // Focus mode states
+    // Focus mode states - Default focus based on user role
     const [focusMode, setFocusMode] = useState<"none" | "video" | "whiteboard">(
-        "none"
+        "video" // Always start with video focus for better UX
     )
     const [originalLayouts, setOriginalLayouts] = useState<any>(null)
+    const [windowHeight, setWindowHeight] = useState(0)
 
-    // Grid layout states
-    const [layouts, setLayouts] = useState({
-        lg: [
-            { i: "remote-video", x: 0, y: 0, w: 8, h: 8, minW: 4, minH: 4 },
-            { i: "local-video", x: 8, y: 0, w: 4, h: 4, minW: 2, minH: 2 },
-            { i: "chat", x: 8, y: 4, w: 4, h: 8, minW: 3, minH: 4 },
-            { i: "whiteboard", x: 0, y: 8, w: 8, h: 6, minW: 4, minH: 4 },
-        ],
-        md: [
-            { i: "remote-video", x: 0, y: 0, w: 6, h: 6, minW: 4, minH: 4 },
-            { i: "local-video", x: 6, y: 0, w: 4, h: 3, minW: 2, minH: 2 },
-            { i: "chat", x: 6, y: 3, w: 4, h: 7, minW: 3, minH: 4 },
-            { i: "whiteboard", x: 0, y: 6, w: 6, h: 6, minW: 4, minH: 4 },
-        ],
-        sm: [
-            { i: "remote-video", x: 0, y: 0, w: 6, h: 5, minW: 3, minH: 3 },
-            { i: "local-video", x: 0, y: 5, w: 3, h: 3, minW: 2, minH: 2 },
-            { i: "chat", x: 3, y: 5, w: 3, h: 5, minW: 2, minH: 4 },
-            { i: "whiteboard", x: 0, y: 10, w: 6, h: 5, minW: 3, minH: 4 },
-        ],
-        xs: [
-            { i: "remote-video", x: 0, y: 0, w: 4, h: 4, minW: 2, minH: 2 },
-            { i: "local-video", x: 0, y: 4, w: 2, h: 2, minW: 1, minH: 1 },
-            { i: "chat", x: 2, y: 4, w: 2, h: 4, minW: 1, minH: 3 },
-            { i: "whiteboard", x: 0, y: 8, w: 4, h: 4, minW: 2, minH: 3 },
-        ],
-        xxs: [
-            { i: "remote-video", x: 0, y: 0, w: 2, h: 3, minW: 1, minH: 2 },
-            { i: "local-video", x: 0, y: 3, w: 1, h: 2, minW: 1, minH: 1 },
-            { i: "chat", x: 1, y: 3, w: 1, h: 3, minW: 1, minH: 2 },
-            { i: "whiteboard", x: 0, y: 6, w: 2, h: 3, minW: 1, minH: 2 },
-        ],
+    // Calculate optimal height based on browser window
+    useEffect(() => {
+        const updateWindowHeight = () => {
+            const height = window.innerHeight
+            setWindowHeight(height)
+        }
+
+        updateWindowHeight()
+        window.addEventListener("resize", updateWindowHeight)
+        return () => window.removeEventListener("resize", updateWindowHeight)
+    }, [])
+
+    // Calculate grid height units based on window height
+    // Control bar is ~80px, header is ~60px, some padding ~40px = ~180px total
+    // Each grid unit is roughly windowHeight/12, so we calculate optimal focused height
+    const calculateFocusedHeight = () => {
+        if (windowHeight === 0) return 12 // fallback
+        const availableHeight = windowHeight - 180 // subtract control bar + header + padding
+        const gridUnitHeight = windowHeight / 15 // Use 15 units instead of 12 for more granular control
+        const optimalGridUnits = Math.floor(availableHeight / gridUnitHeight)
+        return Math.min(Math.max(optimalGridUnits, 10), 13) // between 10-13 units for better space usage
+    }
+
+    // Update layouts when window height changes
+    useEffect(() => {
+        if (windowHeight > 0) {
+            const focusedHeight = calculateFocusedHeight()
+            // Use ALL available height for sidebar, give more to camera and chat
+            const totalSidebarHeight = focusedHeight
+            const cameraHeight = Math.floor(totalSidebarHeight * 0.4) // 40% for camera
+            const chatHeight = Math.floor(totalSidebarHeight * 0.4) // 40% for chat
+            const whiteboardHeight =
+                totalSidebarHeight - cameraHeight - chatHeight // Remaining for whiteboard
+
+            setLayouts((prevLayouts) => ({
+                ...prevLayouts,
+                lg: [
+                    {
+                        i: "remote-video",
+                        x: 0,
+                        y: 0,
+                        w: 9,
+                        h: focusedHeight,
+                        minW: 6,
+                        minH: 6,
+                    },
+                    {
+                        i: "local-video",
+                        x: 9,
+                        y: 0,
+                        w: 3,
+                        h: cameraHeight,
+                        minW: 2,
+                        minH: 2,
+                    },
+                    {
+                        i: "chat",
+                        x: 9,
+                        y: cameraHeight,
+                        w: 3,
+                        h: chatHeight,
+                        minW: 2,
+                        minH: 3,
+                    },
+                    {
+                        i: "whiteboard",
+                        x: 9,
+                        y: cameraHeight + chatHeight,
+                        w: 3,
+                        h: whiteboardHeight,
+                        minW: 2,
+                        minH: 2,
+                    },
+                ],
+            }))
+        }
+    }, [windowHeight])
+
+    // Grid layout states - Start with video focus layout using dynamic height
+    const [layouts, setLayouts] = useState(() => {
+        const focusedHeight = calculateFocusedHeight()
+        // Use ALL available height for sidebar, give more to camera and chat
+        const totalSidebarHeight = focusedHeight
+        const cameraHeight = Math.floor(totalSidebarHeight * 0.4) // 40% for camera
+        const chatHeight = Math.floor(totalSidebarHeight * 0.4) // 40% for chat
+        const whiteboardHeight = totalSidebarHeight - cameraHeight - chatHeight // Remaining for whiteboard
+        return {
+            lg: [
+                {
+                    i: "remote-video",
+                    x: 0,
+                    y: 0,
+                    w: 9,
+                    h: focusedHeight,
+                    minW: 6,
+                    minH: 6,
+                },
+                {
+                    i: "local-video",
+                    x: 9,
+                    y: 0,
+                    w: 3,
+                    h: cameraHeight,
+                    minW: 2,
+                    minH: 2,
+                },
+                {
+                    i: "chat",
+                    x: 9,
+                    y: cameraHeight,
+                    w: 3,
+                    h: chatHeight,
+                    minW: 2,
+                    minH: 3,
+                },
+                {
+                    i: "whiteboard",
+                    x: 9,
+                    y: cameraHeight + chatHeight,
+                    w: 3,
+                    h: whiteboardHeight,
+                    minW: 2,
+                    minH: 2,
+                },
+            ],
+            md: [
+                { i: "remote-video", x: 0, y: 0, w: 6, h: 6, minW: 4, minH: 4 },
+                { i: "local-video", x: 6, y: 0, w: 4, h: 3, minW: 2, minH: 2 },
+                { i: "chat", x: 6, y: 3, w: 4, h: 7, minW: 3, minH: 4 },
+                { i: "whiteboard", x: 0, y: 6, w: 6, h: 6, minW: 4, minH: 4 },
+            ],
+            sm: [
+                { i: "remote-video", x: 0, y: 0, w: 6, h: 5, minW: 3, minH: 3 },
+                { i: "local-video", x: 0, y: 5, w: 3, h: 3, minW: 2, minH: 2 },
+                { i: "chat", x: 3, y: 5, w: 3, h: 5, minW: 2, minH: 4 },
+                { i: "whiteboard", x: 0, y: 10, w: 6, h: 5, minW: 3, minH: 4 },
+            ],
+            xs: [
+                { i: "remote-video", x: 0, y: 0, w: 4, h: 4, minW: 2, minH: 2 },
+                { i: "local-video", x: 0, y: 4, w: 2, h: 2, minW: 1, minH: 1 },
+                { i: "chat", x: 2, y: 4, w: 2, h: 4, minW: 1, minH: 3 },
+                { i: "whiteboard", x: 0, y: 8, w: 4, h: 4, minW: 2, minH: 3 },
+            ],
+            xxs: [
+                { i: "remote-video", x: 0, y: 0, w: 2, h: 3, minW: 1, minH: 2 },
+                { i: "local-video", x: 0, y: 3, w: 1, h: 2, minW: 1, minH: 1 },
+                { i: "chat", x: 1, y: 3, w: 1, h: 3, minW: 1, minH: 2 },
+                { i: "whiteboard", x: 0, y: 6, w: 2, h: 3, minW: 1, minH: 2 },
+            ],
+        }
     })
 
     // Video refs and WebRTC states
@@ -157,6 +276,11 @@ export default function VideoCallPage() {
                 setOtherUserName("Student")
             }
             setUserRole("tutor")
+
+            // For tutors: Focus on student video (remote-video shows student)
+            console.log(
+                "🎯 Setting default focus for TUTOR: focusing on student video"
+            )
         } else {
             if (tutorNameParam) {
                 setOtherUserName(decodeURIComponent(tutorNameParam))
@@ -164,7 +288,15 @@ export default function VideoCallPage() {
                 setOtherUserName("Tutor")
             }
             setUserRole("student")
+
+            // For students: Focus on teacher video (remote-video shows teacher)
+            console.log(
+                "🎯 Setting default focus for STUDENT: focusing on teacher video"
+            )
         }
+
+        // Both roles start with video focus (remote-video is the other person)
+        // This is already set in the initial state, so no need to change focus mode here
 
         // Initialize video call
         initializeVideoCall()
@@ -178,6 +310,11 @@ export default function VideoCallPage() {
     useEffect(() => {
         const handleBeforeUnload = (event: BeforeUnloadEvent) => {
             if (isInCallRef.current) {
+                // Show confirmation dialog before leaving during a call
+                event.preventDefault()
+                event.returnValue =
+                    "You are currently in a video call. Are you sure you want to leave?"
+
                 // Send disconnect message before page closes
                 if (socketRef.current?.readyState === WebSocket.OPEN) {
                     socketRef.current.send(
@@ -188,14 +325,17 @@ export default function VideoCallPage() {
                         })
                     )
                 }
+                return "You are currently in a video call. Are you sure you want to leave?"
             }
         }
 
         const handleVisibilityChange = () => {
             if (document.hidden && isInCallRef.current) {
-                console.log("📞 Page hidden during call, user may have left")
-                // Don't end call immediately on visibility change as user might just switch tabs
-                // Only end on actual page unload
+                console.log(
+                    " Page hidden during call, user may have switched tabs"
+                )
+                // Don't end call on visibility change - user might just switch tabs
+                // Only end on actual page unload with confirmation
             }
         }
 
@@ -339,19 +479,31 @@ export default function VideoCallPage() {
 
             socketRef.current.onmessage = handleWebSocketMessage
             socketRef.current.onclose = () => {
-                console.log("📞 WebSocket connection closed")
+                console.log(" WebSocket connection closed")
                 setStatus("Disconnected")
 
-                // If we're in a call when WebSocket closes, end the call
+                // Don't automatically end call on WebSocket close - user might be switching networks
+                // Only cleanup connection without ending the session
                 if (
                     isInCallRef.current &&
                     callStatus === "Connected" &&
                     !isEndingSessionRef.current
                 ) {
                     console.log(
-                        "📞 WebSocket closed during call, ending call..."
+                        " WebSocket closed during call, attempting to reconnect..."
                     )
-                    handleOtherUserEndCall()
+                    // Try to reconnect after a short delay
+                    setTimeout(() => {
+                        if (
+                            isInCallRef.current &&
+                            !isEndingSessionRef.current
+                        ) {
+                            console.log(
+                                "🔄 Attempting to reconnect WebSocket..."
+                            )
+                            connectToSignalingServer()
+                        }
+                    }, 2000)
                 } else {
                     cleanupConnection()
                 }
@@ -467,7 +619,7 @@ export default function VideoCallPage() {
                     handleOtherUserEndCall()
                     break
                 case "user-left":
-                    console.log("📞 Other user left the call")
+                    console.log(" Other user left the call")
                     handleOtherUserEndCall()
                     break
                 case "chat_message":
@@ -531,7 +683,14 @@ export default function VideoCallPage() {
         setFocusMode(mode)
         console.log(`🎯 Entering ${mode} focus mode`)
 
-        // Create focus layouts
+        // Create focus layouts with dynamic height calculation
+        const focusedHeight = calculateFocusedHeight()
+        // Use ALL available height for sidebar, give more to camera and chat
+        const totalSidebarHeight = focusedHeight
+        const cameraHeight = Math.floor(totalSidebarHeight * 0.4) // 40% for camera
+        const chatHeight = Math.floor(totalSidebarHeight * 0.4) // 40% for chat
+        const whiteboardHeight = totalSidebarHeight - cameraHeight - chatHeight // Remaining for whiteboard
+
         const focusLayouts = {
             lg:
                 mode === "video"
@@ -541,36 +700,36 @@ export default function VideoCallPage() {
                               x: 0,
                               y: 0,
                               w: 9,
-                              h: 12,
+                              h: focusedHeight, // Dynamic height based on window
                               minW: 6,
-                              minH: 8,
+                              minH: 6,
                           },
                           {
                               i: "local-video",
                               x: 9,
                               y: 0,
                               w: 3,
-                              h: 3,
+                              h: cameraHeight,
                               minW: 2,
                               minH: 2,
                           },
                           {
                               i: "chat",
                               x: 9,
-                              y: 3,
+                              y: cameraHeight,
                               w: 3,
-                              h: 5,
+                              h: chatHeight,
                               minW: 2,
-                              minH: 4,
+                              minH: 3,
                           },
                           {
                               i: "whiteboard",
                               x: 9,
-                              y: 8,
+                              y: cameraHeight + chatHeight,
                               w: 3,
-                              h: 4,
+                              h: whiteboardHeight,
                               minW: 2,
-                              minH: 3,
+                              minH: 2,
                           },
                       ]
                     : [
@@ -579,36 +738,36 @@ export default function VideoCallPage() {
                               x: 0,
                               y: 0,
                               w: 9,
-                              h: 12,
+                              h: focusedHeight, // Dynamic height based on window
                               minW: 6,
-                              minH: 8,
+                              minH: 6,
                           },
                           {
                               i: "remote-video",
                               x: 9,
                               y: 0,
                               w: 3,
-                              h: 4,
+                              h: cameraHeight,
                               minW: 2,
-                              minH: 3,
+                              minH: 2,
                           },
                           {
                               i: "local-video",
                               x: 9,
-                              y: 4,
+                              y: cameraHeight,
                               w: 3,
-                              h: 3,
+                              h: chatHeight,
                               minW: 2,
                               minH: 2,
                           },
                           {
                               i: "chat",
                               x: 9,
-                              y: 7,
+                              y: cameraHeight + chatHeight,
                               w: 3,
-                              h: 5,
+                              h: whiteboardHeight,
                               minW: 2,
-                              minH: 4,
+                              minH: 3,
                           },
                       ],
             md:
@@ -978,26 +1137,38 @@ export default function VideoCallPage() {
             const state = peerConnectionRef.current?.connectionState
             console.log("Connection state:", state)
 
-            // Handle connection failures and disconnections
-            if (state === "failed" || state === "disconnected") {
-                console.log("📞 WebRTC connection lost, ending call...")
+            // Handle connection failures - be less aggressive about ending calls
+            if (state === "failed") {
+                console.log(
+                    " WebRTC connection failed, attempting to recover..."
+                )
 
-                // Only end call if we're currently in a call and not already ending
+                // Only end call after multiple failed attempts and longer delay
                 if (
                     isInCallRef.current &&
                     callStatus === "Connected" &&
                     !isEndingSessionRef.current
                 ) {
                     setTimeout(() => {
-                        // Double-check we're still in call and not already ending
+                        // Double-check we're still in call and connection is still failed
                         if (
                             isInCallRef.current &&
-                            !isEndingSessionRef.current
+                            !isEndingSessionRef.current &&
+                            peerConnectionRef.current?.connectionState ===
+                                "failed"
                         ) {
+                            console.log(
+                                "⚠️ WebRTC connection permanently failed, ending call..."
+                            )
                             handleOtherUserEndCall()
                         }
-                    }, 2000) // Give a small delay to see if connection recovers
+                    }, 10000) // Give 10 seconds for recovery instead of 2
                 }
+            } else if (state === "disconnected") {
+                console.log(
+                    " WebRTC connection temporarily disconnected, waiting for recovery..."
+                )
+                // Don't end call on disconnected state - it often recovers automatically
             }
         }
     }
@@ -1302,6 +1473,15 @@ export default function VideoCallPage() {
 
     const endCall = useCallback(async () => {
         try {
+            // Confirm before ending call to prevent accidental clicks
+            const confirmEnd = window.confirm(
+                "Are you sure you want to end the call?"
+            )
+            if (!confirmEnd) {
+                console.log("Call end cancelled by user")
+                return
+            }
+
             // Prevent duplicate session ending calls
             if (isEndingSessionRef.current) {
                 console.log("Session already being ended, skipping...")
@@ -1391,7 +1571,7 @@ export default function VideoCallPage() {
             }
             isEndingSessionRef.current = true
 
-            console.log("📞 Other user ended the call - ending session")
+            console.log(" Other user ended the call - ending session")
 
             // Immediately update UI to show call has ended
             setCallStatus("Idle")
@@ -1403,7 +1583,7 @@ export default function VideoCallPage() {
             // Show immediate feedback to user
             toast("Other user ended the call", {
                 duration: 2000,
-                icon: "📞",
+                icon: "",
                 style: {
                     background: "#3b82f6",
                     color: "white",
@@ -1516,7 +1696,7 @@ export default function VideoCallPage() {
     return (
         <div className="min-h-screen bg-orange-100 text-black relative overflow-hidden">
             {/* Grid Layout Container */}
-            <div className="h-screen p-4 pb-20 overflow-hidden">
+            <div className="h-[calc(100vh-4rem)] p-3 pb-3 overflow-hidden">
                 <ResponsiveGridLayout
                     className="layout"
                     layouts={layouts}
@@ -1530,19 +1710,19 @@ export default function VideoCallPage() {
                         xxs: 0,
                     }}
                     cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-                    rowHeight={60}
+                    rowHeight={50}
                     compactType={null}
                     preventCollision={true}
                     isDraggable={true}
                     isResizable={true}
                     draggableHandle=".react-grid-draghandle"
-                    margin={[10, 10]}
-                    containerPadding={[10, 10]}
+                    margin={[12, 12]}
+                    containerPadding={[8, 8]}
                 >
                     {/* Remote Video Card */}
                     <div
                         key="remote-video"
-                        className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_black] overflow-hidden"
+                        className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_black] overflow-hidden w-full h-full"
                     >
                         <div className="h-full flex flex-col">
                             <div className="bg-black text-white p-2 flex items-center justify-between border-b-4 border-black react-grid-draghandle cursor-move">
@@ -1620,7 +1800,7 @@ export default function VideoCallPage() {
                     {/* Local Video Card */}
                     <div
                         key="local-video"
-                        className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_black] overflow-hidden"
+                        className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_black] overflow-hidden w-full h-full"
                     >
                         <div className="h-full flex flex-col">
                             <div className="bg-pink-300 text-black p-2 flex items-center justify-between border-b-4 border-black">
@@ -1672,7 +1852,7 @@ export default function VideoCallPage() {
                     {/* Whiteboard Card */}
                     <div
                         key="whiteboard"
-                        className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_black] overflow-hidden"
+                        className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_black] overflow-hidden w-full h-full"
                     >
                         <div className="h-full flex flex-col">
                             <div className="bg-green-300 text-black p-2 flex items-center justify-between border-b-4 border-black react-grid-draghandle cursor-move">
@@ -1741,7 +1921,7 @@ export default function VideoCallPage() {
                     {/* Chat Card */}
                     <div
                         key="chat"
-                        className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_black] overflow-hidden"
+                        className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_black] overflow-hidden w-full h-full"
                     >
                         <div className="h-full flex flex-col">
                             <div className="bg-yellow-300 text-black p-2 flex items-center justify-between border-b-4 border-black react-grid-draghandle cursor-move">

@@ -57,7 +57,7 @@ export default function BrowseTutorsPage() {
     const [loading, setLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState("")
     const [selectedSubject, setSelectedSubject] = useState<string>("all")
-    const [sortBy, setSortBy] = useState<string>("rating")
+    const [sortBy, setSortBy] = useState<string>("sessions")
 
     // Session status for video call limits
     const [sessionStatus, setSessionStatus] = useState<any>(null)
@@ -298,7 +298,7 @@ export default function BrowseTutorsPage() {
                                             </div>
                                             <Button
                                                 size="sm"
-                                                className="bg-blue-600 hover:bg-blue-700"
+                                                className="bg-blue-400 border-4 border-black text-black font-black uppercase tracking-wide hover:bg-blue-500 transition-colors shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black]"
                                                 onClick={() =>
                                                     router.push("/pricing")
                                                 }
@@ -349,24 +349,6 @@ export default function BrowseTutorsPage() {
                                     </SelectContent>
                                 </Select>
 
-                                {/* Sort By */}
-                                <Select
-                                    value={sortBy}
-                                    onValueChange={setSortBy}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Sort by" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="rating">
-                                            Highest Rated
-                                        </SelectItem>
-                                        <SelectItem value="sessions">
-                                            Most Sessions
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
-
                                 {/* Results Count */}
                                 <div className="flex items-center text-sm text-slate-600">
                                     <Filter className="h-4 w-4 mr-2" />
@@ -398,18 +380,18 @@ export default function BrowseTutorsPage() {
                             {filteredTutors.map((tutor) => (
                                 <Card
                                     key={tutor.id}
-                                    className="bg-white border border-slate-200 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 hover:border-blue-300 group"
+                                    className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_black] hover:translate-x-[-4px] hover:translate-y-[-4px] hover:shadow-[12px_12px_0px_0px_black] transition-all duration-200 group"
                                 >
                                     <CardContent className="p-6">
                                         {/* Header with Avatar and Name */}
                                         <div className="flex items-center space-x-3 mb-4">
                                             <div className="relative">
-                                                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:scale-110 transition-transform">
+                                                <div className="w-14 h-14 bg-pink-300 border-4 border-black flex items-center justify-center text-black font-black text-lg shadow-[4px_4px_0px_0px_black] group-hover:translate-x-[-2px] group-hover:translate-y-[-2px] group-hover:shadow-[6px_6px_0px_0px_black] transition-all">
                                                     {tutor.firstName?.[0]}
                                                     {tutor.lastName?.[0]}
                                                 </div>
                                                 {tutor.isOnline && (
-                                                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full animate-pulse"></div>
+                                                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-2 border-black animate-pulse"></div>
                                                 )}
                                             </div>
                                             <div className="flex-1 min-w-0">
@@ -423,7 +405,7 @@ export default function BrowseTutorsPage() {
                                                         </h3>
                                                     </Link>
                                                     {tutor.isOnline && (
-                                                        <div className="w-2 h-2 bg-emerald-500 rounded-full flex-shrink-0"></div>
+                                                        <div className="w-2 h-2 bg-green-400 border border-black flex-shrink-0"></div>
                                                     )}
                                                 </div>
                                                 {/* <div className="flex items-center space-x-1 mt-1">
@@ -493,7 +475,7 @@ export default function BrowseTutorsPage() {
                                             onClick={() =>
                                                 handleConnectTutor(tutor)
                                             }
-                                            className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+                                            className="w-full bg-green-400 border-4 border-black text-black font-black uppercase tracking-wide hover:bg-green-500 transition-colors shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black]"
                                             size="sm"
                                         >
                                             <Video className="h-4 w-4 mr-2" />

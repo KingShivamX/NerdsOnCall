@@ -96,51 +96,54 @@ export function IncomingCallNotification({
 
     return (
         <Dialog open={isOpen} onOpenChange={() => {}}>
-            <DialogContent className="sm:max-w-md bg-white border-4 border-black shadow-[8px_8px_0px_0px_black]">
-                <DialogHeader className="bg-black text-white p-4 -m-6 mb-6">
-                    <DialogTitle className="text-yellow-300 text-xl font-black text-center uppercase tracking-wide drop-shadow-[2px_2px_0px_rgba(0,0,0,1)]">
-                        📞 Incoming Call
+            <DialogContent className="sm:max-w-md bg-yellow-100 border-4 border-black shadow-[8px_8px_0px_0px_black]">
+                <DialogHeader className="bg-yellow-300 text-black p-4 -m-6 mb-6 border-b-4 border-black">
+                    <DialogTitle className="text-black text-xl font-black text-center uppercase tracking-wide flex items-center justify-center">
+                        <Phone className="h-6 w-6 mr-2" />
+                        Incoming Call
                     </DialogTitle>
                 </DialogHeader>
 
                 <div className="space-y-6 text-center">
                     {/* Caller Info */}
                     <div className="flex flex-col items-center space-y-3">
-                        <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center shadow-lg animate-pulse">
-                            <User className="h-10 w-10 text-white" />
+                        <div className="w-20 h-20 bg-yellow-400 border-4 border-black shadow-[4px_4px_0px_0px_black] rounded-full flex items-center justify-center animate-pulse">
+                            <User className="h-10 w-10 text-black" />
                         </div>
                         <div>
-                            <p className="text-lg font-semibold text-gray-800">
+                            <p className="text-lg font-black text-black truncate max-w-xs">
                                 {callerName}
                             </p>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-black font-bold">
                                 {getCallerTypeLabel()}
                             </p>
                         </div>
                     </div>
 
                     {/* Call Duration */}
-                    <div className="bg-gray-50 rounded-lg p-3">
-                        <p className="text-sm text-gray-600">Call duration</p>
-                        <p className="text-lg font-mono font-semibold text-gray-800">
+                    <div className="bg-yellow-200 border-2 border-black shadow-[2px_2px_0px_0px_black] p-3">
+                        <p className="text-sm text-black font-bold">
+                            Call duration
+                        </p>
+                        <p className="text-lg font-mono font-black text-black">
                             {formatTime(timeElapsed)}
                         </p>
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex justify-center space-x-4 pt-4">
+                    <div className="flex justify-center space-x-4 pt-4 pb-6">
                         <Button
                             onClick={onDecline}
-                            className="w-20 h-12 bg-red-500 border-4 border-black text-white font-bold shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] transition-all"
+                            className="min-w-[120px] h-12 bg-red-400 hover:bg-red-500 text-black font-black border-4 border-black shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] transition-all duration-200 flex items-center justify-center"
                         >
-                            <PhoneOff className="h-5 w-5 mr-1" />
+                            <PhoneOff className="h-4 w-4 mr-2" />
                             DECLINE
                         </Button>
                         <Button
                             onClick={handleAccept}
-                            className="w-20 h-12 bg-green-500 border-4 border-black text-white font-bold shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] transition-all animate-pulse"
+                            className="min-w-[120px] h-12 bg-green-400 hover:bg-green-500 text-black font-black border-4 border-black shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] transition-all duration-200 animate-pulse flex items-center justify-center"
                         >
-                            <Phone className="h-5 w-5 mr-1" />
+                            <Phone className="h-4 w-4 mr-2" />
                             ACCEPT
                         </Button>
                     </div>

@@ -512,14 +512,6 @@ export default function PublicProfilePage() {
                                                     {stats?.openQuestions || 0}
                                                 </span>
                                             </div>
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-sm text-slate-600">
-                                                    Favorite Tutors
-                                                </span>
-                                                <span className="font-medium">
-                                                    {stats?.favoriteTutors || 0}
-                                                </span>
-                                            </div>
                                         </>
                                     )}
                                 </CardContent>

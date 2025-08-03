@@ -11,7 +11,7 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog"
 import toast from "react-hot-toast"
-import { Phone, PhoneOff } from "lucide-react"
+import { Phone, PhoneOff, User } from "lucide-react"
 import { VideoCallModal } from "./VideoCallModal"
 
 interface TutorCallNotificationProps {
@@ -341,9 +341,9 @@ export function TutorCallNotification({
             })
 
             // Show toast notification
-            toast(`📞 Incoming call from ${studentName}`, {
+            toast(` Incoming call from ${studentName}`, {
                 duration: 30000,
-                icon: "📞",
+                icon: "",
                 style: {
                     background: "#fff",
                     color: "#000",
@@ -432,7 +432,7 @@ export function TutorCallNotification({
             // Notify with a toast
             toast(`Incoming call from ${studentName}`, {
                 duration: 10000,
-                icon: "📞",
+                icon: "",
             })
 
             // Optional callback
@@ -455,7 +455,7 @@ export function TutorCallNotification({
 
                 toast(`Incoming call from Student ${studentId}`, {
                     duration: 10000,
-                    icon: "📞",
+                    icon: "",
                 })
 
                 if (onCallReceived) {
@@ -515,47 +515,48 @@ export function TutorCallNotification({
                     if (!open) rejectCall()
                 }}
             >
-                <DialogContent className="sm:max-w-md bg-white border-4 border-black shadow-[8px_8px_0px_0px_black]">
-                    <DialogHeader className="bg-green-500 text-white p-4 -m-6 mb-6 rounded-t-lg">
-                        <DialogTitle className="text-white text-xl font-bold text-center">
-                            📞 Incoming Call
+                <DialogContent className="sm:max-w-md bg-yellow-100 border-4 border-black shadow-[8px_8px_0px_0px_black]">
+                    <DialogHeader className="bg-yellow-300 text-black p-4 -m-6 mb-6 border-b-4 border-black">
+                        <DialogTitle className="text-black text-xl font-black text-center uppercase tracking-wide flex items-center justify-center">
+                            <Phone className="h-6 w-6 mr-2" />
+                            Incoming Call
                         </DialogTitle>
                     </DialogHeader>
 
-                    <div className="flex flex-col items-center py-6 bg-white">
-                        <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mb-4 animate-pulse shadow-lg">
-                            <Phone className="h-10 w-10 text-white" />
+                    <div className="flex flex-col items-center py-6 bg-yellow-50">
+                        <div className="w-20 h-20 bg-yellow-400 border-4 border-black shadow-[4px_4px_0px_0px_black] rounded-full flex items-center justify-center mb-4 animate-pulse">
+                            <User className="h-10 w-10 text-black" />
                         </div>
 
                         <div className="text-center mb-6">
-                            <p className="text-xl font-bold text-gray-900 mb-2">
+                            <p className="text-lg font-black text-black mb-2 truncate max-w-xs">
                                 {incomingCall?.studentName}
                             </p>
-                            <p className="text-sm text-gray-700 bg-blue-50 px-4 py-2 rounded-full border border-blue-200">
+                            <p className="text-xs text-black bg-white px-4 py-2 rounded-full border-2 border-black shadow-[2px_2px_0px_0px_black] font-bold">
                                 Student requesting help
                             </p>
                         </div>
                     </div>
 
-                    <DialogFooter className="flex justify-center space-x-4 bg-white pt-4">
+                    <div className="flex justify-center space-x-4 bg-yellow-200 pt-4 pb-6 border-t-4 border-black">
                         <Button
                             type="button"
                             variant="outline"
                             onClick={rejectCall}
-                            className="w-24 h-12 bg-red-500 border-4 border-black text-white font-bold shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] transition-all"
+                            className="min-w-[120px] h-12 bg-red-400 hover:bg-red-500 text-black font-black border-4 border-black shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] transition-all duration-200 flex items-center justify-center"
                         >
-                            <PhoneOff className="mr-2 h-5 w-5" />
+                            <PhoneOff className="mr-2 h-4 w-4" />
                             DECLINE
                         </Button>
                         <Button
                             type="button"
                             onClick={acceptCall}
-                            className="w-24 h-12 bg-green-500 border-4 border-black text-white font-bold shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] transition-all animate-pulse"
+                            className="min-w-[120px] h-12 bg-green-400 hover:bg-green-500 text-black font-black border-4 border-black shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] transition-all duration-200 animate-pulse flex items-center justify-center"
                         >
-                            <Phone className="mr-2 h-5 w-5" />
+                            <Phone className="mr-2 h-4 w-4" />
                             ACCEPT
                         </Button>
-                    </DialogFooter>
+                    </div>
                 </DialogContent>
             </Dialog>
 

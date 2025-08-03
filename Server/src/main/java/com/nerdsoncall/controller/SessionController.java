@@ -48,7 +48,7 @@ public class SessionController {
     public ResponseEntity<?> createCallSession(@RequestParam Long tutorId, @RequestParam String sessionId,
             Authentication authentication) {
         try {
-            System.out.println("📞 Creating call session - TutorId: " + tutorId + ", SessionId: " + sessionId);
+            System.out.println(" Creating call session - TutorId: " + tutorId + ", SessionId: " + sessionId);
 
             User currentUser = userService.findByEmail(authentication.getName())
                     .orElseThrow(() -> new RuntimeException("User not found"));

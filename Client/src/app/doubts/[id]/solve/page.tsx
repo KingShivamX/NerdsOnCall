@@ -202,7 +202,7 @@ export default function SolveDoubtPage() {
                     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                         <Card>
                             <CardContent className="p-12 text-center">
-                                <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+                                <AlertCircle classame="h-12 w-12 text-red-500 mx-auto mb-4" />
                                 <h3 className="text-lg font-semibold text-slate-800 mb-2">
                                     Doubt Not Found
                                 </h3>
@@ -225,7 +225,7 @@ export default function SolveDoubtPage() {
         <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100">
             <Navbar />
             <div className="pt-20 pb-10">
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     {/* Back Button */}
                     <Link href="/my-students">
                         <Button
@@ -237,7 +237,7 @@ export default function SolveDoubtPage() {
                         </Button>
                     </Link>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
                         {/* Doubt Details */}
                         <Card className="bg-white shadow-2xl border-0 rounded-3xl overflow-hidden">
                             <CardHeader className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 px-6 py-4">
@@ -415,13 +415,13 @@ export default function SolveDoubtPage() {
                                             </span>
                                         </label>
 
-                                        <div className="border-2 border-dashed border-slate-300 rounded-xl p-6 bg-slate-50 hover:border-blue-400 transition-colors">
+                                        <div className="border-4 border-black bg-white p-6 hover:bg-yellow-100 transition-colors shadow-[8px_8px_0px_0px_black]">
                                             {previewUrl ? (
                                                 <div className="space-y-4">
                                                     <video
                                                         src={previewUrl}
                                                         controls
-                                                        className="w-full max-h-64 rounded-lg bg-black"
+                                                        className="w-full max-h-64 bg-black border-4 border-black"
                                                     >
                                                         Your browser does not
                                                         support the video tag.
@@ -429,12 +429,12 @@ export default function SolveDoubtPage() {
                                                     <div className="flex items-center justify-between">
                                                         <div className="flex items-center space-x-2">
                                                             <CheckCircle className="h-5 w-5 text-green-600" />
-                                                            <span className="text-sm font-medium text-slate-700">
+                                                            <span className="text-sm font-black text-black uppercase">
                                                                 {
                                                                     videoFile?.name
                                                                 }
                                                             </span>
-                                                            <span className="text-xs text-slate-500">
+                                                            <span className="text-xs text-black font-bold">
                                                                 (
                                                                 {(
                                                                     (videoFile?.size ||
@@ -457,33 +457,33 @@ export default function SolveDoubtPage() {
                                                                     null
                                                                 )
                                                             }}
-                                                            className="inline-flex items-center gap-2 px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+                                                            className="inline-flex items-center gap-2 px-4 py-2 bg-red-400 border-4 border-black text-black font-black uppercase tracking-wide hover:bg-red-500 transition-colors shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black]"
                                                             disabled={
                                                                 submitting
                                                             }
                                                         >
                                                             <X className="h-4 w-4" />
-                                                            Remove
+                                                            REMOVE
                                                         </button>
                                                     </div>
                                                 </div>
                                             ) : (
                                                 <label className="cursor-pointer flex flex-col items-center justify-center gap-4">
-                                                    <div className="p-4 rounded-full bg-blue-100 text-blue-600">
-                                                        <Upload className="h-8 w-8" />
+                                                    <div className="p-6 bg-blue-300 border-4 border-black text-black shadow-[4px_4px_0px_0px_black]">
+                                                        <Upload className="h-10 w-10" />
                                                     </div>
                                                     <div className="text-center">
-                                                        <p className="text-lg font-semibold text-slate-900">
-                                                            Upload a video
-                                                            solution
+                                                        <p className="text-xl font-black text-black uppercase tracking-wide">
+                                                            UPLOAD VIDEO
+                                                            SOLUTION
                                                         </p>
-                                                        <p className="text-sm text-slate-600 mt-1">
+                                                        <p className="text-sm text-black font-bold mt-2">
                                                             MP4, WebM or MOV
                                                             (max 100MB)
                                                         </p>
                                                     </div>
-                                                    <div className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
-                                                        Choose Video File
+                                                    <div className="px-6 py-3 bg-green-400 border-4 border-black text-black font-black uppercase tracking-wide hover:bg-green-500 transition-colors shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black]">
+                                                        CHOOSE VIDEO FILE
                                                     </div>
                                                     <input
                                                         type="file"
@@ -508,15 +508,18 @@ export default function SolveDoubtPage() {
                                     </div>
 
                                     {/* Submit Button */}
-                                    <div className="flex justify-end space-x-4 pt-6">
-                                        <Link href="/my-students">
+                                    <div className="flex flex-col sm:flex-row justify-end gap-4 pt-6 w-full max-w-full overflow-hidden">
+                                        <Link
+                                            href="/my-students"
+                                            className="w-full sm:w-auto"
+                                        >
                                             <Button
                                                 type="button"
                                                 variant="outline"
                                                 disabled={submitting}
-                                                className="px-6 py-2 rounded-xl border-slate-300 text-slate-600 hover:bg-slate-50"
+                                                className="w-full sm:w-auto px-4 sm:px-6 py-3 bg-white border-4 border-black text-black font-black uppercase tracking-wide hover:bg-gray-200 transition-colors shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] text-sm sm:text-base min-w-0 flex-shrink"
                                             >
-                                                Cancel
+                                                CANCEL
                                             </Button>
                                         </Link>
                                         <Button
@@ -525,17 +528,17 @@ export default function SolveDoubtPage() {
                                                 submitting ||
                                                 !solutionData.solutionDescription.trim()
                                             }
-                                            className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-8 py-2 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all"
+                                            className="w-full sm:w-auto bg-green-400 border-4 border-black text-black font-black uppercase tracking-wide hover:bg-green-500 transition-colors shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] px-4 sm:px-8 py-3 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[4px_4px_0px_0px_black] text-sm sm:text-base min-w-0 flex-shrink"
                                         >
                                             {submitting ? (
                                                 <>
                                                     <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                                                    Submitting...
+                                                    SUBMITTING...
                                                 </>
                                             ) : (
                                                 <>
                                                     <CheckCircle className="h-4 w-4 mr-2" />
-                                                    Submit Solution
+                                                    SUBMIT SOLUTION
                                                 </>
                                             )}
                                         </Button>
