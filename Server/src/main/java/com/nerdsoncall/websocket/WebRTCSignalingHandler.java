@@ -17,6 +17,8 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.nerdsoncall.websocket.WebSocketErrorHandler.*;
+
 /**
  * Extended WebSocket handler specifically for WebRTC signaling
  * This handler supports more advanced WebRTC signaling features
@@ -36,29 +38,63 @@ public class WebRTCSignalingHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
         try {
+            if (session == null) {
+                logger.error("WebSocket session is null");
+                return;
+            }
+
+            if (session.getUri() == null) {
+                logger.error("WebSocket session URI is null");
+                closeSessionSafely(session, CloseStatus.BAD_DATA, "Invalid session URI");
+                return;
+            }
+
             // Extract userId from query parameters
             String query = session.getUri().getQuery();
             if (query != null && query.contains("userId=")) {
-                String userId = query.split("userId=")[1].split("&")[0];
-                logger.info("WebRTC signaling connection established for user: {}", userId);
-                userSessions.put(userId, session);
-                
-                // Check if user is joining a specific tutoring session
-                if (query.contains("sessionId=")) {
-                    String tutoringSessionId = query.split("sessionId=")[1].split("&")[0];
-                    addUserToTutoringSession(userId, tutoringSessionId, session);
+                try {
+                    String userId = extractParameterFromQuery(query, "userId");
+                    if (userId == null || userId.trim().isEmpty()) {
+                        logger.warn("Empty userId parameter in WebRTC connection");
+                        closeSessionSafely(session, CloseStatus.BAD_DATA, "Invalid userId parameter");
+                        return;
+                    }
+
+                    logger.info("WebRTC signaling connection established for user: {}", userId);
+
+                    // Close any existing session for this user to prevent duplicates
+                    WebSocketSession existingSession = userSessions.get(userId);
+                    if (existingSession != null && existingSession.isOpen()) {
+                        logger.info("Closing existing WebRTC session for user: {}", userId);
+                        closeSessionSafely(existingSession, CloseStatus.NORMAL, "New session established");
+                    }
+
+                    userSessions.put(userId, session);
+
+                    // Check if user is joining a specific tutoring session
+                    if (query.contains("sessionId=")) {
+                        String tutoringSessionId = extractParameterFromQuery(query, "sessionId");
+                        if (tutoringSessionId != null && !tutoringSessionId.trim().isEmpty()) {
+                            addUserToTutoringSession(userId, tutoringSessionId, session);
+                        } else {
+                            logger.warn("Empty sessionId parameter for user: {}", userId);
+                        }
+                    }
+
+                    // Send connection confirmation
+                    sendConnectionConfirmation(session, userId);
+
+                } catch (Exception e) {
+                    logger.error("Error parsing connection parameters", e);
+                    closeSessionSafely(session, CloseStatus.BAD_DATA, "Invalid connection parameters");
                 }
             } else {
                 logger.error("WebRTC connection rejected: No userId provided");
-                session.close(CloseStatus.BAD_DATA.withReason("No userId provided"));
+                closeSessionSafely(session, CloseStatus.BAD_DATA, "No userId provided");
             }
         } catch (Exception e) {
-            logger.error("Error in WebRTC connection establishment", e);
-            try {
-                session.close(CloseStatus.SERVER_ERROR.withReason("Internal server error"));
-            } catch (IOException ex) {
-                logger.error("Error closing WebRTC session", ex);
-            }
+            logger.error("Unexpected error establishing WebRTC connection", e);
+            closeSessionSafely(session, CloseStatus.SERVER_ERROR, "Server error during connection establishment");
         }
     }
     

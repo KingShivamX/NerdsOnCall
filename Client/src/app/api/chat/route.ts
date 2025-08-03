@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import OpenAI from "openai"
 
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-})
+const openai = process.env.OPENAI_API_KEY
+    ? new OpenAI({
+          apiKey: process.env.OPENAI_API_KEY,
+      })
+    : null
 
 // Simple rate limiting (in production, use Redis or similar)
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>()
@@ -31,7 +33,10 @@ function checkRateLimit(ip: string): boolean {
 export async function POST(req: NextRequest) {
     try {
         // Rate limiting
-        const ip = req.ip || req.headers.get("x-forwarded-for") || "unknown"
+        const ip =
+            req.headers.get("x-forwarded-for") ||
+            req.headers.get("x-real-ip") ||
+            "unknown"
         if (!checkRateLimit(ip)) {
             return NextResponse.json(
                 {
@@ -102,6 +107,13 @@ RESPONSE STYLE:
 - Always be encouraging and supportive
 
 Remember: You're part of the NerdsOnCall ecosystem, designed to complement human tutors, not replace them.`
+
+        if (!openai) {
+            return NextResponse.json(
+                { error: "OpenAI API is not configured" },
+                { status: 503 }
+            )
+        }
 
         const completion = await openai.chat.completions.create({
             model: "gpt-4o",
