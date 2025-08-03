@@ -12,13 +12,10 @@ import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
+
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -30,7 +27,6 @@ public class EmailService {
     @Autowired
     private PdfService pdfService;
 
-    @Retryable(value = {MailException.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000))
     public void sendPasswordResetEmail(String to, String resetToken, String resetUrl) {
         try {
             if (to == null || to.trim().isEmpty()) {
