@@ -109,6 +109,21 @@ public class SessionController {
         }
     }
 
+    // Cancel call session by sessionId (for declined calls)
+    @PutMapping("/call/{sessionId}/cancel")
+    public ResponseEntity<?> cancelCallSession(@PathVariable String sessionId, @RequestParam(required = false) String reason) {
+        try {
+            System.out.println("🚫 Cancelling call session: " + sessionId + " - Reason: " + reason);
+            Session session = sessionService.cancelCallSession(sessionId, reason != null ? reason : "Call declined");
+            System.out.println("✅ Call session cancelled successfully: " + sessionId);
+            return ResponseEntity.ok(session);
+        } catch (Exception e) {
+            System.err.println("❌ Failed to cancel call session: " + sessionId + " - " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Failed to cancel call session: " + e.getMessage());
+        }
+    }
+
     @PutMapping("/{id}/start")
     public ResponseEntity<?> startSession(@PathVariable Long id) {
         try {

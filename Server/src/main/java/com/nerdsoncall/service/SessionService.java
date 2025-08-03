@@ -27,13 +27,13 @@ public class SessionService {
     private SessionRepository sessionRepository;
 
     @Autowired
+    private SubscriptionService subscriptionService;
+
+    @Autowired
     private UserRepository userRepository;
 
     @Autowired
     private DoubtRepository doubtRepository;
-
-    @Autowired
-    private SubscriptionService subscriptionService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -149,8 +149,8 @@ public class SessionService {
 
             Session savedSession = sessionRepository.save(session);
 
-            // Increment session usage after successful call session creation (same as doubt)
-            subscriptionService.incrementSessionUsage(student);
+            // NOTE: Session usage is now only incremented when the call actually starts (in startCallSession)
+            // This prevents billing for sessions that are never accepted
 
             System.out.println("Call session created successfully with ID: " + savedSession.getId());
             return savedSession;
@@ -162,29 +162,43 @@ public class SessionService {
         }
     }
 
-    // Start call session by sessionId
+    // Start call session by sessionId - only when both parties are connected
     public Session startCallSession(String sessionId) {
         try {
-            System.out.println("Starting call session with ID: " + sessionId);
-            
+            System.out.println("🚀 Starting call session with ID: " + sessionId);
+
             Session session = sessionRepository.findBySessionId(sessionId)
                     .orElseThrow(() -> new RuntimeException("Session not found with ID: " + sessionId));
-            
+
             if (session.getStatus() == Session.Status.ACTIVE) {
-                System.out.println("Session is already active: " + sessionId);
+                System.out.println("✅ Session is already active: " + sessionId);
                 return session;
+            }
+
+            if (session.getStatus() == Session.Status.CANCELLED) {
+                System.out.println("❌ Cannot start cancelled session: " + sessionId);
+                throw new RuntimeException("Cannot start cancelled session");
             }
 
             session.setStatus(Session.Status.ACTIVE);
             session.setActualStartTime(LocalDateTime.now()); // Set actual call start time
-            System.out.println("Setting actual start time: " + session.getActualStartTime());
-            
+            System.out.println("⏰ Setting actual start time: " + session.getActualStartTime());
+
+            // Increment session usage for student only when call actually starts
+            try {
+                subscriptionService.incrementSessionUsage(session.getStudent());
+                System.out.println("📊 Session usage incremented for student: " + session.getStudent().getEmail());
+            } catch (Exception e) {
+                System.err.println("⚠️ Failed to increment session usage: " + e.getMessage());
+                // Don't fail the call start if usage increment fails
+            }
+
             Session savedSession = sessionRepository.save(session);
-            System.out.println("Call session started successfully: " + sessionId + " at " + savedSession.getStartTime());
+            System.out.println("✅ Call session started successfully: " + sessionId + " at " + savedSession.getActualStartTime());
             return savedSession;
-            
+
         } catch (Exception e) {
-            System.err.println("Error starting call session: " + e.getMessage());
+            System.err.println("❌ Error starting call session: " + e.getMessage());
             e.printStackTrace();
             throw new RuntimeException("Failed to start call session: " + e.getMessage());
         }
@@ -240,11 +254,65 @@ public class SessionService {
             Session savedSession = sessionRepository.save(session);
             System.out.println("Call session ended successfully: " + sessionId + " at " + savedSession.getEndTime());
             return savedSession;
-            
+
         } catch (Exception e) {
             System.err.println("Error ending call session: " + e.getMessage());
             e.printStackTrace();
             throw new RuntimeException("Failed to end call session: " + e.getMessage());
+        }
+    }
+
+    // Cancel call session when declined - no billing should occur
+    public Session cancelCallSession(String sessionId, String reason) {
+        try {
+            System.out.println("❌ Cancelling call session with ID: " + sessionId + " - Reason: " + reason);
+
+            Session session = sessionRepository.findBySessionId(sessionId)
+                    .orElseThrow(() -> new RuntimeException("Session not found with ID: " + sessionId));
+
+            if (session.getStatus() == Session.Status.COMPLETED) {
+                System.out.println("⚠️ Cannot cancel completed session: " + sessionId);
+                return session;
+            }
+
+            if (session.getStatus() == Session.Status.ACTIVE) {
+                System.out.println("⚠️ Cannot cancel active session: " + sessionId + " - Use endCallSession instead");
+                throw new RuntimeException("Cannot cancel active session - use end session instead");
+            }
+
+            // If session was active, we need to rollback session usage
+            boolean wasActive = session.getStatus() == Session.Status.ACTIVE;
+
+            session.setStatus(Session.Status.CANCELLED);
+            session.setEndTime(LocalDateTime.now());
+
+            // Ensure no billing occurs for cancelled sessions
+            session.setDurationMinutes(0L);
+            session.setCost(java.math.BigDecimal.ZERO);
+            session.setTutorEarnings(java.math.BigDecimal.ZERO);
+            session.setAmount(0.0);
+            session.setCommission(0.0);
+            session.setActualStartTime(null); // Clear actual start time
+
+            // Rollback session usage if session was active (usage was incremented)
+            if (wasActive) {
+                try {
+                    subscriptionService.decrementSessionUsage(session.getStudent());
+                    System.out.println("📊 Session usage decremented for student due to cancellation: " + session.getStudent().getEmail());
+                } catch (Exception e) {
+                    System.err.println("⚠️ Failed to decrement session usage: " + e.getMessage());
+                    // Continue with cancellation even if decrement fails
+                }
+            }
+
+            Session savedSession = sessionRepository.save(session);
+            System.out.println("✅ Call session cancelled successfully: " + sessionId);
+            return savedSession;
+
+        } catch (Exception e) {
+            System.err.println("❌ Error cancelling call session: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to cancel call session: " + e.getMessage());
         }
     }
 

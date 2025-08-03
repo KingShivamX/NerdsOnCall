@@ -13,6 +13,7 @@ import {
 import toast from "react-hot-toast"
 import { Phone, PhoneOff, User } from "lucide-react"
 import { VideoCallModal } from "./VideoCallModal"
+import { api } from "@/lib/api"
 
 interface TutorCallNotificationProps {
     onCallReceived?: (studentId: number, studentName: string) => void
@@ -205,45 +206,8 @@ export function TutorCallNotification({
     // Update tutor's online status in the database
     const updateOnlineStatus = async (isOnline: boolean) => {
         try {
-            const token = localStorage.getItem("token")
-            if (!token) {
-                addLog(
-                    "No authentication token found, skipping online status update"
-                )
-                return
-            }
-
-            // Check if API URL is available
-            if (!process.env.NEXT_PUBLIC_API_URL) {
-                addLog("API URL not configured, skipping online status update")
-                return
-            }
-
-            // Add timeout and better error handling
-            const controller = new AbortController()
-            const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
-
-            const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL}/api/users/online-status?isOnline=${isOnline}`,
-                {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                    signal: controller.signal,
-                }
-            )
-
-            clearTimeout(timeoutId)
-
-            if (!response.ok) {
-                const errorText = await response
-                    .text()
-                    .catch(() => "Unknown error")
-                throw new Error(`HTTP ${response.status}: ${errorText}`)
-            }
-
+            // Use the api utility which handles authentication properly
+            await api.put(`/users/online-status?isOnline=${isOnline}`)
             addLog(`Online status updated to: ${isOnline}`)
         } catch (error: any) {
             if (error.name === "AbortError") {
@@ -479,15 +443,36 @@ export function TutorCallNotification({
     // Reject the call
     const rejectCall = () => {
         if (incomingCall && socketRef.current) {
-            // Send rejection message
-            socketRef.current.send(
-                JSON.stringify({
-                    type: "call-rejected",
-                    to: incomingCall.studentId.toString(),
-                    from: user?.id.toString(),
-                    sessionId: incomingCall.sessionId,
-                })
+            addLog(
+                `Rejecting call from student ${incomingCall.studentName} (ID: ${incomingCall.studentId})`
             )
+
+            // Send rejection message with correct type
+            const declineMessage = {
+                type: "call_declined",
+                to: incomingCall.studentId.toString(),
+                from: user?.id.toString(),
+                sessionId: incomingCall.sessionId,
+                declinerName: `${user?.firstName} ${user?.lastName}`,
+            }
+
+            try {
+                socketRef.current.send(JSON.stringify(declineMessage))
+                addLog("Call decline message sent successfully")
+
+                // Also cancel the session in backend to prevent billing
+                api.put(
+                    `/api/sessions/call/${incomingCall.sessionId}/cancel?reason=Call declined by tutor`
+                )
+                    .then(() => {
+                        addLog("Session cancelled successfully in backend")
+                    })
+                    .catch((error) => {
+                        addLog(`Failed to cancel session: ${error.message}`)
+                    })
+            } catch (error) {
+                addLog(`Failed to send decline message: ${error}`)
+            }
 
             // Clear incoming call
             setIncomingCall(null)

@@ -42,8 +42,9 @@ public class DoubtService {
 
         Doubt savedDoubt = doubtRepository.save(doubt);
 
-        // Increment session usage after successful doubt creation
-        subscriptionService.incrementSessionUsage(doubt.getStudent());
+        // NOTE: Session usage increment moved to actual call start
+        // This prevents billing for doubts that never get answered
+        System.out.println("💡 Doubt created successfully - Session usage will be incremented when call starts");
 
         return savedDoubt;
     }

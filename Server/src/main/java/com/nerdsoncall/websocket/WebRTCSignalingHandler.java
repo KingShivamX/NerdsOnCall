@@ -94,6 +94,9 @@ public class WebRTCSignalingHandler extends TextWebSocketHandler {
                     case "user-disconnect":
                         handleUserDisconnect(session, jsonNode);
                         break;
+                    case "call_declined":
+                        handleCallDeclinedMessage(session, jsonNode);
+                        break;
                     default:
                         logger.debug("Unknown message type: {}", type);
                         // Don't send error for unknown message types to reduce frontend spam
@@ -393,6 +396,54 @@ public class WebRTCSignalingHandler extends TextWebSocketHandler {
             }
         } else {
             sendErrorMessage(session, "Invalid disconnect message format");
+        }
+    }
+
+    private void handleCallDeclinedMessage(WebSocketSession session, JsonNode message) throws IOException {
+        if (message.has("to") && message.has("from") && message.has("sessionId")) {
+            String toUserId = message.get("to").asText();
+            String fromUserId = message.get("from").asText();
+            String sessionId = message.get("sessionId").asText();
+            String declinerName = message.has("declinerName") ? message.get("declinerName").asText() : "Teacher";
+
+            logger.info("📞❌ Call declined by {} (ID: {}) for session {}", declinerName, fromUserId, sessionId);
+
+            // Forward the decline message to the caller using direct user sessions
+            WebSocketSession targetSession = userSessions.get(toUserId);
+            if (targetSession != null && targetSession.isOpen()) {
+                try {
+                    targetSession.sendMessage(new TextMessage(message.toString()));
+                    logger.info("✅ Call decline message forwarded to user {} via direct session", toUserId);
+                } catch (IOException e) {
+                    logger.error("❌ Failed to forward call decline message to user {}: {}", toUserId, e.getMessage());
+                }
+            } else {
+                logger.warn("⚠️ Target user {} not found in active sessions or session is closed", toUserId);
+
+                // Try fallback with tutoring session participants
+                Map<String, WebSocketSession> participants = tutoringSessionParticipants.get(sessionId);
+                if (participants != null) {
+                    WebSocketSession fallbackSession = participants.get(toUserId);
+                    if (fallbackSession != null && fallbackSession.isOpen()) {
+                        try {
+                            fallbackSession.sendMessage(new TextMessage(message.toString()));
+                            logger.info("✅ Call decline message forwarded to user {} via fallback method", toUserId);
+                        } catch (IOException e) {
+                            logger.error("❌ Fallback method also failed for user {}: {}", toUserId, e.getMessage());
+                        }
+                    }
+                }
+            }
+
+            // Clean up session participants
+            Map<String, WebSocketSession> participants = tutoringSessionParticipants.get(sessionId);
+            if (participants != null) {
+                participants.clear();
+                tutoringSessionParticipants.remove(sessionId);
+                logger.info("🧹 Session {} cleaned up after call decline", sessionId);
+            }
+        } else {
+            sendErrorMessage(session, "Invalid call declined message format");
         }
     }
 }

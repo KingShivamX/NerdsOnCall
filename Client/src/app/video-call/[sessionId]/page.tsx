@@ -230,6 +230,7 @@ export default function VideoCallPage() {
     const [userRole, setUserRole] = useState<string>("")
     const [waitingForTutor, setWaitingForTutor] = useState(false)
     const [tutorReady, setTutorReady] = useState(false)
+    const [callStartTime, setCallStartTime] = useState<number | null>(null)
 
     // Incoming call state
     const [incomingCall, setIncomingCall] = useState<any>(null)
@@ -305,6 +306,54 @@ export default function VideoCallPage() {
             cleanupConnection()
         }
     }, [sessionId, user])
+
+    // Timeout mechanism - if student waits too long without response, assume call was declined
+    useEffect(() => {
+        if (user?.role === "STUDENT") {
+            const timeoutId = setTimeout(() => {
+                // If still waiting after 30 seconds and no call has been established
+                if (
+                    !isInCallRef.current &&
+                    (callStatus === "Idle" || callStatus === "Calling...")
+                ) {
+                    console.log(
+                        "⏰ Call timeout - assuming teacher declined or is unavailable"
+                    )
+
+                    toast.error("Teacher is not responding. Call timed out.", {
+                        duration: 4000,
+                    })
+
+                    // Execute the same cleanup as call decline
+                    const executeTimeoutCleanup = async () => {
+                        try {
+                            console.log(
+                                "🚫 Cancelling session due to timeout..."
+                            )
+                            await api.put(
+                                `/api/sessions/call/${sessionId}/cancel?reason=Call timeout - no response`
+                            )
+                            console.log("✅ Session cancelled due to timeout")
+                        } catch (error) {
+                            console.error(
+                                "❌ Failed to cancel session on timeout:",
+                                error
+                            )
+                        }
+
+                        // Clean up and redirect
+                        cleanupConnection()
+                        console.log("🔙 Redirecting back due to timeout...")
+                        router.back()
+                    }
+
+                    executeTimeoutCleanup()
+                }
+            }, 30000) // 30 second timeout
+
+            return () => clearTimeout(timeoutId)
+        }
+    }, [user?.role, callStatus, sessionId, router])
 
     // Handle page unload/close - end call if user leaves
     useEffect(() => {
@@ -587,7 +636,12 @@ export default function VideoCallPage() {
     const handleWebSocketMessage = async (event: MessageEvent) => {
         try {
             const message = JSON.parse(event.data)
-            console.log("📨 Received WebSocket message:", message.type)
+            console.log(
+                "📨 Received WebSocket message:",
+                message.type,
+                "Full message:",
+                message
+            )
 
             switch (message.type) {
                 case "incoming_call":
@@ -601,10 +655,122 @@ export default function VideoCallPage() {
                 case "call_accepted":
                     setCallStatus("Calling...")
                     toast.success("Call accepted!")
+
+                    // Start the session now that the tutor has accepted
+                    try {
+                        await api.put(`/api/sessions/call/${sessionId}/start`)
+                        console.log(
+                            "✅ Session started successfully after tutor acceptance"
+                        )
+                    } catch (error: any) {
+                        console.warn(
+                            "Session start failed after tutor acceptance:",
+                            error.message
+                        )
+                    }
                     break
                 case "call_declined":
-                    setCallStatus("Idle")
-                    toast.error("Call declined")
+                    console.log(
+                        "📞❌ Call declined by teacher - Full message:",
+                        message
+                    )
+
+                    // Show toast notification IMMEDIATELY
+                    toast.error("Teacher declined your call", {
+                        duration: 4000,
+                    })
+
+                    setCallStatus("Call declined")
+
+                    // Execute cleanup and redirect with guaranteed execution
+                    const executeCallDeclineCleanup = async () => {
+                        console.log(
+                            "🚨 EXECUTING CALL DECLINE CLEANUP - GUARANTEED"
+                        )
+
+                        try {
+                            // Cancel the session in backend to prevent billing
+                            console.log(
+                                "🚫 Cancelling session due to call decline..."
+                            )
+                            await api.put(
+                                `/api/sessions/call/${sessionId}/cancel?reason=Call declined by teacher`
+                            )
+                            console.log("✅ Session cancelled successfully")
+                        } catch (error) {
+                            console.error("❌ Failed to cancel session:", error)
+                            // Continue with cleanup even if cancel fails
+                        }
+
+                        // Reset call state - GUARANTEED
+                        try {
+                            if (peerConnectionRef.current) {
+                                peerConnectionRef.current.close()
+                                peerConnectionRef.current = null
+                            }
+                            isInCallRef.current = false
+
+                            // Clean up local stream
+                            if (localStreamRef.current) {
+                                localStreamRef.current
+                                    .getTracks()
+                                    .forEach((track) => track.stop())
+                                localStreamRef.current = null
+                            }
+
+                            // Clean up WebSocket connection
+                            if (socketRef.current) {
+                                socketRef.current.close()
+                                socketRef.current = null
+                            }
+                        } catch (cleanupError) {
+                            console.error(
+                                "❌ Cleanup error (continuing anyway):",
+                                cleanupError
+                            )
+                        }
+
+                        // GUARANTEED REDIRECT - Multiple fallback methods
+                        console.log(
+                            "🔙 REDIRECTING BACK DUE TO CALL DECLINE - GUARANTEED"
+                        )
+
+                        // Add a small delay to ensure toast is shown before redirect
+                        setTimeout(() => {
+                            try {
+                                // Method 1: router.back()
+                                router.back()
+                            } catch (routerError) {
+                                console.error(
+                                    "❌ router.back() failed, trying router.push:",
+                                    routerError
+                                )
+                                try {
+                                    // Method 2: router.push to browse-tutors
+                                    router.push("/browse-tutors")
+                                } catch (pushError) {
+                                    console.error(
+                                        "❌ router.push failed, trying window.history:",
+                                        pushError
+                                    )
+                                    try {
+                                        // Method 3: window.history.back()
+                                        window.history.back()
+                                    } catch (historyError) {
+                                        console.error(
+                                            "❌ window.history.back() failed, using window.location:",
+                                            historyError
+                                        )
+                                        // Method 4: Direct navigation
+                                        window.location.href = "/browse-tutors"
+                                    }
+                                }
+                            }
+                        }, 1000) // 1 second delay to ensure toast is visible
+                    }
+
+                    // Execute immediately with no delays
+                    executeCallDeclineCleanup()
                     break
                 case "offer":
                     await handleOffer(message)
@@ -1395,15 +1561,8 @@ export default function VideoCallPage() {
                 )
             }
 
-            // Start session tracking
-            try {
-                await api.put(`/api/sessions/call/${sessionId}/start`)
-            } catch (error: any) {
-                console.warn(
-                    "Session start failed, continuing with call:",
-                    error.message
-                )
-            }
+            // NOTE: Session start is now moved to when tutor accepts the call
+            // This prevents the session from being marked ACTIVE prematurely
 
             createPeerConnection()
 
@@ -1664,19 +1823,34 @@ export default function VideoCallPage() {
         toast.success("Call accepted")
     }, [incomingCall, user])
 
-    const handleDeclineCall = useCallback(() => {
+    const handleDeclineCall = useCallback(async () => {
+        console.log("🚫 Declining call from:", incomingCall?.callerName)
         setShowIncomingCallModal(false)
 
         if (socketRef.current && incomingCall) {
-            socketRef.current.send(
-                JSON.stringify({
-                    type: "call_declined",
-                    to: incomingCall.callerId.toString(),
-                    from: user?.id.toString(),
-                    sessionId: incomingCall.sessionId,
-                    declinerName: `${user?.firstName} ${user?.lastName}`,
-                })
-            )
+            const declineMessage = {
+                type: "call_declined",
+                to: incomingCall.callerId.toString(),
+                from: user?.id.toString(),
+                sessionId: incomingCall.sessionId,
+                declinerName: `${user?.firstName} ${user?.lastName}`,
+            }
+
+            console.log("📤 Sending call decline message:", declineMessage)
+            socketRef.current.send(JSON.stringify(declineMessage))
+
+            // Also cancel the session in backend
+            try {
+                console.log(
+                    "🚫 Cancelling session due to call decline by teacher..."
+                )
+                await api.put(
+                    `/api/sessions/call/${incomingCall.sessionId}/cancel?reason=Call declined by teacher`
+                )
+                console.log("✅ Session cancelled successfully")
+            } catch (error) {
+                console.error("❌ Failed to cancel session:", error)
+            }
         }
 
         setIncomingCall(null)
