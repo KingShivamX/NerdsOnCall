@@ -155,7 +155,7 @@ export default function MyStudentsPage() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <h1 className="text-3xl font-black text-black mb-2 uppercase tracking-wide">
-                                    My Students
+                                    Student Requests
                                 </h1>
                                 <p className="text-black font-bold">
                                     Manage student doubts and provide solutions

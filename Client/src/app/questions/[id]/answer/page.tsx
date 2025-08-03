@@ -215,10 +215,10 @@ export default function SubmitSolutionPage() {
                             <h1 className="text-4xl md:text-5xl font-bold mb-4">
                                 Submit a Solution
                             </h1>
-                            <p className="text-xl text-green-100 max-w-2xl mx-auto">
+                            <div className="text-xl text-green-100 max-w-2xl mx-auto">
                                 Help other students by providing a detailed
                                 solution with video explanation
-                            </p>
+                            </div>
                         </div>
                     </div>
                 </div>

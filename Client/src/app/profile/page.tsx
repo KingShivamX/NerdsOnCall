@@ -695,7 +695,7 @@ export default function ProfilePage() {
                                                 variant="outline"
                                             >
                                                 <BookOpen className="h-4 w-4 mr-2" />
-                                                My Students
+                                                Student Requests
                                             </Button>
                                         </>
                                     ) : (

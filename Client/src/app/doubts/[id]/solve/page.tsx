@@ -211,7 +211,7 @@ export default function SolveDoubtPage() {
                                     or you don't have permission to access it.
                                 </p>
                                 <Link href="/my-students">
-                                    <Button>Back to My Students</Button>
+                                    <Button>Back to Student Requests</Button>
                                 </Link>
                             </CardContent>
                         </Card>
@@ -233,7 +233,7 @@ export default function SolveDoubtPage() {
                             className="mb-6 text-slate-600 hover:text-slate-800 hover:bg-white/50"
                         >
                             <ArrowLeft className="h-4 w-4 mr-2" />
-                            Back to My Students
+                            Back to Student Requests
                         </Button>
                     </Link>
 
