@@ -72,16 +72,14 @@ export default function BrowseTutorsPage() {
 
     useEffect(() => {
         filterAndSortTutors()
-    }, [tutors, searchQuery])
+    }, [tutors, searchQuery, selectedSubject, sortBy])
 
     const fetchTutors = async () => {
         try {
             setLoading(true)
-            // Use the new dedicated tutors API endpoint with query parameters
+            // Fetch all tutors and do filtering client-side for better responsiveness
             const response = await api.get("/api/tutors", {
                 params: {
-                    subject: selectedSubject !== "all" ? selectedSubject : null,
-                    sortBy: sortBy,
                     onlineOnly: true,
                 },
             })
@@ -126,6 +124,13 @@ export default function BrowseTutorsPage() {
     }
 
     const filterAndSortTutors = useCallback(() => {
+        console.log("Filtering tutors:", {
+            totalTutors: tutors.length,
+            selectedSubject,
+            sortBy,
+            searchQuery,
+        })
+
         let filtered = [...tutors]
 
         // Filter by search query
@@ -164,6 +169,17 @@ export default function BrowseTutorsPage() {
                 default:
                     return (b.rating || 0) - (a.rating || 0)
             }
+        })
+
+        console.log("Filtered result:", {
+            filteredCount: filtered.length,
+            sampleTutor: filtered[0]
+                ? {
+                      name: `${filtered[0].firstName} ${filtered[0].lastName}`,
+                      subjects: filtered[0].subjects,
+                      rating: filtered[0].rating,
+                  }
+                : null,
         })
 
         setFilteredTutors(filtered)

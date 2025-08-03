@@ -98,7 +98,7 @@ export function IncomingCallNotification({
         <Dialog open={isOpen} onOpenChange={() => {}}>
             <DialogContent className="sm:max-w-md bg-white border-4 border-black shadow-[8px_8px_0px_0px_black]">
                 <DialogHeader className="bg-black text-white p-4 -m-6 mb-6">
-                    <DialogTitle className="text-xl font-bold text-white text-center">
+                    <DialogTitle className="text-yellow-300 text-xl font-black text-center uppercase tracking-wide drop-shadow-[2px_2px_0px_rgba(0,0,0,1)]">
                         📞 Incoming Call
                     </DialogTitle>
                 </DialogHeader>
