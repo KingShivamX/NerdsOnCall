@@ -516,7 +516,7 @@ export function TutorCallNotification({
                 }}
             >
                 <DialogContent className="sm:max-w-md bg-white border-4 border-black shadow-[8px_8px_0px_0px_black]">
-                    <DialogHeader className="bg-black text-white p-4 -m-6 mb-6">
+                    <DialogHeader className="bg-green-500 text-white p-4 -m-6 mb-6 rounded-t-lg">
                         <DialogTitle className="text-white text-xl font-bold text-center">
                             📞 Incoming Call
                         </DialogTitle>

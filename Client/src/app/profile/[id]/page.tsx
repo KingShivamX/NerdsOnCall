@@ -377,83 +377,6 @@ export default function PublicProfilePage() {
                                         </CardContent>
                                     </Card>
                                 )}
-
-                            {/* Reviews Section (for tutors) */}
-                            {isTutor && (
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle className="flex items-center">
-                                            <MessageSquare className="h-5 w-5 mr-2" />
-                                            Student Reviews
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        {reviews.length > 0 ? (
-                                            <div className="space-y-4">
-                                                {reviews
-                                                    .slice(0, 3)
-                                                    .map((review, index) => (
-                                                        <div
-                                                            key={index}
-                                                            className="border-l-4 border-blue-200 pl-4 py-2"
-                                                        >
-                                                            <div className="flex items-center space-x-2 mb-2">
-                                                                <div className="flex items-center space-x-1">
-                                                                    {[
-                                                                        ...Array(
-                                                                            5
-                                                                        ),
-                                                                    ].map(
-                                                                        (
-                                                                            _,
-                                                                            i
-                                                                        ) => (
-                                                                            <Star
-                                                                                key={
-                                                                                    i
-                                                                                }
-                                                                                className={`h-4 w-4 ${
-                                                                                    i <
-                                                                                    review.rating
-                                                                                        ? "text-amber-500 fill-current"
-                                                                                        : "text-slate-300"
-                                                                                }`}
-                                                                            />
-                                                                        )
-                                                                    )}
-                                                                </div>
-                                                                <span className="text-sm text-slate-600">
-                                                                    by{" "}
-                                                                    {
-                                                                        review.studentName
-                                                                    }
-                                                                </span>
-                                                                <span className="text-xs text-slate-400">
-                                                                    {new Date(
-                                                                        review.createdAt
-                                                                    ).toLocaleDateString()}
-                                                                </span>
-                                                            </div>
-                                                            <p className="text-slate-700 text-sm">
-                                                                {review.comment}
-                                                            </p>
-                                                        </div>
-                                                    ))}
-                                                {reviews.length > 3 && (
-                                                    <p className="text-sm text-slate-500 text-center">
-                                                        And {reviews.length - 3}{" "}
-                                                        more reviews...
-                                                    </p>
-                                                )}
-                                            </div>
-                                        ) : (
-                                            <p className="text-slate-500 text-center py-4">
-                                                No reviews yet
-                                            </p>
-                                        )}
-                                    </CardContent>
-                                </Card>
-                            )}
                         </div>
 
                         {/* Right Column - Stats & Actions */}
@@ -508,25 +431,22 @@ export default function PublicProfilePage() {
                                         <>
                                             <div className="flex items-center justify-between">
                                                 <span className="text-sm text-slate-600">
-                                                    Total Sessions
+                                                    Sessions Taught
                                                 </span>
                                                 <span className="font-medium">
-                                                    {profileData.totalSessions ||
+                                                    {stats?.sessionsTaught ||
+                                                        profileData.totalSessions ||
                                                         0}
                                                 </span>
                                             </div>
                                             <div className="flex items-center justify-between">
                                                 <span className="text-sm text-slate-600">
-                                                    Average Rating
+                                                    Hours Taught
                                                 </span>
-                                                <div className="flex items-center space-x-1">
-                                                    <Star className="h-4 w-4 text-amber-500 fill-current" />
-                                                    <span className="font-medium">
-                                                        {profileData.rating?.toFixed(
-                                                            1
-                                                        ) || "0.0"}
-                                                    </span>
-                                                </div>
+                                                <span className="font-medium">
+                                                    {stats?.hoursTaught || 0}{" "}
+                                                    hrs
+                                                </span>
                                             </div>
                                             <div className="flex items-center justify-between">
                                                 <span className="text-sm text-slate-600">
@@ -534,138 +454,76 @@ export default function PublicProfilePage() {
                                                 </span>
                                                 <span className="font-medium">
                                                     ₹
-                                                    {profileData.totalEarnings?.toFixed(
+                                                    {stats?.totalEarnings?.toFixed(
+                                                        2
+                                                    ) ||
+                                                        profileData.totalEarnings?.toFixed(
+                                                            2
+                                                        ) ||
+                                                        "0.00"}
+                                                </span>
+                                            </div>
+
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm text-slate-600">
+                                                    Active Students
+                                                </span>
+                                                <span className="font-medium">
+                                                    {stats?.activeStudents || 0}
+                                                </span>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm text-slate-600">
+                                                    Sessions Attended
+                                                </span>
+                                                <span className="font-medium">
+                                                    {stats?.sessionsAttended ||
+                                                        0}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm text-slate-600">
+                                                    Hours Learned
+                                                </span>
+                                                <span className="font-medium">
+                                                    {stats?.hoursLearned || 0}{" "}
+                                                    hrs
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm text-slate-600">
+                                                    Total Cost
+                                                </span>
+                                                <span className="font-medium">
+                                                    ₹
+                                                    {stats?.totalCost?.toFixed(
                                                         2
                                                     ) || "0.00"}
                                                 </span>
                                             </div>
-                                            {stats && (
-                                                <>
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="text-sm text-slate-600">
-                                                            This Month
-                                                        </span>
-                                                        <span className="font-medium">
-                                                            {stats.sessionsThisMonth ||
-                                                                0}{" "}
-                                                            sessions
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="text-sm text-slate-600">
-                                                            Response Rate
-                                                        </span>
-                                                        <span className="font-medium">
-                                                            {stats.responseRate ||
-                                                                "N/A"}
-                                                            %
-                                                        </span>
-                                                    </div>
-                                                </>
-                                            )}
-                                        </>
-                                    ) : (
-                                        <>
-                                            {stats && (
-                                                <>
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="text-sm text-slate-600">
-                                                            Questions Asked
-                                                        </span>
-                                                        <span className="font-medium">
-                                                            {stats.questionsAsked ||
-                                                                0}
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="text-sm text-slate-600">
-                                                            Sessions Attended
-                                                        </span>
-                                                        <span className="font-medium">
-                                                            {stats.sessionsAttended ||
-                                                                0}
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="text-sm text-slate-600">
-                                                            Doubts Resolved
-                                                        </span>
-                                                        <span className="font-medium">
-                                                            {stats.doubtsResolved ||
-                                                                0}
-                                                        </span>
-                                                    </div>
-                                                </>
-                                            )}
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm text-slate-600">
+                                                    Open Questions
+                                                </span>
+                                                <span className="font-medium">
+                                                    {stats?.openQuestions || 0}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm text-slate-600">
+                                                    Favorite Tutors
+                                                </span>
+                                                <span className="font-medium">
+                                                    {stats?.favoriteTutors || 0}
+                                                </span>
+                                            </div>
                                         </>
                                     )}
                                 </CardContent>
                             </Card>
-
-                            {/* Achievements (for tutors) */}
-                            {isTutor && (
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle className="flex items-center">
-                                            <Award className="h-5 w-5 mr-2" />
-                                            Achievements
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="space-y-3">
-                                        {profileData.totalSessions >= 10 && (
-                                            <div className="flex items-center space-x-3">
-                                                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                                    <CheckCircle className="h-5 w-5 text-blue-600" />
-                                                </div>
-                                                <div>
-                                                    <p className="font-medium text-sm">
-                                                        Experienced Tutor
-                                                    </p>
-                                                    <p className="text-xs text-slate-600">
-                                                        Completed 10+ sessions
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        )}
-                                        {profileData.rating >= 4.5 && (
-                                            <div className="flex items-center space-x-3">
-                                                <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
-                                                    <Star className="h-5 w-5 text-amber-600 fill-current" />
-                                                </div>
-                                                <div>
-                                                    <p className="font-medium text-sm">
-                                                        Top Rated
-                                                    </p>
-                                                    <p className="text-xs text-slate-600">
-                                                        4.5+ star rating
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        )}
-                                        {profileData.totalSessions >= 50 && (
-                                            <div className="flex items-center space-x-3">
-                                                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                                                    <Crown className="h-5 w-5 text-green-600" />
-                                                </div>
-                                                <div>
-                                                    <p className="font-medium text-sm">
-                                                        Master Tutor
-                                                    </p>
-                                                    <p className="text-xs text-slate-600">
-                                                        Completed 50+ sessions
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        )}
-                                        {(!profileData.totalSessions ||
-                                            profileData.totalSessions < 10) && (
-                                            <p className="text-slate-500 text-sm text-center py-4">
-                                                No achievements yet
-                                            </p>
-                                        )}
-                                    </CardContent>
-                                </Card>
-                            )}
 
                             {/* Availability (for tutors) */}
                             {isTutor && (

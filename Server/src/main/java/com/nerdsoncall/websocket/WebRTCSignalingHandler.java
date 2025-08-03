@@ -85,6 +85,15 @@ public class WebRTCSignalingHandler extends TextWebSocketHandler {
                     case "leave":
                         handleLeaveMessage(session, jsonNode);
                         break;
+                    case "chat_message":
+                        handleChatMessage(session, jsonNode);
+                        break;
+                    case "user_typing":
+                        handleUserTyping(session, jsonNode);
+                        break;
+                    case "user-disconnect":
+                        handleUserDisconnect(session, jsonNode);
+                        break;
                     default:
                         logger.debug("Unknown message type: {}", type);
                         // Don't send error for unknown message types to reduce frontend spam
@@ -285,5 +294,105 @@ public class WebRTCSignalingHandler extends TextWebSocketHandler {
         errorMsg.put("type", "error");
         errorMsg.put("message", errorMessage);
         session.sendMessage(new TextMessage(errorMsg.toString()));
+    }
+    
+    private void handleChatMessage(WebSocketSession session, JsonNode message) throws IOException {
+        if (message.has("sessionId") && message.has("userId") && message.has("message")) {
+            String sessionId = message.get("sessionId").asText();
+            String userId = message.get("userId").asText();
+            String chatMessage = message.get("message").asText();
+            String userName = message.has("userName") ? message.get("userName").asText() : "Unknown User";
+            String timestamp = message.has("timestamp") ? message.get("timestamp").asText() : "";
+            String messageId = message.has("id") ? message.get("id").asText() : String.valueOf(System.currentTimeMillis());
+            
+            logger.info("💬 Chat message from user {} in session {}: {}", userId, sessionId, chatMessage);
+            
+            // Broadcast the chat message to all participants in the session
+            Map<String, WebSocketSession> participants = tutoringSessionParticipants.get(sessionId);
+            if (participants != null) {
+                ObjectNode chatMsg = objectMapper.createObjectNode();
+                chatMsg.put("type", "chat_message");
+                chatMsg.put("sessionId", sessionId);
+                chatMsg.put("userId", userId);
+                chatMsg.put("userName", userName);
+                chatMsg.put("message", chatMessage);
+                chatMsg.put("timestamp", timestamp);
+                chatMsg.put("id", messageId);
+                
+                TextMessage textMessage = new TextMessage(chatMsg.toString());
+                
+                for (Map.Entry<String, WebSocketSession> entry : participants.entrySet()) {
+                    WebSocketSession participantSession = entry.getValue();
+                    
+                    if (participantSession.isOpen()) {
+                        participantSession.sendMessage(textMessage);
+                    }
+                }
+            } else {
+                logger.warn("No participants found for session: {}", sessionId);
+            }
+        } else {
+            sendErrorMessage(session, "Invalid chat message format");
+        }
+    }
+    
+    private void handleUserTyping(WebSocketSession session, JsonNode message) throws IOException {
+        if (message.has("sessionId") && message.has("userId")) {
+            String sessionId = message.get("sessionId").asText();
+            String userId = message.get("userId").asText();
+            String userName = message.has("userName") ? message.get("userName").asText() : "Unknown User";
+            
+            logger.debug("⌨️ User {} typing in session {}", userId, sessionId);
+            
+            // Broadcast typing indicator to all participants in the session
+            Map<String, WebSocketSession> participants = tutoringSessionParticipants.get(sessionId);
+            if (participants != null) {
+                ObjectNode typingMsg = objectMapper.createObjectNode();
+                typingMsg.put("type", "user_typing");
+                typingMsg.put("sessionId", sessionId);
+                typingMsg.put("userId", userId);
+                typingMsg.put("userName", userName);
+                
+                TextMessage textMessage = new TextMessage(typingMsg.toString());
+                
+                for (Map.Entry<String, WebSocketSession> entry : participants.entrySet()) {
+                    String participantId = entry.getKey();
+                    WebSocketSession participantSession = entry.getValue();
+                    
+                    // Don't send typing indicator to the user who is typing
+                    if (!participantId.equals(userId) && participantSession.isOpen()) {
+                        participantSession.sendMessage(textMessage);
+                    }
+                }
+            }
+        } else {
+            sendErrorMessage(session, "Invalid typing message format");
+        }
+    }
+    
+    private void handleUserDisconnect(WebSocketSession session, JsonNode message) throws IOException {
+        if (message.has("sessionId") && message.has("userId")) {
+            String sessionId = message.get("sessionId").asText();
+            String userId = message.get("userId").asText();
+            
+            logger.info("👋 User {} disconnecting from session {}", userId, sessionId);
+            
+            // Remove user from session participants
+            Map<String, WebSocketSession> participants = tutoringSessionParticipants.get(sessionId);
+            if (participants != null) {
+                participants.remove(userId);
+                
+                // Notify other participants that this user has left
+                notifyParticipantLeft(sessionId, userId);
+                
+                // If no participants left, remove the session
+                if (participants.isEmpty()) {
+                    tutoringSessionParticipants.remove(sessionId);
+                    logger.info("Session {} removed - no participants left", sessionId);
+                }
+            }
+        } else {
+            sendErrorMessage(session, "Invalid disconnect message format");
+        }
     }
 }

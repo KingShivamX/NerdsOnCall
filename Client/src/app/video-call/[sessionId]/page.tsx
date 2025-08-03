@@ -474,10 +474,10 @@ export default function VideoCallPage() {
                     console.log("💬 Received chat message:", message.message)
                     const chatMessage = {
                         id: message.id || Date.now().toString(),
-                        userId: message.userId,
+                        userId: parseInt(message.userId) || message.userId,
                         userName: message.userName,
                         message: message.message,
-                        timestamp: new Date(message.timestamp),
+                        timestamp: new Date(message.timestamp || Date.now()),
                         type: "text",
                     }
                     setChatMessages((prev) => [...prev, chatMessage])

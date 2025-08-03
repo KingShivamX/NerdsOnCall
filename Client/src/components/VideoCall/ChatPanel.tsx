@@ -55,7 +55,7 @@ export function ChatPanel({
                 try {
                     const data = JSON.parse(event.data)
                     if (data.type === "user_typing") {
-                        setIsTyping(data.userId !== user?.id)
+                        setIsTyping(parseInt(data.userId) !== user?.id)
                         setTimeout(() => setIsTyping(false), 3000)
                     }
                 } catch (error) {
@@ -154,19 +154,19 @@ export function ChatPanel({
                         <div
                             key={message.id}
                             className={`flex ${
-                                message.userId === user?.id
+                                Number(message.userId) === user?.id
                                     ? "justify-end"
                                     : "justify-start"
                             }`}
                         >
                             <div
                                 className={`max-w-xs lg:max-w-md px-3 py-2 border-2 border-black shadow-[2px_2px_0px_0px_black] ${
-                                    message.userId === user?.id
+                                    Number(message.userId) === user?.id
                                         ? "bg-blue-400 text-black font-bold"
                                         : "bg-white text-black font-bold"
                                 }`}
                             >
-                                {message.userId !== user?.id && (
+                                {Number(message.userId) !== user?.id && (
                                     <div className="text-xs font-black mb-1 uppercase tracking-wide">
                                         {message.userName}
                                     </div>

@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import com.nerdsoncall.entity.Plan;
 import com.nerdsoncall.service.PlanService;
 import java.util.List;
-import java.util.Optional;
 import com.razorpay.Order;
 import com.razorpay.RazorpayException;
 import java.util.Map;
@@ -222,38 +221,6 @@ public class SubscriptionController {
             return ResponseEntity.ok(canCreate);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Failed to check session eligibility: " + e.getMessage());
-        }
-    }
-
-    @GetMapping("/has-valid-subscription")
-    public ResponseEntity<?> hasValidSubscription(Authentication authentication) {
-        try {
-            User user = userService.findByEmail(authentication.getName())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
-            if (user.getRole() != User.Role.STUDENT) {
-                return ResponseEntity.badRequest().body("Only students have subscriptions");
-            }
-
-            boolean hasValid = subscriptionService.hasValidSubscription(user);
-            Map<String, Object> response = new HashMap<>();
-            response.put("hasValidSubscription", hasValid);
-
-            if (hasValid) {
-                Optional<Subscription> activeSubscription = subscriptionService.getActiveSubscription(user);
-                if (activeSubscription.isPresent()) {
-                    Subscription subscription = activeSubscription.get();
-                    response.put("planName", subscription.getPlanName());
-                    response.put("planType", subscription.getPlanType());
-                    response.put("endDate", subscription.getEndDate());
-                    response.put("sessionsUsed", subscription.getSessionsUsed());
-                    response.put("sessionsLimit", subscription.getSessionsLimit());
-                }
-            }
-
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Failed to check subscription validity: " + e.getMessage());
         }
     }
 } 
