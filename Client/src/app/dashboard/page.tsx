@@ -448,23 +448,7 @@ export default function DashboardPage() {
                       ? "..."
                       : tutorDashboardData?.sessionsTaught || 0}
                   </div>
-                  <p className="text-xs text-slate-600 mt-1">
-                    <span
-                      className={`${
-                        (tutorDashboardData?.monthlyGrowth?.sessionsGrowth ||
-                          0) >= 0
-                          ? "text-emerald-600"
-                          : "text-red-600"
-                      }`}
-                    >
-                      {(tutorDashboardData?.monthlyGrowth?.sessionsGrowth ||
-                        0) >= 0
-                        ? "+"
-                        : ""}
-                      {tutorDashboardData?.monthlyGrowth?.sessionsGrowth || 0}%
-                    </span>{" "}
-                    from last month
-                  </p>
+
                 </CardContent>
               </Card>
 
@@ -483,23 +467,7 @@ export default function DashboardPage() {
                       ? "..."
                       : tutorDashboardData?.hoursTaught || 0}
                   </div>
-                  <p className="text-xs text-slate-600 mt-1">
-                    <span
-                      className={`${
-                        (tutorDashboardData?.monthlyGrowth?.hoursGrowth || 0) >=
-                        0
-                          ? "text-emerald-600"
-                          : "text-red-600"
-                      }`}
-                    >
-                      {(tutorDashboardData?.monthlyGrowth?.hoursGrowth || 0) >=
-                      0
-                        ? "+"
-                        : ""}
-                      {tutorDashboardData?.monthlyGrowth?.hoursGrowth || 0}%
-                    </span>{" "}
-                    from last month
-                  </p>
+               
                 </CardContent>
               </Card>
 
@@ -519,23 +487,6 @@ export default function DashboardPage() {
                       ? "..."
                       : Math.round(tutorDashboardData?.totalEarnings || 0)}
                   </div>
-                  <p className="text-xs text-slate-600 mt-1">
-                    <span
-                      className={`${
-                        (tutorDashboardData?.monthlyGrowth?.earningsGrowth ||
-                          0) >= 0
-                          ? "text-emerald-600"
-                          : "text-red-600"
-                      }`}
-                    >
-                      {(tutorDashboardData?.monthlyGrowth?.earningsGrowth ||
-                        0) >= 0
-                        ? "+"
-                        : ""}
-                      {tutorDashboardData?.monthlyGrowth?.earningsGrowth || 0}%
-                    </span>{" "}
-                    from last month
-                  </p>
                 </CardContent>
               </Card>
             </div>

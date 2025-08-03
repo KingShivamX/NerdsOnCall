@@ -78,9 +78,9 @@ export default function ChatPage() {
                                 <Bot className="w-6 h-6 text-black" />
                             </div>
                             <div>
-                                <h1 className="text-white font-black text-xl uppercase tracking-wide">
+                                <div className="text-white font-black text-xl uppercase tracking-wide">
                                     NerdsOnCall AI Assistant
-                                </h1>
+                                </div>
                                 <div className="flex items-center space-x-3 text-sm text-white font-bold">
                                     <div className="w-3 h-3 bg-green-400 border border-black"></div>
                                     <span className="uppercase tracking-wide">
