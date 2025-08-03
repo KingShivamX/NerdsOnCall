@@ -64,9 +64,9 @@ export function Features() {
               key={index}
               className="border border-slate-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 bg-white group"
             >
-              <CardContent className="p-4 sm:p-6 lg:p-8">
+              <CardContent className="p-4 sm:p-6 lg:p-8 text-center">
                 <div className="mb-4 sm:mb-6">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-slate-100 rounded-lg flex items-center justify-center mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-slate-100 rounded-lg flex items-center justify-center mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300 mx-auto">
                     <feature.icon className="h-5 w-5 sm:h-6 sm:w-6 text-slate-700" />
                   </div>
                   <h3 className="text-base sm:text-lg lg:text-xl font-bold text-slate-800 mb-2 sm:mb-3 leading-tight">

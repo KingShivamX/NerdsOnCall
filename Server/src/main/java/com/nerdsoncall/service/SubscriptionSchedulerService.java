@@ -94,18 +94,41 @@ public class SubscriptionSchedulerService {
      * - 0 minutes
      * - every hour
      * - every day
-     * - every month  
+     * - every month
      * - any day of week
      */
     @Scheduled(cron = "0 0 * * * ?")
     public void processExpiredSubscriptions() {
         logger.info("Starting expired subscription processing at {}", LocalDateTime.now());
-        
+
         try {
             subscriptionService.processExpiredSubscriptions();
             logger.info("Expired subscription processing completed");
         } catch (Exception e) {
             logger.error("Error during expired subscription processing: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Clean up old expired subscriptions daily at 2:00 AM
+     * Removes expired subscriptions older than 30 days to keep database clean
+     * Cron expression: "0 0 2 * * ?" means:
+     * - 0 seconds
+     * - 0 minutes
+     * - 2 hours (2:00 AM)
+     * - every day
+     * - every month
+     * - any day of week
+     */
+    @Scheduled(cron = "0 0 2 * * ?")
+    public void cleanupOldExpiredSubscriptions() {
+        logger.info("Starting cleanup of old expired subscriptions at {}", LocalDateTime.now());
+
+        try {
+            subscriptionService.cleanupOldExpiredSubscriptions();
+            logger.info("Old expired subscription cleanup completed");
+        } catch (Exception e) {
+            logger.error("Error during old expired subscription cleanup: {}", e.getMessage(), e);
         }
     }
 

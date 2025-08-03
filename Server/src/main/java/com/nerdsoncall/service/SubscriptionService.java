@@ -21,7 +21,7 @@ public class SubscriptionService {
     }
 
     public Optional<Subscription> getActiveSubscription(User user) {
-        return subscriptionRepository.findActiveSubscriptionByUser(user);
+        return subscriptionRepository.findActiveSubscriptionByUser(user, LocalDateTime.now());
     }
 
     public List<Subscription> getSubscriptionsByUser(User user) {
@@ -29,23 +29,17 @@ public class SubscriptionService {
     }
 
     public boolean canUserCreateSession(User user) {
+        // First check if user has a valid subscription
+        if (!hasValidSubscription(user)) {
+            return false;
+        }
+
         Optional<Subscription> activeSubscription = getActiveSubscription(user);
         if (activeSubscription.isEmpty()) {
             return false;
         }
 
         Subscription subscription = activeSubscription.get();
-        
-        // Check if subscription is still active
-        if (subscription.getStatus() != Subscription.Status.ACTIVE) {
-            return false;
-        }
-
-        // Check if within date range
-        LocalDateTime now = LocalDateTime.now();
-        if (now.isBefore(subscription.getStartDate()) || now.isAfter(subscription.getEndDate())) {
-            return false;
-        }
 
         // Check session limits (unlimited if limit is -1)
         if (subscription.getSessionsLimit() != -1) {
@@ -70,10 +64,41 @@ public class SubscriptionService {
 
     public void processExpiredSubscriptions() {
         List<Subscription> expiredSubscriptions = getExpiredSubscriptions();
-        expiredSubscriptions.forEach(subscription -> {
+        int expiredCount = 0;
+        for (Subscription subscription : expiredSubscriptions) {
             subscription.setStatus(Subscription.Status.EXPIRED);
             subscriptionRepository.save(subscription);
-        });
+            expiredCount++;
+
+            // Log the expiration
+            System.out.println("Expired subscription for user: " + subscription.getUser().getEmail() +
+                " (Plan: " + subscription.getPlanName() + ", End Date: " + subscription.getEndDate() + ")");
+        }
+
+        if (expiredCount > 0) {
+            System.out.println("Processed " + expiredCount + " expired subscriptions");
+        }
+    }
+
+    /**
+     * Clean up expired subscriptions that are older than 30 days
+     * This helps keep the database clean while maintaining some history
+     */
+    public void cleanupOldExpiredSubscriptions() {
+        LocalDateTime cutoffDate = LocalDateTime.now().minusDays(30);
+        List<Subscription> oldExpiredSubscriptions = subscriptionRepository.findExpiredSubscriptionsOlderThan(cutoffDate);
+
+        int deletedCount = 0;
+        for (Subscription subscription : oldExpiredSubscriptions) {
+            System.out.println("Deleting old expired subscription for user: " + subscription.getUser().getEmail() +
+                " (Expired: " + subscription.getEndDate() + ")");
+            subscriptionRepository.delete(subscription);
+            deletedCount++;
+        }
+
+        if (deletedCount > 0) {
+            System.out.println("Cleaned up " + deletedCount + " old expired subscriptions");
+        }
     }
 
     public Subscription cancelSubscription(Long subscriptionId) {
@@ -81,6 +106,25 @@ public class SubscriptionService {
                 .orElseThrow(() -> new RuntimeException("Subscription not found"));
         subscription.setStatus(Subscription.Status.CANCELED);
         return subscriptionRepository.save(subscription);
+    }
+
+    /**
+     * Check if user has any valid subscription (active and not expired)
+     * This is the main method to check subscription access
+     */
+    public boolean hasValidSubscription(User user) {
+        Optional<Subscription> activeSubscription = getActiveSubscription(user);
+        if (activeSubscription.isEmpty()) {
+            return false;
+        }
+
+        Subscription subscription = activeSubscription.get();
+        LocalDateTime now = LocalDateTime.now();
+
+        // Check status and date range
+        return subscription.getStatus() == Subscription.Status.ACTIVE &&
+               !now.isAfter(subscription.getEndDate()) &&
+               !now.isBefore(subscription.getStartDate());
     }
 
     public Optional<Subscription> findByRazorpayOrderId(String razorpayOrderId) {
