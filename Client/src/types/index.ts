@@ -78,7 +78,7 @@ export interface Subscription {
   id: number;
   user: User;
   planType: "BASIC" | "STANDARD" | "PREMIUM";
-  status: "ACTIVE" | "CANCELED" | "EXPIRED" | "PAST_DUE";
+  status: "ACTIVE" | "CANCELED" | "EXPIRED" | "PAST_DUE" | "PENDING";
   price: number;
   startDate: string;
   endDate: string;
@@ -86,6 +86,8 @@ export interface Subscription {
   stripeCustomerId?: string;
   sessionsUsed: number;
   sessionsLimit?: number;
+  planName?: string;
+  razorpayOrderId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -190,6 +192,7 @@ export interface Plan {
   price: number;
   sessionsLimit: number;
   description: string;
+  duration: "MONTHLY" | "QUARTERLY" | "YEARLY";
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

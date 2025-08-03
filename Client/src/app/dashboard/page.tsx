@@ -1,58 +1,67 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useRef } from "react"
-import Link from "next/link"
-import { useAuth } from "@/context/AuthContext"
-import { api } from "@/lib/api"
-import { useDashboard } from "@/hooks/useDashboard"
-import { useTutorDashboard } from "@/hooks/useTutorDashboard"
-import { Subscription } from "@/types"
-import { Navbar } from "@/components/layout/Navbar"
-import { Footer } from "@/components/layout/Footer"
-import { Button } from "@/components/ui/Button"
+import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
+import { api } from "@/lib/api";
+import { useDashboard } from "@/hooks/useDashboard";
+import { useTutorDashboard } from "@/hooks/useTutorDashboard";
+import { Subscription } from "@/types";
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { BlockLoader } from "@/components/ui/Loader"
+  isSubscriptionValid,
+  isSubscriptionExpired,
+  getSubscriptionStatusText,
+  getSubscriptionStatusVariant,
+  formatSubscriptionDisplay,
+  getDaysRemaining,
+} from "@/lib/subscription";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
+import { Button } from "@/components/ui/Button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BlockLoader } from "@/components/ui/Loader";
 
 import {
-    BookOpen,
-    Users,
-    Clock,
-    Star,
-    MessageCircle,
-    Video,
-    Calendar,
-    TrendingUp,
-    PlusCircle,
-    IndianRupee,
-    Crown,
-    Trophy,
-    Target,
-    Zap,
-    Heart,
-    Award,
-    Sparkles,
-    BarChart3,
-    GraduationCap,
-    PlayCircle,
-    ArrowRight,
-    Bell,
-    Search,
-    Filter,
-    Settings,
-    Power,
-    CheckCircle,
-    XCircle,
-    RefreshCw,
-} from "lucide-react"
+  BookOpen,
+  Users,
+  Clock,
+  Star,
+  MessageCircle,
+  Video,
+  Calendar,
+  TrendingUp,
+  PlusCircle,
+  IndianRupee,
+  Crown,
+  Trophy,
+  Target,
+  Zap,
+  Heart,
+  Award,
+  Sparkles,
+  AlertTriangle,
+  BarChart3,
+  GraduationCap,
+  PlayCircle,
+  ArrowRight,
+  Bell,
+  Search,
+  Filter,
+  Settings,
+  Power,
+  CheckCircle,
+  XCircle,
+  RefreshCw,
+} from "lucide-react";
 
 export default function DashboardPage() {
     const { user, loading } = useAuth()
@@ -65,129 +74,122 @@ export default function DashboardPage() {
     const isStudent = user?.role === "STUDENT"
     const isTutor = user?.role === "TUTOR"
 
-    // Fetch dashboard data for students
-    const {
-        dashboardData,
-        loading: dashboardLoading,
-        error: dashboardError,
-        refetch,
-    } = useDashboard()
+  // Fetch dashboard data for students
+  const {
+    dashboardData,
+    loading: dashboardLoading,
+    error: dashboardError,
+    refetch,
+  } = useDashboard();
 
-    // Fetch dashboard data for tutors
-    const {
-        dashboardData: tutorDashboardData,
-        loading: tutorDashboardLoading,
-        error: tutorDashboardError,
-        refetch: tutorRefetch,
-    } = useTutorDashboard()
+  // Fetch dashboard data for tutors
+  const {
+    dashboardData: tutorDashboardData,
+    loading: tutorDashboardLoading,
+    error: tutorDashboardError,
+    refetch: tutorRefetch,
+  } = useTutorDashboard();
 
-    // Track if we've already fetched data to prevent continuous fetching
-    const hasFetchedRef = useRef(false)
+  // Track if we've already fetched data to prevent continuous fetching
+  const hasFetchedRef = useRef(false);
 
-    // Fetch subscription data for students
-    const fetchSubscription = async () => {
-        if (user && user.role === "STUDENT") {
-            try {
-                setSubscriptionLoading(true)
-                const res = await api.get<Subscription | string>(
-                    "/subscriptions/my-subscription"
-                )
-                if (
-                    typeof res.data === "object" &&
-                    res.data !== null &&
-                    "id" in res.data
-                ) {
-                    setSubscription(res.data as Subscription)
-                } else {
-                    setSubscription(null)
-                }
-            } catch {
-                setSubscription(null)
-            } finally {
-                setSubscriptionLoading(false)
-            }
-        }
-    }
-
-    // Fetch data only once when user is ready
-    useEffect(() => {
+  // Fetch subscription data for students
+  const fetchSubscription = async () => {
+    if (user && user.role === "STUDENT") {
+      try {
+        setSubscriptionLoading(true);
+        const res = await api.get<Subscription | string>(
+          "/subscriptions/my-subscription"
+        );
         if (
-            user &&
-            user.role === "STUDENT" &&
-            !loading &&
-            !hasFetchedRef.current
+          typeof res.data === "object" &&
+          res.data !== null &&
+          "id" in res.data
         ) {
-            console.log(
-                "🎯 Dashboard page loaded, fetching student data once..."
-            )
-            hasFetchedRef.current = true
-            refetch()
-            fetchSubscription()
-        } else if (
-            user &&
-            user.role === "TUTOR" &&
-            !loading &&
-            !hasFetchedRef.current
-        ) {
-            console.log("🎯 Dashboard page loaded, fetching tutor data once...")
-            hasFetchedRef.current = true
-            tutorRefetch()
+          setSubscription(res.data as Subscription);
+        } else {
+          setSubscription(null);
         }
-    }, [user, loading, refetch, tutorRefetch])
-
-    // Helper function to get icon component from string
-    const getIconComponent = (iconName: string) => {
-        const icons: { [key: string]: any } = {
-            Video,
-            BookOpen,
-            Star,
-            MessageCircle,
-            Clock,
-            Users,
-            CheckCircle,
-            XCircle,
-        }
-        return icons[iconName] || BookOpen
+      } catch {
+        setSubscription(null);
+      } finally {
+        setSubscriptionLoading(false);
+      }
     }
+  };
 
-    // Sync local state with user data when user changes
-    useEffect(() => {
-        if (user) {
-            setIsOnline(user.isOnline || false)
-        }
-    }, [user])
-
-    const handleOnlineStatusToggle = async () => {
-        if (updatingStatus) return
-
-        setUpdatingStatus(true)
-        try {
-            const newStatus = !isOnline
-            await api.put(`/users/online-status?isOnline=${newStatus}`)
-            setIsOnline(newStatus)
-            // Update the user context if needed
-            window.location.reload() // Simple refresh to update the user state
-        } catch (error) {
-            console.error("Error updating online status:", error)
-        } finally {
-            setUpdatingStatus(false)
-        }
+  // Fetch data only once when user is ready
+  useEffect(() => {
+    if (user && user.role === "STUDENT" && !loading && !hasFetchedRef.current) {
+      console.log("🎯 Dashboard page loaded, fetching student data once...");
+      hasFetchedRef.current = true;
+      refetch();
+      fetchSubscription();
+    } else if (
+      user &&
+      user.role === "TUTOR" &&
+      !loading &&
+      !hasFetchedRef.current
+    ) {
+      console.log("🎯 Dashboard page loaded, fetching tutor data once...");
+      hasFetchedRef.current = true;
+      tutorRefetch();
     }
+  }, [user, loading, refetch, tutorRefetch]);
 
-    if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-purple-200">
-                <div className="text-center">
-                    <div className="w-24 h-24 mx-auto mb-6 bg-yellow-400 border-4 border-black shadow-[8px_8px_0px_0px_black] flex items-center justify-center animate-bounce">
-                        <Crown className="h-12 w-12 text-black" />
-                    </div>
-                    <p className="text-black text-2xl font-black uppercase tracking-wide bg-white px-6 py-3 border-4 border-black shadow-[4px_4px_0px_0px_black]">
-                        Loading your dashboard...
-                    </p>
-                </div>
-            </div>
-        )
+  // Helper function to get icon component from string
+  const getIconComponent = (iconName: string) => {
+    const icons: { [key: string]: any } = {
+      Video,
+      BookOpen,
+      Star,
+      MessageCircle,
+      Clock,
+      Users,
+      CheckCircle,
+      XCircle,
+    };
+    return icons[iconName] || BookOpen;
+  };
+
+  // Sync local state with user data when user changes
+  useEffect(() => {
+    if (user) {
+      setIsOnline(user.isOnline || false);
     }
+  }, [user]);
+
+  const handleOnlineStatusToggle = async () => {
+    if (updatingStatus) return;
+
+    setUpdatingStatus(true);
+    try {
+      const newStatus = !isOnline;
+      await api.put(`/users/online-status?isOnline=${newStatus}`);
+      setIsOnline(newStatus);
+      // Update the user context if needed
+      window.location.reload(); // Simple refresh to update the user state
+    } catch (error) {
+      console.error("Error updating online status:", error);
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-purple-200">
+        <div className="text-center">
+          <div className="w-24 h-24 mx-auto mb-6 bg-yellow-400 border-4 border-black shadow-[8px_8px_0px_0px_black] flex items-center justify-center animate-bounce">
+            <Crown className="h-12 w-12 text-black" />
+          </div>
+          <p className="text-black text-2xl font-black uppercase tracking-wide bg-white px-6 py-3 border-4 border-black shadow-[4px_4px_0px_0px_black]">
+            Loading your dashboard...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
     if (!user) {
         return (
@@ -220,69 +222,62 @@ export default function DashboardPage() {
         )
     }
 
-    // Get subscription display text
-    const getSubscriptionDisplay = () => {
-        if (subscriptionLoading) return "Loading..."
-        if (!subscription) return "No Active Plan"
-        return `${subscription.planName} Plan`
-    }
+  // Get subscription display text with expiration info
+  const getSubscriptionDisplay = () => {
+    if (subscriptionLoading) return "Loading...";
+    return formatSubscriptionDisplay(subscription);
+  };
 
-    // Get subscription badge variant
-    const getSubscriptionVariant = () => {
-        if (!subscription) return "destructive"
-        if (subscription.status === "ACTIVE") return "default"
-        return "secondary"
-    }
+  // Get subscription badge variant based on validity
+  const getSubscriptionVariant = () => {
+    return getSubscriptionStatusVariant(subscription);
+  };
 
-    return (
-        <div className="min-h-screen bg-purple-200">
-            <Navbar />
-            <div className="pt-24 pb-12">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    {/* Header with mobile optimization */}
-                    <div className="mb-10 lg:mb-12">
-                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 lg:gap-0">
-                            <div className="px-2 sm:px-0">
-                                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-black mb-4 leading-tight uppercase tracking-wide">
-                                    Welcome back,{" "}
-                                    <Link
-                                        href={`/profile/${user.id}`}
-                                        className="hover:translate-x-[-2px] hover:translate-y-[-2px] transition-transform duration-100 cursor-pointer bg-yellow-400 px-2 py-1 border-2 border-black shadow-[2px_2px_0px_0px_black] inline-block"
-                                    >
-                                        {user.firstName}
-                                    </Link>
-                                    !
-                                </h1>
-                                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-                                    <Badge
-                                        variant={
-                                            isTutor
-                                                ? "default"
-                                                : subscription &&
-                                                  subscription.status ===
-                                                      "ACTIVE"
-                                                ? "secondary"
-                                                : "destructive"
-                                        }
-                                        className="w-fit text-base"
-                                    >
-                                        {isTutor && (
-                                            <Crown className="w-5 h-5 mr-2" />
-                                        )}
-                                        {isTutor
-                                            ? "Elite Tutor"
-                                            : getSubscriptionDisplay()}
-                                    </Badge>
-                                    <span className="hidden sm:inline text-black font-bold text-xl">
-                                        •
-                                    </span>
-                                    <span className="text-black text-lg font-bold uppercase tracking-wide">
-                                        Dashboard
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
-                                {/* <Button
+  // Check if subscription needs attention (expired or expiring soon)
+  const needsSubscriptionAttention = () => {
+    if (!subscription) return true;
+    if (isSubscriptionExpired(subscription)) return true;
+    const daysRemaining = getDaysRemaining(subscription);
+    return daysRemaining <= 7; // Show warning if 7 days or less remaining
+  };
+
+  return (
+    <div className="min-h-screen bg-purple-200">
+      <Navbar />
+      <div className="pt-24 pb-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Header with mobile optimization */}
+          <div className="mb-10 lg:mb-12">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 lg:gap-0">
+              <div className="px-2 sm:px-0">
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-black mb-4 leading-tight uppercase tracking-wide">
+                  Welcome back,{" "}
+                  <Link
+                    href={`/profile/${user.id}`}
+                    className="hover:translate-x-[-2px] hover:translate-y-[-2px] transition-transform duration-100 cursor-pointer bg-yellow-400 px-2 py-1 border-2 border-black shadow-[2px_2px_0px_0px_black] inline-block"
+                  >
+                    {user.firstName}
+                  </Link>
+                  !
+                </h1>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                  <Badge
+                    variant={isTutor ? "default" : getSubscriptionVariant()}
+                    className="w-fit text-base"
+                  >
+                    {isTutor && <Crown className="w-5 h-5 mr-2" />}
+                    {isTutor ? "Elite Tutor" : getSubscriptionDisplay()}
+                  </Badge>
+                  <span className="hidden sm:inline text-black font-bold text-xl">
+                    •
+                  </span>
+                  <span className="text-black text-lg font-bold uppercase tracking-wide">
+                    Dashboard
+                  </span>
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+                {/* <Button
                                     variant="outline"
                                     size="sm"
                                     className="group border-slate-300 text-slate-700 hover:bg-slate-50 w-full sm:w-auto"
@@ -290,141 +285,154 @@ export default function DashboardPage() {
                                     <Bell className="w-4 h-4 mr-2 group-hover:animate-pulse" />
                                     Notifications
                                 </Button> */}
-                                <Link
-                                    href={
-                                        isStudent
-                                            ? "/search-tutors"
-                                            : "/create-session"
-                                    }
-                                >
-                                    {/* <Button className="bg-gradient-to-r from-slate-700 to-slate-900 hover:from-slate-800 hover:to-slate-950 text-white border-0 group w-full sm:w-auto">
+                <Link href={isStudent ? "/search-tutors" : "/create-session"}>
+                  {/* <Button className="bg-gradient-to-r from-slate-700 to-slate-900 hover:from-slate-800 hover:to-slate-950 text-white border-0 group w-full sm:w-auto">
                                         <PlusCircle className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform" />
                                         {isStudent
                                             ? "Book Session"
                                             : "Create Session"}
                                         <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                                     </Button> */}
-                                </Link>
-                            </div>
-                        </div>
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Load Data Button for Students */}
+          {isStudent && !dashboardData && !dashboardLoading && (
+            <div className="mb-8">
+              <Card className="bg-cyan-300">
+                <CardContent>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                      <h3 className="text-xl font-black text-black mb-2 uppercase tracking-wide">
+                        Welcome to Your Dashboard!
+                      </h3>
+                      <p className="text-black text-base font-bold">
+                        learning statistics and recent activities.
+                      </p>
                     </div>
+                    <Button
+                      onClick={refetch}
+                      variant="default"
+                      disabled={dashboardLoading}
+                      className="w-full sm:w-auto"
+                    >
+                      <RefreshCw
+                        className={`w-5 h-5 mr-2 ${
+                          dashboardLoading ? "animate-spin" : ""
+                        }`}
+                      />
+                      Load Dashboard Data
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
-                    {/* Load Data Button for Students */}
-                    {isStudent && !dashboardData && !dashboardLoading && (
-                        <div className="mb-8">
-                            <Card className="bg-cyan-300">
-                                <CardContent>
-                                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                                        <div>
-                                            <h3 className="text-xl font-black text-black mb-2 uppercase tracking-wide">
-                                                Welcome to Your Dashboard!
-                                            </h3>
-                                            <p className="text-black text-base font-bold">
-                                                learning statistics and recent
-                                                activities.
-                                            </p>
-                                        </div>
-                                        <Button
-                                            onClick={refetch}
-                                            variant="default"
-                                            disabled={dashboardLoading}
-                                            className="w-full sm:w-auto"
-                                        >
-                                            <RefreshCw
-                                                className={`w-5 h-5 mr-2 ${
-                                                    dashboardLoading
-                                                        ? "animate-spin"
-                                                        : ""
-                                                }`}
-                                            />
-                                            Load Dashboard Data
-                                        </Button>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </div>
+          {/* Subscription Warning - Only for Students with subscription issues */}
+          {isStudent && needsSubscriptionAttention() && (
+            <div className="mb-10 lg:mb-12">
+              <Card className="bg-red-300 border-3 border-black shadow-[6px_6px_0px_0px_black]">
+                <CardContent className="p-6">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 bg-black border-2 border-black flex items-center justify-center shadow-[4px_4px_0px_0px_black]">
+                        <AlertTriangle className="h-6 w-6 text-yellow-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-black text-black mb-2 uppercase tracking-wide">
+                          {isSubscriptionExpired(subscription)
+                            ? "Subscription Expired"
+                            : "Subscription Expiring Soon"}
+                        </h3>
+                        <p className="text-black text-base font-bold">
+                          {isSubscriptionExpired(subscription)
+                            ? "Your subscription has expired. Renew now to continue accessing our services."
+                            : `Your subscription expires in ${getDaysRemaining(
+                                subscription
+                              )} days. Renew now to avoid service interruption.`}
+                        </p>
+                      </div>
+                    </div>
+                    <Link href="/pricing">
+                      <Button className="bg-black hover:bg-gray-800 text-white font-black border-3 border-black shadow-[4px_4px_0px_0px_black] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] transition-all uppercase tracking-wide w-full sm:w-auto">
+                        Renew Subscription
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Stats Cards - Only for Students */}
+          {isStudent && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 mb-10 lg:mb-12">
+              <Card className="bg-yellow-300">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                  <CardTitle className="text-base font-black text-black uppercase tracking-wide">
+                    Sessions Attended
+                  </CardTitle>
+                  <div className="w-12 h-12 bg-black border-3 border-black shadow-[4px_4px_0px_0px_black] flex items-center justify-center">
+                    <Video className="h-6 w-6 text-white" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-black text-black">
+                    {dashboardLoading ? (
+                      <div className="flex items-center">
+                        <BlockLoader size="sm" className="mr-3" />
+                        <span className="text-2xl">...</span>
+                      </div>
+                    ) : (
+                      dashboardData?.sessionsAttended || 0
                     )}
+                  </div>
+                  <p className="text-sm text-black font-bold mt-2 uppercase tracking-wide">
+                    Completed sessions
+                  </p>
+                </CardContent>
+              </Card>
 
-                    {/* Stats Cards - Only for Students */}
-                    {isStudent && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 mb-10 lg:mb-12">
-                            <Card className="bg-yellow-300">
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0">
-                                    <CardTitle className="text-base font-black text-black uppercase tracking-wide">
-                                        Sessions Attended
-                                    </CardTitle>
-                                    <div className="w-12 h-12 bg-black border-3 border-black shadow-[4px_4px_0px_0px_black] flex items-center justify-center">
-                                        <Video className="h-6 w-6 text-white" />
-                                    </div>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-3xl font-black text-black">
-                                        {dashboardLoading ? (
-                                            <div className="flex items-center">
-                                                <BlockLoader
-                                                    size="sm"
-                                                    className="mr-3"
-                                                />
-                                                <span className="text-2xl">
-                                                    ...
-                                                </span>
-                                            </div>
-                                        ) : (
-                                            dashboardData?.sessionsAttended || 0
-                                        )}
-                                    </div>
-                                    <p className="text-sm text-black font-bold mt-2 uppercase tracking-wide">
-                                        Completed sessions
-                                    </p>
-                                </CardContent>
-                            </Card>
-
-                            <Card className="bg-pink-300">
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0">
-                                    <CardTitle className="text-base font-black text-black uppercase tracking-wide">
-                                        Hours Learned
-                                    </CardTitle>
-                                    <div className="w-12 h-12 bg-black border-3 border-black shadow-[4px_4px_0px_0px_black] flex items-center justify-center">
-                                        <Clock className="h-6 w-6 text-white" />
-                                    </div>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-3xl font-black text-black">
-                                        {dashboardLoading ? (
-                                            <div className="flex items-center">
-                                                <BlockLoader
-                                                    size="sm"
-                                                    className="mr-3"
-                                                />
-                                                <span className="text-2xl">
-                                                    ...
-                                                </span>
-                                            </div>
-                                        ) : (
-                                            `${
-                                                dashboardData?.hoursLearned || 0
-                                            }h`
-                                        )}
-                                    </div>
-                                    <p className="text-sm text-black font-bold mt-2 uppercase tracking-wide">
-                                        Actual learning time
-                                    </p>
-                                    {dashboardData &&
-                                        dashboardData.hoursLearned > 0 && (
-                                            <p className="text-sm text-black font-bold mt-2 bg-white px-2 py-1 border-2 border-black shadow-[2px_2px_0px_0px_black] inline-block">
-                                                {Math.round(
-                                                    (dashboardData.hoursLearned /
-                                                        (dashboardData.sessionsAttended ||
-                                                            1)) *
-                                                        10
-                                                ) / 10}
-                                                h avg per session
-                                            </p>
-                                        )}
-                                </CardContent>
-                            </Card>
-                        </div>
+              <Card className="bg-pink-300">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                  <CardTitle className="text-base font-black text-black uppercase tracking-wide">
+                    Hours Learned
+                  </CardTitle>
+                  <div className="w-12 h-12 bg-black border-3 border-black shadow-[4px_4px_0px_0px_black] flex items-center justify-center">
+                    <Clock className="h-6 w-6 text-white" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-black text-black">
+                    {dashboardLoading ? (
+                      <div className="flex items-center">
+                        <BlockLoader size="sm" className="mr-3" />
+                        <span className="text-2xl">...</span>
+                      </div>
+                    ) : (
+                      `${dashboardData?.hoursLearned || 0}h`
                     )}
+                  </div>
+                  <p className="text-sm text-black font-bold mt-2 uppercase tracking-wide">
+                    Actual learning time
+                  </p>
+                  {dashboardData && dashboardData.hoursLearned > 0 && (
+                    <p className="text-sm text-black font-bold mt-2 bg-white px-2 py-1 border-2 border-black shadow-[2px_2px_0px_0px_black] inline-block">
+                      {Math.round(
+                        (dashboardData.hoursLearned /
+                          (dashboardData.sessionsAttended || 1)) *
+                          10
+                      ) / 10}
+                      h avg per session
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
                     {/* Tutor Stats - Real data from database */}
                     {isTutor && (
