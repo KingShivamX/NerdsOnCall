@@ -31,7 +31,8 @@ import { BlockLoader } from "@/components/ui/Loader";
 import toast from "react-hot-toast";
 import { getUserFriendlyErrorMessage } from "@/utils/errorMessages";
 
-const SUBJECTS = [
+// All available subjects (fallback when no tutor is selected)
+const ALL_SUBJECTS = [
   { value: "MATHEMATICS", label: "Mathematics" },
   { value: "PHYSICS", label: "Physics" },
   { value: "CHEMISTRY", label: "Chemistry" },
@@ -48,6 +49,14 @@ const SUBJECTS = [
   { value: "GEOMETRY", label: "Geometry" },
   { value: "TRIGONOMETRY", label: "Trigonometry" },
 ];
+
+// Helper function to convert subject enum to display format
+const formatSubjectLabel = (subject: string) => {
+  return subject
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+};
 
 const PRIORITIES = [
   { value: "LOW", label: "Low", color: "bg-green-100 text-green-800" },
@@ -68,6 +77,9 @@ export default function AskQuestionPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedTutor, setSelectedTutor] = useState<any>(null);
   const [loadingTutor, setLoadingTutor] = useState(false);
+  const [tutorSubjects, setTutorSubjects] = useState<
+    Array<{ value: string; label: string }>
+  >([]);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -81,6 +93,9 @@ export default function AskQuestionPage() {
   useEffect(() => {
     if (tutorId) {
       fetchTutorInfo();
+    } else {
+      // If no tutor is selected, use all subjects
+      setTutorSubjects(ALL_SUBJECTS);
     }
   }, [tutorId]);
 
@@ -90,10 +105,27 @@ export default function AskQuestionPage() {
     try {
       setLoadingTutor(true);
       const response = await api.get(`/users/${tutorId}`);
-      setSelectedTutor(response.data);
+      const tutorData = response.data;
+      setSelectedTutor(tutorData);
+
+      // Extract tutor's subjects and format them for the dropdown
+      if (tutorData.subjects && tutorData.subjects.length > 0) {
+        const formattedSubjects = tutorData.subjects.map((subject: string) => ({
+          value: subject,
+          label: formatSubjectLabel(subject),
+        }));
+        setTutorSubjects(formattedSubjects);
+        console.log("📚 Tutor subjects:", formattedSubjects);
+      } else {
+        // If tutor has no subjects, use all subjects as fallback
+        setTutorSubjects(ALL_SUBJECTS);
+        console.log("⚠️ Tutor has no subjects, using all subjects as fallback");
+      }
     } catch (error) {
       console.error("Error fetching tutor info:", error);
       toast.error("Failed to load tutor information");
+      // Use all subjects as fallback on error
+      setTutorSubjects(ALL_SUBJECTS);
     } finally {
       setLoadingTutor(false);
     }
@@ -285,24 +317,55 @@ export default function AskQuestionPage() {
               <div className="relative z-50">
                 <label className="block text-sm font-black text-black mb-3 uppercase tracking-wide">
                   Subject <span className="text-red-500">*</span>
+                  {tutorId && selectedTutor && (
+                    <span className="ml-2 text-xs font-normal text-gray-600 normal-case">
+                      (Subjects taught by {selectedTutor.firstName}{" "}
+                      {selectedTutor.lastName})
+                    </span>
+                  )}
                 </label>
                 <Select
                   value={formData.subject}
                   onValueChange={(value) => handleInputChange("subject", value)}
+                  disabled={loadingTutor}
                 >
-                  <SelectTrigger className="h-12 bg-white border-3 border-black shadow-[4px_4px_0px_0px_black] text-black font-bold hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] transition-all">
-                    <SelectValue placeholder="Select a subject" />
+                  <SelectTrigger className="h-12 bg-white border-3 border-black shadow-[4px_4px_0px_0px_black] text-black font-bold hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_black] transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                    <SelectValue
+                      placeholder={
+                        loadingTutor
+                          ? "Loading subjects..."
+                          : "Select a subject"
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent className="bg-white border-3 border-black shadow-[4px_4px_0px_0px_black] z-50 max-h-60 overflow-y-auto">
-                    {SUBJECTS.map((subject) => (
+                    {loadingTutor ? (
                       <SelectItem
-                        key={subject.value}
-                        value={subject.value}
-                        className="hover:bg-yellow-200 focus:bg-yellow-200 cursor-pointer px-3 py-2 text-black font-bold"
+                        value="loading"
+                        disabled
+                        className="text-gray-500"
                       >
-                        {subject.label}
+                        Loading subjects...
                       </SelectItem>
-                    ))}
+                    ) : tutorSubjects.length > 0 ? (
+                      tutorSubjects.map((subject) => (
+                        <SelectItem
+                          key={subject.value}
+                          value={subject.value}
+                          className="hover:bg-yellow-200 focus:bg-yellow-200 cursor-pointer px-3 py-2 text-black font-bold"
+                        >
+                          {subject.label}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem
+                        value="no-subjects"
+                        disabled
+                        className="text-gray-500"
+                      >
+                        No subjects available
+                      </SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>

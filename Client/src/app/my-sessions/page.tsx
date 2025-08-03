@@ -227,7 +227,7 @@ export default function MySessionsPage() {
                                 <Link href="/browse-tutors">
                                     <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800">
                                         <Plus className="h-4 w-4 mr-2" />
-                                        Book New Session
+                                        Take New Session
                                     </Button>
                                 </Link>
                             )}
