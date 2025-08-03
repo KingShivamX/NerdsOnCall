@@ -92,44 +92,40 @@ export default function AboutPage() {
     <div className="min-h-screen bg-orange-100">
       <Navbar />
 
-            {/* Hero Section */}
-            <section className="pt-20 pb-16 px-4 sm:px-6 lg:px-8">
-                <div className="max-w-7xl mx-auto">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-                        {/* Content Section */}
-                        <div className="text-center lg:text-left order-2 lg:order-1">
-                            <Badge className="mb-6 bg-black text-white px-6 py-3 border-3 border-black shadow-[4px_4px_0px_0px_black] font-black uppercase tracking-wide">
-                                About NerdsOnCall
-                            </Badge>
-                            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-black mb-6 leading-tight uppercase">
-                                Revolutionizing Education
-                                <span className="text-black">
-                                    {" "}
-                                    One Student at a Time
-                                </span>
-                            </h1>
-                            <p className="text-xl text-black max-w-3xl mx-auto lg:mx-0 mb-8 leading-relaxed font-bold">
-                                We're on a mission to make quality education
-                                accessible to every student, anywhere in the
-                                world. Through innovative technology and expert
-                                tutors, we're transforming how students learn
-                                and succeed.
-                            </p>
-                        </div>
+      {/* Hero Section */}
+      <section className="pt-20 pb-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+            {/* Content Section */}
+            <div className="text-center lg:text-left order-2 lg:order-1">
+              <Badge className="mb-6 bg-black text-white px-6 py-3 border-3 border-black shadow-[4px_4px_0px_0px_black] font-black uppercase tracking-wide">
+                About NerdsOnCall
+              </Badge>
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-black mb-6 leading-tight uppercase">
+                Revolutionizing Education
+                <span className="text-black"> One Student at a Time</span>
+              </h1>
+              <p className="text-xl text-black max-w-3xl mx-auto lg:mx-0 mb-8 leading-relaxed font-bold">
+                We're on a mission to make quality education accessible to every
+                student, anywhere in the world. Through innovative technology
+                and expert tutors, we're transforming how students learn and
+                succeed.
+              </p>
+            </div>
 
-                        {/* Image Section */}
-                        <div className="flex justify-center items-center order-1 lg:order-2">
-                            <div className="relative">
-                                <img
-                                    src="/about-page.png"
-                                    alt="About Us Illustration"
-                                    className="w-full max-w-lg h-auto"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+            {/* Image Section */}
+            <div className="flex justify-center items-center order-1 lg:order-2">
+              <div className="relative">
+                <img
+                  src="/about-page.png"
+                  alt="About Us Illustration"
+                  className="w-full max-w-lg h-auto"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Mission & Vision */}
       <section className="py-20 bg-yellow-100">
@@ -205,13 +201,13 @@ export default function AboutPage() {
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-pink-100">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-black text-black mb-6 uppercase tracking-wide">
+            <h2 className="text-2xl sm:text-4xl font-black text-black mb-6 uppercase tracking-wide">
               Our Core Values
             </h2>
-            <p className="text-xl text-black max-w-3xl mx-auto font-bold">
+            <div className="text-xl text-black max-w-3xl mx-auto font-bold">
               The principles that guide everything we do and shape our
               commitment to educational excellence
-            </p>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -224,9 +220,9 @@ export default function AboutPage() {
                   <div className="w-16 h-16 bg-black border-2 border-black flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
                     <value.icon className="h-8 w-8 text-white" />
                   </div>
-                  <h3 className="text-lg font-black text-black mb-3 uppercase tracking-wide">
+                  <h4 className="font-black text-black mb-3 uppercase tracking-wide">
                     {value.title}
-                  </h3>
+                  </h4>
                   <p className="text-black text-sm leading-relaxed font-bold">
                     {value.description}
                   </p>
@@ -244,10 +240,10 @@ export default function AboutPage() {
             <h2 className="text-3xl sm:text-4xl font-black text-black mb-6 uppercase tracking-wide">
               Built with Modern Technology
             </h2>
-            <p className="text-xl text-black max-w-3xl mx-auto font-bold">
+            <div className="text-xl text-black max-w-3xl mx-auto font-bold">
               Our platform leverages cutting-edge technology to deliver the best
               learning experience
-            </p>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -274,14 +270,14 @@ export default function AboutPage() {
           <div className="mt-12 text-center">
             <div className="bg-black border-3 border-black shadow-[6px_6px_0px_0px_black] p-8 text-white">
               <Code className="h-12 w-12 mx-auto mb-4 text-cyan-300" />
-              <h3 className="text-2xl font-black mb-4 uppercase tracking-wide text-white">
+              <div className="text-2xl font-black mb-4 uppercase tracking-wide text-white">
                 Open Source & Secure
-              </h3>
-              <p className="text-white max-w-2xl mx-auto mb-6 font-bold">
+              </div>
+              <div className="text-white max-w-2xl mx-auto mb-6 font-bold">
                 Built with Spring Boot, Next.js, and modern web technologies.
                 Our platform is secure, scalable, and continuously updated with
                 the latest features.
-              </p>
+              </div>
               <div className="flex flex-wrap justify-center gap-3">
                 <Badge className="bg-cyan-300 text-black border-2 border-black shadow-[2px_2px_0px_0px_black] font-black uppercase tracking-wide">
                   Spring Boot
