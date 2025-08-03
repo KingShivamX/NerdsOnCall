@@ -257,10 +257,10 @@ export default function AskQuestionPage() {
                             <div className="text-4xl md:text-5xl font-black mb-6 uppercase tracking-wide text-white">
                                 Ask a Question
                             </div>
-                            <p className="text-xl text-white font-bold max-w-2xl mx-auto uppercase tracking-wide">
+                            <div className="text-xl text-white font-bold max-w-2xl mx-auto uppercase tracking-wide">
                                 Get instant help from our community of expert
                                 tutors and fellow students
-                            </p>
+                            </div>
                         </div>
                     </div>
                 </div>
