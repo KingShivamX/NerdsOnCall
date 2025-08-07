@@ -65,4 +65,18 @@ Thumbs.db
 
 # Application properties (if they contain sensitive data)
 # application-local.properties
-# application-dev.properties 
+# application-dev.properties
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Test files
+test_receipt.pdf
+*.pdf
+
+# Deployment
+.railway/
+.render/ 
+

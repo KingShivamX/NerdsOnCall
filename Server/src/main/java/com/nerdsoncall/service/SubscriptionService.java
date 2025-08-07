@@ -3,6 +3,7 @@ package com.nerdsoncall.service;
 import com.nerdsoncall.entity.Subscription;
 import com.nerdsoncall.entity.User;
 import com.nerdsoncall.repository.SubscriptionRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class SubscriptionService {
 

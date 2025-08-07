@@ -9,6 +9,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.context.annotation.Import;
+import com.nerdsoncall.config.TestConfig;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -22,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @SpringBootTest
 @ActiveProfiles("test")
+@Import(TestConfig.class)
 public class PdfEmailIntegrationTest {
 
     @Autowired

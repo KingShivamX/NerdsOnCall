@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
-import org.springframework.web.socket.config.WebSocketConfigurer;
+import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
