@@ -57,7 +57,7 @@ const subjectsList: Subject[] = [
 ]
 
 export default function ProfilePage() {
-    const { user, updateUser } = useAuth()
+    const { user } = useAuth()
     const router = useRouter()
     const [isEditing, setIsEditing] = useState(false)
     const [loading, setLoading] = useState(false)
@@ -105,7 +105,6 @@ export default function ProfilePage() {
             setLoading(true)
             const response = await api.put("/users/profile", editData)
             setProfileData(response.data)
-            updateUser(response.data)
             setIsEditing(false)
             toast.success("Profile updated successfully!")
         } catch (error: any) {

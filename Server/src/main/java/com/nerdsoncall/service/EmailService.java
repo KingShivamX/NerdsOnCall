@@ -5,15 +5,19 @@ import com.nerdsoncall.entity.Subscription;
 import com.nerdsoncall.entity.User;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
+@Slf4j
 @Service
 public class EmailService {
 
@@ -24,21 +28,45 @@ public class EmailService {
     private PdfService pdfService;
 
     public void sendPasswordResetEmail(String to, String resetToken, String resetUrl) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(to);
-        message.setSubject("Password Reset Request - NerdsOnCall");
-        message.setText(
-            "Hello,\n\n" +
-            "You have requested to reset your password for your NerdsOnCall account.\n\n" +
-            "Please click the following link to reset your password:\n" +
-            resetUrl + "?token=" + resetToken + "\n\n" +
-            "This link will expire in 1 hour.\n\n" +
-            "If you did not request this password reset, please ignore this email.\n\n" +
-            "Best regards,\n" +
-            "NerdsOnCall Team"
-        );
-        
-        mailSender.send(message);
+        try {
+            if (to == null || to.trim().isEmpty()) {
+                throw new IllegalArgumentException("Recipient email cannot be null or empty");
+            }
+
+            if (resetToken == null || resetToken.trim().isEmpty()) {
+                throw new IllegalArgumentException("Reset token cannot be null or empty");
+            }
+
+            if (resetUrl == null || resetUrl.trim().isEmpty()) {
+                throw new IllegalArgumentException("Reset URL cannot be null or empty");
+            }
+
+            log.info("Sending password reset email to: {}", to);
+
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(to.trim());
+            message.setSubject("Password Reset Request - NerdsOnCall");
+            message.setText(
+                "Hello,\n\n" +
+                "You have requested to reset your password for your NerdsOnCall account.\n\n" +
+                "Please click the following link to reset your password:\n" +
+                resetUrl + "?token=" + resetToken + "\n\n" +
+                "This link will expire in 1 hour.\n\n" +
+                "If you did not request this password reset, please ignore this email.\n\n" +
+                "Best regards,\n" +
+                "NerdsOnCall Team"
+            );
+
+            mailSender.send(message);
+            log.info("Password reset email sent successfully to: {}", to);
+
+        } catch (MailException e) {
+            log.error("Failed to send password reset email to {}: {}", to, e.getMessage(), e);
+            throw e; // Re-throw for retry mechanism
+        } catch (Exception e) {
+            log.error("Unexpected error sending password reset email to {}: {}", to, e.getMessage(), e);
+            throw new RuntimeException("Failed to send password reset email", e);
+        }
     }
 
     public void sendPasswordResetSuccessEmail(String to) {

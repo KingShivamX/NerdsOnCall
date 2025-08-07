@@ -2,6 +2,7 @@ package com.nerdsoncall.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -12,6 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+@Slf4j
 @Component
 public class JwtUtil {
 
@@ -75,15 +77,59 @@ public class JwtUtil {
     }
 
     public Boolean validateToken(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        try {
+            if (token == null || token.trim().isEmpty()) {
+                return false;
+            }
+
+            if (userDetails == null || userDetails.getUsername() == null) {
+                return false;
+            }
+
+            final String username = extractUsername(token);
+            return (username != null && username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+
+        } catch (ExpiredJwtException e) {
+            log.warn("JWT token has expired for user: {}", userDetails.getUsername());
+            return false;
+        } catch (MalformedJwtException e) {
+            log.warn("Malformed JWT token for user: {}", userDetails.getUsername());
+            return false;
+        } catch (SignatureException e) {
+            log.warn("Invalid JWT signature for user: {}", userDetails.getUsername());
+            return false;
+        } catch (Exception e) {
+            log.error("Unexpected error validating JWT token for user: {}", userDetails.getUsername(), e);
+            return false;
+        }
     }
 
     public Boolean validateToken(String token) {
         try {
+            if (token == null || token.trim().isEmpty()) {
+                return false;
+            }
+
             Jwts.parser().verifyWith(getSigningKey()).build().parseSignedClaims(token);
             return true;
-        } catch (JwtException | IllegalArgumentException e) {
+
+        } catch (ExpiredJwtException e) {
+            log.debug("JWT token has expired");
+            return false;
+        } catch (MalformedJwtException e) {
+            log.debug("Malformed JWT token");
+            return false;
+        } catch (SignatureException e) {
+            log.debug("Invalid JWT signature");
+            return false;
+        } catch (JwtException e) {
+            log.debug("JWT validation failed: {}", e.getMessage());
+            return false;
+        } catch (IllegalArgumentException e) {
+            log.debug("JWT token compact is invalid");
+            return false;
+        } catch (Exception e) {
+            log.error("Unexpected error validating JWT token", e);
             return false;
         }
     }
