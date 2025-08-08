@@ -4,13 +4,16 @@ spring:
 
   datasource:
     url: ${SPRING_DATASOURCE_URL}
-    driver-class-name: ${SPRING_DATASOURCE_DRIVER:org.postgresql.Driver}
+    driver-class-name: org.postgresql.Driver
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
     hikari:
       auto-commit: true
       maximum-pool-size: 5
       connection-timeout: 30000
+  sql:
+  init:
+    mode: always
 
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
@@ -56,6 +59,7 @@ spring:
 
 server:
   port: ${PORT:8080}
+  address: 0.0.0.0
 
 jwt:
   secret: ${JWT_SECRET}
