@@ -5,6 +5,7 @@
 # ============================================
 
 # ==================== STAGE 1: Build Frontend ====================
+# ==================== STAGE 1: Build Frontend ====================
 FROM node:20-alpine AS frontend-builder
 
 WORKDIR /app/frontend
@@ -20,6 +21,8 @@ COPY Client/ ./
 
 # Set the API URL to the local backend (will be on same container)
 ENV NEXT_PUBLIC_API_URL=http://localhost:8080
+# ADD THIS LINE: Provide a dummy key so the build doesn't crash
+ENV OPENAI_API_KEY=dummy_key_for_build
 
 # Build Next.js for production
 RUN npm run build
