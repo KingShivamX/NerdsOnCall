@@ -115,9 +115,9 @@ public class EmailServiceTest {
         
         assertNotNull(emailBody);
         assertTrue(emailBody.contains(userName));
-        assertTrue(emailBody.contains("Thank you for subscribing"));
+        assertTrue(emailBody.contains("SUBSCRIPTION CONFIRMED"));
         assertTrue(emailBody.contains("NerdsOnCall"));
-        assertTrue(emailBody.contains("PDF document"));
+        assertTrue(emailBody.contains(testSubscription.getPlanName()));
     }
 
     @Test
